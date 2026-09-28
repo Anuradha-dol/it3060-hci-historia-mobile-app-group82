@@ -1,0 +1,56 @@
+### Generated build output ###
+HELP.md
+target/
+*/target/
+*.class
+*.jar
+*.war
+*.nar
+
+### Logs ###
+logs/
+*.log
+backend-run.out
+backend-run.err
+*/backend-run.out
+*/backend-run.err
+
+### IDE ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+### Eclipse / STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+build/
+*/build/
+
+### Local secrets ###
+.env
+.env.*
+!.env.example
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-local.yaml
+backend/src/main/resources/*-local.yml
+backend/src/main/resources/*-local.yaml
+backend/src/main/resources/application-secret.yml
+backend/src/main/resources/application-secret.yaml
+
+### OS files ###
+.DS_Store
+Thumbs.db
