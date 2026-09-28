@@ -6,13 +6,7 @@ IT3060 HCI group project. The app is for exploring historical places, finding lo
 
 Open the `backend` folder in IntelliJ, or import `backend/pom.xml` as a Maven project.
 
-For local credentials, copy:
-
-```text
-backend/src/main/resources/application-local.example.yml
-```
-
-to:
+For local credentials, create this file on your machine:
 
 ```text
 backend/src/main/resources/application-local.yml
