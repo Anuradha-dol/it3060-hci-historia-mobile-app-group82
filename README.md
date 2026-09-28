@@ -1,12 +1,24 @@
-# Historia Mobile App
+# HISTORIA
 
-HISTORIA - A mobile application for exploring historical places, finding local guides, and connecting with travel buddies. Developed for IT3060 HCI.
+IT3060 HCI group project. The app is for exploring historical places, finding local guides, and connecting with travel buddies.
 
 ## Backend
 
-Create `backend/src/main/resources/application-local.yml` from `application-local.example.yml` and add your own database and mail credentials there. The local file is ignored by Git.
+Open the `backend` folder in IntelliJ, or import `backend/pom.xml` as a Maven project.
 
-In IntelliJ IDEA, open the `backend` folder or import `backend/pom.xml` as the Maven project.
+For local credentials, copy:
+
+```text
+backend/src/main/resources/application-local.example.yml
+```
+
+to:
+
+```text
+backend/src/main/resources/application-local.yml
+```
+
+Then add your own database, mail, Google OAuth, and JWT values. The local file is ignored by Git.
 
 ```powershell
 cd backend
