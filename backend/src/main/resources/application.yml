@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: backend
+
+  profiles:
+    active: local
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 250MB
+      max-request-size: 500MB
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/historia
+    username: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 5000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            scope:
+              - email
+              - profile
+            redirect-uri: "http://localhost:8081/login/oauth2/code/google"
+
+server:
+  port: 8081
+
+jwt:
+  secret: ${JWT_SECRET:}
+
+cookie:
+  secure: false
+  same-site: Lax
