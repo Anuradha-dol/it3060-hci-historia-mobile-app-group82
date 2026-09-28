@@ -1,9 +1,13 @@
 spring:
+  config:
+    import:
+      - optional:file:./src/main/resources/application-local.yml
+      - optional:file:./src/main/resources/application-local.yaml
+      - optional:file:./backend/src/main/resources/application-local.yml
+      - optional:file:./backend/src/main/resources/application-local.yaml
+
   application:
     name: backend
-
-  profiles:
-    active: local
 
   servlet:
     multipart:

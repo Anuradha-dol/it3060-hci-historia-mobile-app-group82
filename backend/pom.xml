@@ -58,6 +58,8 @@
 				<excludes>
 					<exclude>application-local.yml</exclude>
 					<exclude>application-local.yaml</exclude>
+					<exclude>application-local.example.yml</exclude>
+					<exclude>application-local.example.yaml</exclude>
 					<exclude>*-local.yml</exclude>
 					<exclude>*-local.yaml</exclude>
 					<exclude>application-secret.yml</exclude>
