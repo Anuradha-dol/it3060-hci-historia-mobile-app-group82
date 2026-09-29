@@ -56,6 +56,7 @@ server:
 
 jwt:
   secret: ${JWT_SECRET:}
+  access-token-expiration: 900000
 
 cookie:
   secure: false
