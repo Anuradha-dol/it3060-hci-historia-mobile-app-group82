@@ -136,6 +136,18 @@ public class User implements UserDetails {
     // spring security
     @Override
     @JsonIgnore
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
         return List.of(
