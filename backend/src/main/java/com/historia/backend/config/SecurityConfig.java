@@ -67,6 +67,13 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        // Public approved guide search
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/guides/approved"
+                        )
+                        .permitAll()
+
                         // All other endpoints need login
                         .anyRequest()
                         .authenticated()
