@@ -176,6 +176,7 @@ public class GuideServiceImpl implements GuideService {
 
     // View my guide profile
     @Override
+    @Transactional(readOnly = true)
     public GuideDto.GuideProfileResponse getMyGuideProfile(
             String username
     ) {
@@ -356,6 +357,7 @@ public class GuideServiceImpl implements GuideService {
 
     // Admin - guides by status
     @Override
+    @Transactional(readOnly = true)
     public List<GuideDto.GuideProfileResponse> getGuidesByStatus(
             GuideApplicationStatus status
     ) {
@@ -446,6 +448,7 @@ public class GuideServiceImpl implements GuideService {
 
     // Approved guides by area
     @Override
+    @Transactional(readOnly = true)
     public List<GuideDto.GuideProfileResponse>
     getApprovedGuidesByArea(String area) {
 
