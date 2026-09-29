@@ -666,6 +666,17 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
+    // Copy collections while the persistence context is open
+    private Set<String> copySet(Set<String> values) {
+
+        if (values == null) {
+            return new LinkedHashSet<>();
+        }
+
+        return new LinkedHashSet<>(values);
+    }
+
+
     // Guide response
     private GuideDto.GuideProfileResponse toResponse(
             GuideProfile profile
@@ -684,12 +695,12 @@ public class GuideServiceImpl implements GuideService {
                 user.getAddress(),
                 profile.getDisplayName(),
                 profile.getPrimaryServiceArea(),
-                profile.getServiceAreas(),
-                profile.getLanguages(),
+                copySet(profile.getServiceAreas()),
+                copySet(profile.getLanguages()),
                 profile.getYearsExperience(),
                 profile.getHeadline(),
                 profile.getBio(),
-                profile.getSpecialties(),
+                copySet(profile.getSpecialties()),
                 profile.getStatus(),
                 profile.getAdminNote(),
                 profile.getSubmittedAt(),
