@@ -24,7 +24,6 @@ public class GuideProfile {
     private Long id;
 
 
-    // User account
     @OneToOne(optional = false)
     @JoinColumn(
             name = "user_id",
@@ -35,7 +34,6 @@ public class GuideProfile {
     private User user;
 
 
-    // Guide details
     @Column(nullable = false, length = 100)
     private String displayName;
 
@@ -82,7 +80,6 @@ public class GuideProfile {
     private Set<String> specialties = new LinkedHashSet<>();
 
 
-    // Application
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -97,7 +94,6 @@ public class GuideProfile {
     private LocalDateTime reviewedAt;
 
 
-    // Timestamps
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
