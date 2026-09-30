@@ -38,7 +38,6 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
 
-                // No server session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -47,34 +46,29 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public authentication endpoints
                         .requestMatchers(
                                 "/api/auth/**"
                         )
                         .permitAll()
 
-                        // Public guide registration
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/guides/register"
                         )
                         .permitAll()
 
-                        // Public guide application resubmit before approval
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/guides/resubmit"
                         )
                         .permitAll()
 
-                        // Public approved guide search
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/guides/approved"
                         )
                         .permitAll()
 
-                        // All other endpoints need login
                         .anyRequest()
                         .authenticated()
                 )

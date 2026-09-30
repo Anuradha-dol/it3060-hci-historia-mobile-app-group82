@@ -43,7 +43,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Guide registration
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse registerGuide(
@@ -122,7 +121,6 @@ public class GuideServiceImpl implements GuideService {
         Set<String> serviceAreas =
                 cleanSet(request.serviceAreas());
 
-        // Always include primary area
         serviceAreas.add(primaryArea);
 
         Set<String> languages =
@@ -174,7 +172,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // View my guide profile
     @Override
     @Transactional(readOnly = true)
     public GuideDto.GuideProfileResponse getMyGuideProfile(
@@ -196,7 +193,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Update guide profile
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse updateMyGuideProfile(
@@ -235,7 +231,6 @@ public class GuideServiceImpl implements GuideService {
                 request.specialties()
         );
 
-        // Re-submit after requested changes
         if (guideProfile.getStatus()
                 == GuideApplicationStatus.NEEDS_WORK) {
 
@@ -260,7 +255,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Resubmit after admin requests changes without normal app login
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse resubmitNeedsWorkApplication(
@@ -355,7 +349,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Admin - guides by status
     @Override
     @Transactional(readOnly = true)
     public List<GuideDto.GuideProfileResponse> getGuidesByStatus(
@@ -363,14 +356,13 @@ public class GuideServiceImpl implements GuideService {
     ) {
 
         return guideProfileRepository
-                .findByStatus(status)
+                .findByStatusAndUserDeletedFalse(status)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
 
-    // Admin review
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse reviewGuide(
@@ -380,7 +372,7 @@ public class GuideServiceImpl implements GuideService {
 
         GuideProfile guideProfile =
                 guideProfileRepository
-                        .findById(guideProfileId)
+                        .findByIdAndUserDeletedFalse(guideProfileId)
                         .orElseThrow(() ->
                                 new UserException(
                                         "Guide profile not found"
@@ -446,7 +438,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Approved guides by area
     @Override
     @Transactional(readOnly = true)
     public List<GuideDto.GuideProfileResponse>
@@ -461,7 +452,7 @@ public class GuideServiceImpl implements GuideService {
         }
 
         return guideProfileRepository
-                .findByStatus(
+                .findByStatusAndUserDeletedFalse(
                         GuideApplicationStatus.APPROVED
                 )
                 .stream()
@@ -479,7 +470,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Find guide user
     private User getGuideUser(String username) {
 
         User user = userRepository
@@ -502,7 +492,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Match guide area
     private boolean matchesArea(
             GuideProfile profile,
             String area
@@ -527,7 +516,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Apply guide profile field edits
     private void applyProfileUpdates(
             GuideProfile guideProfile,
             String displayName,
@@ -578,7 +566,6 @@ public class GuideServiceImpl implements GuideService {
             );
         }
 
-        // Primary area should always be included
         guideProfile
                 .getServiceAreas()
                 .add(
@@ -626,7 +613,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Clean text
     private String clean(String value) {
 
         if (value == null) {
@@ -641,7 +627,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Clean set
     private Set<String> cleanSet(
             Set<String> values
     ) {
@@ -666,7 +651,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Copy collections while the persistence context is open
     private Set<String> copySet(Set<String> values) {
 
         if (values == null) {
@@ -677,7 +661,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Guide response
     private GuideDto.GuideProfileResponse toResponse(
             GuideProfile profile
     ) {

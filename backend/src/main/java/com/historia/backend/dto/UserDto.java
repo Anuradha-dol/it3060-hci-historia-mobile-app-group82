@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Size;
 
 public class UserDto {
 
-    // Registration
     public record RegisterRequest(
 
             @NotBlank(message = "Username is required")
@@ -40,7 +39,6 @@ public class UserDto {
     ) {}
 
 
-    // Login
     public record LoginRequest(
 
             @NotBlank(message = "Email, username or phone is required")
@@ -52,7 +50,6 @@ public class UserDto {
     ) {}
 
 
-    // Login response
     public record AuthResponse(
 
             String accessToken,
@@ -64,7 +61,6 @@ public class UserDto {
     ) {}
 
 
-    // Refresh token
     public record RefreshTokenRequest(
 
             @NotBlank(message = "Refresh token is required")
@@ -73,7 +69,6 @@ public class UserDto {
     ) {}
 
 
-    // Verify email
     public record VerifyOtpRequest(
 
             @NotBlank(message = "Email is required")
@@ -86,7 +81,6 @@ public class UserDto {
     ) {}
 
 
-    // Resend OTP
     public record ResendOtpRequest(
 
             @NotBlank(message = "Email is required")
@@ -96,7 +90,6 @@ public class UserDto {
     ) {}
 
 
-    // Update profile
     public record UpdateProfileRequest(
 
             String firstName,
@@ -110,7 +103,6 @@ public class UserDto {
     ) {}
 
 
-    // Change password
     public record ChangePasswordRequest(
 
             @NotBlank(message = "Current password is required")
@@ -126,7 +118,6 @@ public class UserDto {
     ) {}
 
 
-    // Forgot password
     public record ForgotPasswordRequest(
 
             String username,
@@ -139,7 +130,6 @@ public class UserDto {
     ) {}
 
 
-    // Verify reset OTP
     public record ForgotPasswordVerifyRequest(
 
             @NotBlank(message = "Email is required")
@@ -151,7 +141,6 @@ public class UserDto {
 
     ) {}
 
-    // Resend reset OTP
     public record ForgotPasswordResendRequest(
 
             @NotBlank(message = "Email is required")
@@ -161,7 +150,6 @@ public class UserDto {
     ) {}
 
 
-    // Reset password
     public record ResetPasswordRequest(
 
             @NotBlank(message = "Email is required")
@@ -178,7 +166,6 @@ public class UserDto {
     ) {}
 
 
-    // Delete account
     public record DeleteAccountRequest(
 
             @NotBlank(message = "Current password is required")
@@ -187,7 +174,6 @@ public class UserDto {
     ) {}
 
 
-    // Profile response
     public record UserProfileResponse(
 
             Long id,
@@ -211,7 +197,6 @@ public class UserDto {
     ) {}
 
 
-    // Simple response
     public record MessageResponse(
 
             boolean success,
@@ -220,7 +205,6 @@ public class UserDto {
 
     ) {}
 
-    // Google login
     public record GoogleLoginRequest(
 
             @NotBlank(message = "Google ID token is required")

@@ -25,7 +25,6 @@ public class AdminGuideController {
     }
 
 
-    // Guides by status
     @GetMapping
     public ResponseEntity<List<GuideDto.GuideProfileResponse>>
     getGuidesByStatus(
@@ -38,7 +37,6 @@ public class AdminGuideController {
     }
 
 
-    // Review guide application
     @PutMapping("/{guideProfileId}/review")
     public ResponseEntity<GuideDto.GuideProfileResponse> reviewGuide(
             @PathVariable Long guideProfileId,
