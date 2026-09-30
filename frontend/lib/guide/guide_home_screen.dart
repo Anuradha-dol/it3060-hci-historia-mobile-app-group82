@@ -10,10 +10,6 @@ import '../tourist/notifications_screen.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
 
-// =====================================================================
-// GUIDE HOME
-// =====================================================================
-
 class GuideHomeScreen extends StatefulWidget {
   const GuideHomeScreen({super.key});
 
@@ -22,10 +18,6 @@ class GuideHomeScreen extends StatefulWidget {
 }
 
 class _GuideHomeScreenState extends State<GuideHomeScreen> {
-  // ===================================================================
-  // EDIT CONTROLLERS
-  // ===================================================================
-
   final _displayName = TextEditingController();
   final _primaryArea = TextEditingController();
   final _serviceAreas = TextEditingController();
@@ -43,19 +35,11 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
   bool _saving = false;
   bool _editing = false;
 
-  // ===================================================================
-  // INIT
-  // ===================================================================
-
   @override
   void initState() {
     super.initState();
     _load();
   }
-
-  // ===================================================================
-  // DISPOSE
-  // ===================================================================
 
   @override
   void dispose() {
@@ -75,10 +59,6 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     super.dispose();
   }
 
-  // ===================================================================
-  // LOAD GUIDE
-  // ===================================================================
-
   Future<void> _load() async {
     if (mounted) {
       setState(() {
@@ -87,8 +67,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     }
 
     try {
-      final guide =
-      await GuideService().getMyGuideProfile();
+      final guide = await GuideService().getMyGuideProfile();
 
       if (!mounted) return;
 
@@ -110,34 +89,20 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     }
   }
 
-  // ===================================================================
-  // SET GUIDE DATA
-  // ===================================================================
-
   void _setGuide(GuideModel guide) {
     setState(() {
       _guide = guide;
 
       _displayName.text = guide.displayName;
       _primaryArea.text = guide.primaryServiceArea;
-      _serviceAreas.text =
-          guide.serviceAreas.join(', ');
-      _languages.text =
-          guide.languages.join(', ');
-      _experience.text =
-          guide.yearsExperience.toString();
-      _headline.text =
-          guide.headline ?? '';
-      _bio.text =
-          guide.bio ?? '';
-      _specialties.text =
-          guide.specialties.join(', ');
+      _serviceAreas.text = guide.serviceAreas.join(', ');
+      _languages.text = guide.languages.join(', ');
+      _experience.text = guide.yearsExperience.toString();
+      _headline.text = guide.headline ?? '';
+      _bio.text = guide.bio ?? '';
+      _specialties.text = guide.specialties.join(', ');
     });
   }
-
-  // ===================================================================
-  // SAVE GUIDE
-  // ===================================================================
 
   Future<void> _save() async {
     if (_displayName.text.trim().isEmpty ||
@@ -152,8 +117,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
       return;
     }
 
-    final years =
-    int.tryParse(_experience.text.trim());
+    final years = int.tryParse(_experience.text.trim());
 
     if (years == null || years < 0) {
       showAppMessage(
@@ -169,22 +133,15 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     });
 
     try {
-      final guide =
-      await GuideService().updateMyGuideProfile(
+      final guide = await GuideService().updateMyGuideProfile(
         displayName: _displayName.text.trim(),
-        primaryServiceArea:
-        _primaryArea.text.trim(),
-        serviceAreas:
-        splitCsv(_serviceAreas.text),
-        languages:
-        splitCsv(_languages.text),
+        primaryServiceArea: _primaryArea.text.trim(),
+        serviceAreas: splitCsv(_serviceAreas.text),
+        languages: splitCsv(_languages.text),
         yearsExperience: years,
-        headline:
-        _headline.text.trim(),
-        bio:
-        _bio.text.trim(),
-        specialties:
-        splitCsv(_specialties.text),
+        headline: _headline.text.trim(),
+        bio: _bio.text.trim(),
+        specialties: splitCsv(_specialties.text),
       );
 
       if (!mounted) return;
@@ -199,10 +156,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
           ? 'Guide application submitted for admin review.'
           : 'Guide profile updated.';
 
-      showAppMessage(
-        context,
-        message,
-      );
+      showAppMessage(context, message);
     } catch (e) {
       if (!mounted) return;
 
@@ -220,17 +174,13 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     }
   }
 
-  // ===================================================================
-  // FIELD
-  // ===================================================================
-
   Widget _field(
-      String label,
-      TextEditingController controller, {
-        TextInputType? keyboardType,
-        int maxLines = 1,
-        IconData? icon,
-      }) {
+    String label,
+    TextEditingController controller, {
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    IconData? icon,
+  }) {
     return HistoriaTextField(
       label: label,
       controller: controller,
@@ -239,10 +189,6 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
       icon: icon,
     );
   }
-
-  // ===================================================================
-  // NAVIGATION
-  // ===================================================================
 
   void _setIndex(int index) {
     setState(() {
@@ -262,18 +208,12 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     });
   }
 
-  // ===================================================================
-  // BUILD
-  // ===================================================================
-
   @override
   Widget build(BuildContext context) {
     final pages = [
       _guideDashboard(),
 
-      const NotificationsContent(
-        roleLabel: 'GUIDE ACCOUNT',
-      ),
+      const NotificationsContent(roleLabel: 'GUIDE ACCOUNT'),
 
       RoleProfileContent(
         onGuideDashboard: () {
@@ -286,21 +226,13 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor:
-      const Color(0xFFF4F8F5),
+      backgroundColor: const Color(0xFFF4F8F5),
 
       body: SafeArea(
-        child: IndexedStack(
-          index: _index,
-          children: pages,
-        ),
+        child: IndexedStack(index: _index, children: pages),
       ),
 
-      // ==============================================================
-      // ONLY REAL GUIDE NAVIGATION
-      // ==============================================================
-      bottomNavigationBar:
-      HistoriaBottomNavigation(
+      bottomNavigationBar: HistoriaBottomNavigation(
         currentIndex: _index,
         onTap: _setIndex,
 
@@ -312,10 +244,8 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
           ),
 
           HistoriaNavItem(
-            icon:
-            Icons.notifications_outlined,
-            activeIcon:
-            Icons.notifications_rounded,
+            icon: Icons.notifications_outlined,
+            activeIcon: Icons.notifications_rounded,
             label: 'Alerts',
           ),
 
@@ -329,354 +259,198 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // GUIDE DASHBOARD
-  // ===================================================================
-
   Widget _guideDashboard() {
-    final user =
-        context.watch<AuthProvider>().user;
+    final user = context.watch<AuthProvider>().user;
 
     final guide = _guide;
 
     return ListView(
-      physics:
-      const ClampingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
 
       children: [
-        // =============================================================
-        // HERO HEADER
-        // =============================================================
         _GuideHomeHero(
           name: user?.fullName ?? 'Guide',
           onRefresh: _load,
-          onNotifications:
-          _openNotifications,
-          onProfile:
-          _openProfile,
+          onNotifications: _openNotifications,
+          onProfile: _openProfile,
           onLogout: () {
-            context
-                .read<AuthProvider>()
-                .logout();
+            context.read<AuthProvider>().logout();
           },
         ),
 
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            18,
-            16,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
 
           child: _loading
               ? const Padding(
-            padding:
-            EdgeInsets.only(
-              top: 90,
-              bottom: 90,
-            ),
-            child: Center(
-              child:
-              CircularProgressIndicator(
-                color:
-                Color(0xFF176D4E),
-              ),
-            ),
-          )
+                  padding: EdgeInsets.only(top: 90, bottom: 90),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFF176D4E)),
+                  ),
+                )
               : guide == null
               ? const _GuideUnavailable()
               : Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
 
-            children: [
-              // =============================================
-              // STATUS
-              // =============================================
-              _GuideStatusOverview(
-                guide: guide,
-                title:
-                _statusTitle(
-                  guide.status,
+                  children: [
+                    _GuideStatusOverview(
+                      guide: guide,
+                      title: _statusTitle(guide.status),
+                      message: _statusMessage(guide),
+                    ),
+
+                    const SizedBox(height: 17),
+
+                    if (guide.status == 'APPROVED')
+                      _approvedHome(guide)
+                    else
+                      _applicationHome(guide),
+
+                    if (guide.status != 'REJECTED') ...[
+                      const SizedBox(height: 20),
+
+                      _GuidePrimaryButton(
+                        icon: _editing
+                            ? Icons.close_rounded
+                            : Icons.edit_outlined,
+
+                        label: _editing
+                            ? 'Close editing'
+                            : guide.status == 'NEEDS_WORK'
+                            ? 'Update application'
+                            : guide.status == 'APPROVED'
+                            ? 'Edit guide profile'
+                            : 'Edit application',
+
+                        onPressed: () {
+                          setState(() {
+                            _editing = !_editing;
+                          });
+                        },
+                      ),
+
+                      if (_editing) ...[
+                        const SizedBox(height: 13),
+
+                        _guideEditSection(guide),
+                      ],
+                    ],
+                  ],
                 ),
-                message:
-                _statusMessage(
-                  guide,
-                ),
-              ),
-
-              const SizedBox(
-                height: 17,
-              ),
-
-              // =============================================
-              // APPROVED
-              // =============================================
-              if (guide.status ==
-                  'APPROVED')
-                _approvedHome(
-                  guide,
-                )
-
-              // =============================================
-              // OTHER STATUSES
-              // =============================================
-              else
-                _applicationHome(
-                  guide,
-                ),
-
-              // =============================================
-              // EDIT
-              // =============================================
-              if (guide.status !=
-                  'REJECTED') ...[
-                const SizedBox(
-                  height: 20,
-                ),
-
-                _GuidePrimaryButton(
-                  icon: _editing
-                      ? Icons
-                      .close_rounded
-                      : Icons
-                      .edit_outlined,
-
-                  label: _editing
-                      ? 'Close editing'
-                      : guide.status ==
-                      'NEEDS_WORK'
-                      ? 'Update application'
-                      : guide.status ==
-                      'APPROVED'
-                      ? 'Edit guide profile'
-                      : 'Edit application',
-
-                  onPressed: () {
-                    setState(() {
-                      _editing =
-                      !_editing;
-                    });
-                  },
-                ),
-
-                if (_editing) ...[
-                  const SizedBox(
-                    height: 13,
-                  ),
-
-                  _guideEditSection(
-                    guide,
-                  ),
-                ],
-              ],
-            ],
-          ),
         ),
       ],
     );
   }
 
-  // ===================================================================
-  // APPROVED HOME
-  // ===================================================================
-
-  Widget _approvedHome(
-      GuideModel guide,
-      ) {
-    final completion =
-    _completionScore(guide);
+  Widget _approvedHome(GuideModel guide) {
+    final completion = _completionScore(guide);
 
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
 
       children: [
-        // =============================================================
-        // GUIDE IDENTITY
-        // =============================================================
+        _GuidePublicSummary(guide: guide),
 
-        _GuidePublicSummary(
-          guide: guide,
-        ),
-
-        const SizedBox(
-          height: 16,
-        ),
-
-        // =============================================================
-        // REAL STATS
-        // =============================================================
+        const SizedBox(height: 16),
 
         _GuideMetricRow(
-          experience:
-          guide.yearsExperience,
-          languages:
-          guide.languages.length,
-          areas:
-          guide.serviceAreas.length,
+          experience: guide.yearsExperience,
+          languages: guide.languages.length,
+          areas: guide.serviceAreas.length,
         ),
 
-        const SizedBox(
-          height: 18,
-        ),
+        const SizedBox(height: 18),
 
-        // =============================================================
-        // PROFILE COMPLETION
-        // =============================================================
+        _ProfileCompletionCard(value: completion),
 
-        _ProfileCompletionCard(
-          value: completion,
-        ),
-
-        const SizedBox(
-          height: 20,
-        ),
-
-        // =============================================================
-        // DETAILS
-        // =============================================================
+        const SizedBox(height: 20),
 
         const _GuideSectionTitle(
           eyebrow: 'YOUR GUIDE PROFILE',
           title: 'Professional details',
           subtitle:
-          'The information currently stored on your approved guide profile.',
+              'The information currently stored on your approved guide profile.',
         ),
 
-        const SizedBox(
-          height: 11,
-        ),
+        const SizedBox(height: 11),
 
         _GuideSurface(
           child: Column(
             children: [
               _GuideInfoRow(
-                icon:
-                Icons.map_outlined,
-                label:
-                'Primary area',
-                value:
-                _emptyText(
-                  guide.primaryServiceArea,
-                ),
+                icon: Icons.map_outlined,
+                label: 'Primary area',
+                value: _emptyText(guide.primaryServiceArea),
               ),
 
               const _GuideDivider(),
 
               _GuideInfoRow(
-                icon:
-                Icons.route_outlined,
-                label:
-                'Service areas',
-                value:
-                _listText(
-                  guide.serviceAreas,
-                ),
+                icon: Icons.route_outlined,
+                label: 'Service areas',
+                value: _listText(guide.serviceAreas),
               ),
 
               const _GuideDivider(),
 
               _GuideInfoRow(
-                icon:
-                Icons.translate_outlined,
-                label:
-                'Languages',
-                value:
-                _listText(
-                  guide.languages,
-                ),
+                icon: Icons.translate_outlined,
+                label: 'Languages',
+                value: _listText(guide.languages),
               ),
 
               const _GuideDivider(),
 
               _GuideInfoRow(
-                icon: Icons
-                    .workspace_premium_outlined,
-                label:
-                'Specialties',
-                value:
-                _listText(
-                  guide.specialties,
-                ),
+                icon: Icons.workspace_premium_outlined,
+                label: 'Specialties',
+                value: _listText(guide.specialties),
               ),
             ],
           ),
         ),
 
-        if ((guide.headline != null &&
-            guide.headline!
-                .trim()
-                .isNotEmpty) ||
-            (guide.bio != null &&
-                guide.bio!
-                    .trim()
-                    .isNotEmpty)) ...[
-          const SizedBox(
-            height: 18,
-          ),
+        if ((guide.headline != null && guide.headline!.trim().isNotEmpty) ||
+            (guide.bio != null && guide.bio!.trim().isNotEmpty)) ...[
+          const SizedBox(height: 18),
 
           const _GuideSectionTitle(
             eyebrow: 'ABOUT',
             title: 'Your guide story',
-            subtitle:
-            'The introduction stored in your guide profile.',
+            subtitle: 'The introduction stored in your guide profile.',
           ),
 
-          const SizedBox(
-            height: 11,
-          ),
+          const SizedBox(height: 11),
 
           _GuideSurface(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 if (guide.headline != null &&
-                    guide.headline!
-                        .trim()
-                        .isNotEmpty) ...[
+                    guide.headline!.trim().isNotEmpty) ...[
                   Text(
                     guide.headline!,
-                    style:
-                    const TextStyle(
-                      color:
-                      Color(
-                        0xFF163D30,
-                      ),
-                      fontSize:
-                      15,
-                      height:
-                      1.3,
-                      fontWeight:
-                      FontWeight.w800,
+                    style: const TextStyle(
+                      color: Color(0xFF163D30),
+                      fontSize: 15,
+                      height: 1.3,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  const SizedBox(height: 8),
                 ],
 
-                if (guide.bio != null &&
-                    guide.bio!
-                        .trim()
-                        .isNotEmpty)
+                if (guide.bio != null && guide.bio!.trim().isNotEmpty)
                   Text(
                     guide.bio!,
-                    style:
-                    const TextStyle(
-                      color:
-                      Color(
-                        0xFF687C72,
-                      ),
-                      fontSize:
-                      10,
-                      height:
-                      1.5,
+                    style: const TextStyle(
+                      color: Color(0xFF687C72),
+                      fontSize: 10,
+                      height: 1.5,
                     ),
                   ),
               ],
@@ -684,54 +458,35 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
           ),
         ],
 
-        const SizedBox(
-          height: 18,
-        ),
-
-        // =============================================================
-        // REAL SHORTCUTS
-        // =============================================================
+        const SizedBox(height: 18),
 
         const _GuideSectionTitle(
           eyebrow: 'ACCOUNT',
           title: 'Manage your guide account',
-          subtitle:
-          'Access your profile and account notifications.',
+          subtitle: 'Access your profile and account notifications.',
         ),
 
-        const SizedBox(
-          height: 11,
-        ),
+        const SizedBox(height: 11),
 
         Row(
           children: [
             Expanded(
               child: _GuideShortcut(
-                icon:
-                Icons.person_outline,
-                title:
-                'Profile',
-                subtitle:
-                'Account details',
-                onTap:
-                _openProfile,
+                icon: Icons.person_outline,
+                title: 'Profile',
+                subtitle: 'Account details',
+                onTap: _openProfile,
               ),
             ),
 
-            const SizedBox(
-              width: 10,
-            ),
+            const SizedBox(width: 10),
 
             Expanded(
               child: _GuideShortcut(
-                icon: Icons
-                    .notifications_none_rounded,
-                title:
-                'Alerts',
-                subtitle:
-                'Notifications',
-                onTap:
-                _openNotifications,
+                icon: Icons.notifications_none_rounded,
+                title: 'Alerts',
+                subtitle: 'Notifications',
+                onTap: _openNotifications,
               ),
             ),
           ],
@@ -740,142 +495,88 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // APPLICATION HOME
-  // ===================================================================
-
-  Widget _applicationHome(
-      GuideModel guide,
-      ) {
-    final canEdit =
-        guide.status == 'PENDING' ||
-            guide.status == 'NEEDS_WORK';
+  Widget _applicationHome(GuideModel guide) {
+    final canEdit = guide.status == 'PENDING' || guide.status == 'NEEDS_WORK';
 
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
 
       children: [
         const _GuideSectionTitle(
           eyebrow: 'APPLICATION',
           title: 'Submitted details',
           subtitle:
-          'The guide information currently attached to your application.',
+              'The guide information currently attached to your application.',
         ),
 
-        const SizedBox(
-          height: 11,
-        ),
+        const SizedBox(height: 11),
 
         _GuideSurface(
           child: Column(
             children: [
               _GuideInfoRow(
-                icon:
-                Icons.badge_outlined,
-                label:
-                'Display name',
-                value:
-                _emptyText(
-                  guide.displayName,
-                ),
+                icon: Icons.badge_outlined,
+                label: 'Display name',
+                value: _emptyText(guide.displayName),
               ),
 
               const _GuideDivider(),
 
               _GuideInfoRow(
-                icon:
-                Icons.map_outlined,
-                label:
-                'Primary area',
-                value:
-                _emptyText(
-                  guide.primaryServiceArea,
-                ),
+                icon: Icons.map_outlined,
+                label: 'Primary area',
+                value: _emptyText(guide.primaryServiceArea),
               ),
 
               const _GuideDivider(),
 
               _GuideInfoRow(
-                icon:
-                Icons.translate_outlined,
-                label:
-                'Languages',
-                value:
-                _listText(
-                  guide.languages,
-                ),
+                icon: Icons.translate_outlined,
+                label: 'Languages',
+                value: _listText(guide.languages),
               ),
 
               const _GuideDivider(),
 
               _GuideInfoRow(
-                icon: Icons
-                    .workspace_premium_outlined,
-                label:
-                'Specialties',
-                value:
-                _listText(
-                  guide.specialties,
-                ),
+                icon: Icons.workspace_premium_outlined,
+                label: 'Specialties',
+                value: _listText(guide.specialties),
               ),
             ],
           ),
         ),
 
-        if (guide.adminNote != null &&
-            guide.adminNote!
-                .trim()
-                .isNotEmpty) ...[
-          const SizedBox(
-            height: 14,
-          ),
+        if (guide.adminNote != null && guide.adminNote!.trim().isNotEmpty) ...[
+          const SizedBox(height: 14),
 
-          _AdminFeedbackCard(
-            note:
-            guide.adminNote!,
-          ),
+          _AdminFeedbackCard(note: guide.adminNote!),
         ],
 
-        if (!canEdit &&
-            guide.status ==
-                'REJECTED') ...[
-          const SizedBox(
-            height: 14,
-          ),
+        if (!canEdit && guide.status == 'REJECTED') ...[
+          const SizedBox(height: 14),
 
           const _GuideMessageCard(
-            icon:
-            Icons.info_outline,
-            title:
-            'Application closed',
+            icon: Icons.info_outline,
+            title: 'Application closed',
             message:
-            'This application cannot be updated from the guide dashboard.',
+                'This application cannot be updated from the guide dashboard.',
           ),
         ],
       ],
     );
   }
 
-  // ===================================================================
-  // EDIT GUIDE
-  // ===================================================================
+  Widget _guideEditSection(GuideModel guide) {
+    final needsWork = guide.status == 'NEEDS_WORK';
 
-  Widget _guideEditSection(
-      GuideModel guide,
-      ) {
-    final needsWork =
-        guide.status == 'NEEDS_WORK';
-
-    final buttonText =
-    needsWork
+    final buttonText = needsWork
         ? 'Resubmit application'
         : 'Save guide profile';
 
     return _GuideSurface(
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
 
         children: [
           Row(
@@ -884,76 +585,46 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
                 width: 40,
                 height: 40,
 
-                decoration:
-                const BoxDecoration(
-                  color:
-                  Color(
-                    0xFFE3F1E8,
-                  ),
-                  shape:
-                  BoxShape.circle,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE3F1E8),
+                  shape: BoxShape.circle,
                 ),
 
-                child:
-                const Icon(
+                child: const Icon(
                   Icons.edit_note_rounded,
-                  color:
-                  Color(
-                    0xFF176D4E,
-                  ),
-                  size:
-                  21,
+                  color: Color(0xFF176D4E),
+                  size: 21,
                 ),
               ),
 
-              const SizedBox(
-                width: 10,
-              ),
+              const SizedBox(width: 10),
 
               Expanded(
-                child:
-                Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
                     Text(
-                      needsWork
-                          ? 'Update application'
-                          : 'Edit guide profile',
+                      needsWork ? 'Update application' : 'Edit guide profile',
 
-                      style:
-                      const TextStyle(
-                        color:
-                        Color(
-                          0xFF153D30,
-                        ),
-                        fontSize:
-                        14,
-                        fontWeight:
-                        FontWeight.w900,
+                      style: const TextStyle(
+                        color: Color(0xFF153D30),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
 
                     Text(
                       needsWork
                           ? 'Update the requested guide details and submit again.'
                           : 'Update your guide information.',
 
-                      style:
-                      const TextStyle(
-                        color:
-                        Color(
-                          0xFF78887F,
-                        ),
-                        fontSize:
-                        8.5,
-                        height:
-                        1.35,
+                      style: const TextStyle(
+                        color: Color(0xFF78887F),
+                        fontSize: 8.5,
+                        height: 1.35,
                       ),
                     ),
                   ],
@@ -962,110 +633,70 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
             ],
           ),
 
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
 
           if (needsWork) ...[
             const _GuideMessageCard(
-              icon:
-              Icons.info_outline,
-              title:
-              'Admin requested changes',
+              icon: Icons.info_outline,
+              title: 'Admin requested changes',
               message:
-              'Saving these changes sends the application back for admin review.',
+                  'Saving these changes sends the application back for admin review.',
             ),
 
-            const SizedBox(
-              height: 14,
-            ),
+            const SizedBox(height: 14),
           ],
 
-          _field(
-            'Display Name',
-            _displayName,
-            icon:
-            Icons.badge_outlined,
-          ),
+          _field('Display Name', _displayName, icon: Icons.badge_outlined),
 
           _field(
             'Primary Service Area',
             _primaryArea,
-            icon:
-            Icons.location_on_outlined,
+            icon: Icons.location_on_outlined,
           ),
 
           _field(
             'Service Areas (comma separated)',
             _serviceAreas,
-            icon:
-            Icons.route_outlined,
+            icon: Icons.route_outlined,
           ),
 
           _field(
             'Languages (comma separated)',
             _languages,
-            icon:
-            Icons.translate_outlined,
+            icon: Icons.translate_outlined,
           ),
 
           _field(
             'Years of Experience',
             _experience,
-            keyboardType:
-            TextInputType.number,
-            icon:
-            Icons.history_edu_outlined,
+            keyboardType: TextInputType.number,
+            icon: Icons.history_edu_outlined,
           ),
 
-          _field(
-            'Headline',
-            _headline,
-            icon:
-            Icons.short_text,
-          ),
+          _field('Headline', _headline, icon: Icons.short_text),
 
-          _field(
-            'Bio',
-            _bio,
-            maxLines: 4,
-            icon:
-            Icons.notes_outlined,
-          ),
+          _field('Bio', _bio, maxLines: 4, icon: Icons.notes_outlined),
 
           _field(
             'Specialties (comma separated)',
             _specialties,
-            icon: Icons
-                .workspace_premium_outlined,
+            icon: Icons.workspace_premium_outlined,
           ),
 
-          const SizedBox(
-            height: 4,
-          ),
+          const SizedBox(height: 4),
 
           AsyncButton(
-            loading:
-            _saving,
-            onPressed:
-            _save,
-            label:
-            buttonText,
-            icon:
-            Icons.save_outlined,
+            loading: _saving,
+            onPressed: _save,
+            label: buttonText,
+            icon: Icons.save_outlined,
           ),
         ],
       ),
     );
   }
 
-  // ===================================================================
-  // STATUS
-  // ===================================================================
-
-  String _statusTitle(
-      String status,
-      ) {
+  String _statusTitle(String status) {
     switch (status) {
       case 'APPROVED':
         return 'Approved guide';
@@ -1082,22 +713,18 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     }
   }
 
-  String _statusMessage(
-      GuideModel guide,
-      ) {
+  String _statusMessage(GuideModel guide) {
     switch (guide.status) {
       case 'APPROVED':
         return 'Your guide profile is visible through approved guide search.';
 
       case 'NEEDS_WORK':
-        return guide.adminNote == null ||
-            guide.adminNote!.isEmpty
+        return guide.adminNote == null || guide.adminNote!.isEmpty
             ? 'Admin requested updates before approval.'
             : guide.adminNote!;
 
       case 'REJECTED':
-        return guide.adminNote == null ||
-            guide.adminNote!.isEmpty
+        return guide.adminNote == null || guide.adminNote!.isEmpty
             ? 'This guide application was rejected during admin review.'
             : guide.adminNote!;
 
@@ -1107,60 +734,32 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     }
   }
 
-  // ===================================================================
-  // PROFILE COMPLETION
-  // ===================================================================
-
-  double _completionScore(
-      GuideModel guide,
-      ) {
+  double _completionScore(GuideModel guide) {
     final fields = <String>[
       guide.displayName,
       guide.primaryServiceArea,
       guide.headline ?? '',
       guide.bio ?? '',
-      guide.serviceAreas.isNotEmpty
-          ? 'serviceAreas'
-          : '',
-      guide.languages.isNotEmpty
-          ? 'languages'
-          : '',
-      guide.specialties.isNotEmpty
-          ? 'specialties'
-          : '',
-      guide.yearsExperience > 0
-          ? 'experience'
-          : '',
+      guide.serviceAreas.isNotEmpty ? 'serviceAreas' : '',
+      guide.languages.isNotEmpty ? 'languages' : '',
+      guide.specialties.isNotEmpty ? 'specialties' : '',
+      guide.yearsExperience > 0 ? 'experience' : '',
     ];
 
-    final completed = fields
-        .where(
-          (value) =>
-      value.trim().isNotEmpty,
-    )
-        .length;
+    final completed = fields.where((value) => value.trim().isNotEmpty).length;
 
     return completed / fields.length;
   }
 
-  // ===================================================================
-  // HELPERS
-  // ===================================================================
-
-  String _emptyText(
-      String? value,
-      ) {
-    if (value == null ||
-        value.trim().isEmpty) {
+  String _emptyText(String? value) {
+    if (value == null || value.trim().isEmpty) {
       return 'Not provided';
     }
 
     return value.trim();
   }
 
-  String _listText(
-      List<String> values,
-      ) {
+  String _listText(List<String> values) {
     if (values.isEmpty) {
       return 'Not provided';
     }
@@ -1168,10 +767,6 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     return values.join(', ');
   }
 }
-
-// =====================================================================
-// HERO
-// =====================================================================
 
 class _GuideHomeHero extends StatelessWidget {
   final String name;
@@ -1194,36 +789,18 @@ class _GuideHomeHero extends StatelessWidget {
     return Container(
       height: 235,
 
-      decoration:
-      const BoxDecoration(
-        gradient:
-        LinearGradient(
-          begin:
-          Alignment.topLeft,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
 
-          end:
-          Alignment.bottomRight,
+          end: Alignment.bottomRight,
 
-          colors: [
-            Color(
-              0xFF123B2D,
-            ),
-            Color(
-              0xFF176247,
-            ),
-            Color(
-              0xFF55916D,
-            ),
-          ],
+          colors: [Color(0xFF123B2D), Color(0xFF176247), Color(0xFF55916D)],
         ),
       ),
 
       child: Stack(
         children: [
-          // ===========================================================
-          // BACKGROUND
-          // ===========================================================
-
           Positioned(
             right: -35,
             bottom: -45,
@@ -1232,16 +809,10 @@ class _GuideHomeHero extends StatelessWidget {
               width: 180,
               height: 180,
 
-              decoration:
-              BoxDecoration(
-                shape:
-                BoxShape.circle,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
 
-                color:
-                Colors.white.withValues(
-                  alpha:
-                  0.055,
-                ),
+                color: Colors.white.withValues(alpha: 0.055),
               ),
             ),
           ),
@@ -1251,16 +822,11 @@ class _GuideHomeHero extends StatelessWidget {
             bottom: -17,
 
             child: Icon(
-              Icons
-                  .account_balance_outlined,
+              Icons.account_balance_outlined,
 
               size: 135,
 
-              color:
-              Colors.white.withValues(
-                alpha:
-                0.07,
-              ),
+              color: Colors.white.withValues(alpha: 0.07),
             ),
           ),
 
@@ -1273,143 +839,41 @@ class _GuideHomeHero extends StatelessWidget {
 
               size: 120,
 
-              color:
-              Colors.white.withValues(
-                alpha:
-                0.055,
-              ),
+              color: Colors.white.withValues(alpha: 0.055),
             ),
           ),
 
           Padding(
-            padding:
-            const EdgeInsets.fromLTRB(
-              16,
-              11,
-              8,
-              22,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 11, 8, 22),
 
-            child:
-            Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-                // =====================================================
-                // BRAND
-                // =====================================================
-
                 Row(
                   children: [
-                    Container(
-                      width: 36,
-                      height: 36,
+                    const HistoriaLogoMark(dark: true, size: 36),
 
-                      decoration:
-                      BoxDecoration(
-                        color:
-                        Colors.white.withValues(
-                          alpha:
-                          0.13,
-                        ),
+                    const SizedBox(width: 9),
 
-                        borderRadius:
-                        BorderRadius.circular(
-                          10,
-                        ),
-                      ),
-
-                      child:
-                      const Icon(
-                        Icons.eco_outlined,
-
-                        color:
-                        Colors.white,
-
-                        size:
-                        20,
-                      ),
-                    ),
-
-                    const SizedBox(
-                      width: 9,
-                    ),
-
-                    const Expanded(
-                      child:
-                      Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                        children: [
-                          Text(
-                            'HISTORIA',
-
-                            style:
-                            TextStyle(
-                              color:
-                              Colors.white,
-
-                              fontSize:
-                              14,
-
-                              fontWeight:
-                              FontWeight.w900,
-
-                              letterSpacing:
-                              0.3,
-                            ),
-                          ),
-
-                          Text(
-                            'EXPLORE HISTORY · FIND YOUR GUIDE',
-
-                            style:
-                            TextStyle(
-                              color:
-                              Color(
-                                0xFFCBE2D6,
-                              ),
-
-                              fontSize:
-                              6.2,
-
-                              fontWeight:
-                              FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const Expanded(child: HistoriaBrandText(dark: true)),
 
                     IconButton(
-                      tooltip:
-                      'Notifications',
+                      tooltip: 'Notifications',
 
-                      onPressed:
-                      onNotifications,
+                      onPressed: onNotifications,
 
-                      icon:
-                      const Icon(
-                        Icons
-                            .notifications_none_rounded,
+                      icon: const Icon(
+                        Icons.notifications_none_rounded,
 
-                        color:
-                        Colors.white,
+                        color: Colors.white,
                       ),
                     ),
 
                     PopupMenuButton<String>(
-                      icon:
-                      const Icon(
-                        Icons.more_vert,
-                        color:
-                        Colors.white,
-                      ),
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
 
-                      onSelected:
-                          (value) {
+                      onSelected: (value) {
                         switch (value) {
                           case 'refresh':
                             onRefresh();
@@ -1425,69 +889,34 @@ class _GuideHomeHero extends StatelessWidget {
                         }
                       },
 
-                      itemBuilder:
-                          (context) => const [
+                      itemBuilder: (context) => const [
                         PopupMenuItem(
-                          value:
-                          'refresh',
-                          child:
-                          Row(
+                          value: 'refresh',
+                          child: Row(
                             children: [
-                              Icon(
-                                Icons.refresh,
-                                size:
-                                18,
-                              ),
-                              SizedBox(
-                                width:
-                                9,
-                              ),
-                              Text(
-                                'Refresh',
-                              ),
+                              Icon(Icons.refresh, size: 18),
+                              SizedBox(width: 9),
+                              Text('Refresh'),
                             ],
                           ),
                         ),
                         PopupMenuItem(
-                          value:
-                          'profile',
-                          child:
-                          Row(
+                          value: 'profile',
+                          child: Row(
                             children: [
-                              Icon(
-                                Icons
-                                    .person_outline,
-                                size:
-                                18,
-                              ),
-                              SizedBox(
-                                width:
-                                9,
-                              ),
-                              Text(
-                                'Profile',
-                              ),
+                              Icon(Icons.person_outline, size: 18),
+                              SizedBox(width: 9),
+                              Text('Profile'),
                             ],
                           ),
                         ),
                         PopupMenuItem(
-                          value:
-                          'logout',
-                          child:
-                          Row(
+                          value: 'logout',
+                          child: Row(
                             children: [
-                              Icon(
-                                Icons.logout,
-                                size:
-                                18,
-                              ),
-                              SizedBox(
-                                width:
-                                9,
-                              ),
-                              Text(
-                                'Logout',
-                              ),
+                              Icon(Icons.logout, size: 18),
+                              SizedBox(width: 9),
+                              Text('Logout'),
                             ],
                           ),
                         ),
@@ -1499,108 +928,67 @@ class _GuideHomeHero extends StatelessWidget {
                 const Spacer(),
 
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(
-                    horizontal:
-                    9,
-                    vertical:
-                    5,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
                   ),
 
-                  decoration:
-                  BoxDecoration(
-                    color:
-                    Colors.white.withValues(
-                      alpha:
-                      0.13,
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.13),
 
-                    borderRadius:
-                    BorderRadius.circular(
-                      20,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
 
-                    border:
-                    Border.all(
-                      color:
-                      Colors.white.withValues(
-                        alpha:
-                        0.15,
-                      ),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
                     ),
                   ),
 
-                  child:
-                  const Text(
+                  child: const Text(
                     'GUIDE WORKSPACE',
 
-                    style:
-                    TextStyle(
-                      color:
-                      Color(
-                        0xFFE2F2E9,
-                      ),
+                    style: TextStyle(
+                      color: Color(0xFFE2F2E9),
 
-                      fontSize:
-                      7,
+                      fontSize: 7,
 
-                      letterSpacing:
-                      1,
+                      letterSpacing: 1,
 
-                      fontWeight:
-                      FontWeight.w800,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
 
-                const SizedBox(
-                  height: 9,
-                ),
+                const SizedBox(height: 9),
 
                 Text(
                   'Welcome, $name',
 
-                  maxLines:
-                  1,
+                  maxLines: 1,
 
-                  overflow:
-                  TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Colors.white,
+                  style: const TextStyle(
+                    color: Colors.white,
 
-                    fontSize:
-                    25,
+                    fontSize: 25,
 
-                    height:
-                    1,
+                    height: 1,
 
-                    fontWeight:
-                    FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
 
-                const SizedBox(
-                  height: 7,
-                ),
+                const SizedBox(height: 7),
 
                 const Text(
                   'Manage your HISTORIA guide profile and application.',
 
-                  style:
-                  TextStyle(
-                    color:
-                    Color(
-                      0xFFCFE2D8,
-                    ),
+                  style: TextStyle(
+                    color: Color(0xFFCFE2D8),
 
-                    fontSize:
-                    10,
+                    fontSize: 10,
 
-                    height:
-                    1.35,
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -1612,12 +1000,7 @@ class _GuideHomeHero extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// STATUS OVERVIEW
-// =====================================================================
-
-class _GuideStatusOverview
-    extends StatelessWidget {
+class _GuideStatusOverview extends StatelessWidget {
   final GuideModel guide;
   final String title;
   final String message;
@@ -1630,195 +1013,115 @@ class _GuideStatusOverview
 
   @override
   Widget build(BuildContext context) {
-    final style =
-    _GuideStatusStyle.from(
-      guide.status,
-    );
+    final style = _GuideStatusStyle.from(guide.status);
 
     return Container(
-      padding:
-      const EdgeInsets.all(
-        14,
-      ),
+      padding: const EdgeInsets.all(14),
 
-      decoration:
-      BoxDecoration(
-        gradient:
-        LinearGradient(
-          begin:
-          Alignment.topLeft,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
 
-          end:
-          Alignment.bottomRight,
+          end: Alignment.bottomRight,
 
-          colors: [
-            style.background,
-            Colors.white,
-          ],
+          colors: [style.background, Colors.white],
         ),
 
-        borderRadius:
-        BorderRadius.circular(
-          17,
-        ),
+        borderRadius: BorderRadius.circular(17),
 
-        border:
-        Border.all(
-          color:
-          style.border,
-        ),
+        border: Border.all(color: style.border),
 
-        boxShadow:
-        const [
+        boxShadow: const [
           BoxShadow(
-            color:
-            Color(
-              0x09083A2A,
-            ),
+            color: Color(0x09083A2A),
 
-            blurRadius:
-            12,
+            blurRadius: 12,
 
-            offset:
-            Offset(
-              0,
-              4,
-            ),
+            offset: Offset(0, 4),
           ),
         ],
       ),
 
-      child:
-      Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
           Container(
             width: 48,
             height: 48,
 
-            decoration:
-            BoxDecoration(
-              color:
-              style.iconBackground,
+            decoration: BoxDecoration(
+              color: style.iconBackground,
 
-              shape:
-              BoxShape.circle,
+              shape: BoxShape.circle,
             ),
 
-            child:
-            Icon(
-              style.icon,
-
-              color:
-              style.foreground,
-
-              size:
-              23,
-            ),
+            child: Icon(style.icon, color: style.foreground, size: 23),
           ),
 
-          const SizedBox(
-            width: 11,
-          ),
+          const SizedBox(width: 11),
 
           Expanded(
-            child:
-            Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Row(
                   children: [
                     Expanded(
-                      child:
-                      Text(
+                      child: Text(
                         title,
 
-                        style:
-                        const TextStyle(
-                          color:
-                          Color(
-                            0xFF173E31,
-                          ),
+                        style: const TextStyle(
+                          color: Color(0xFF173E31),
 
-                          fontSize:
-                          13,
+                          fontSize: 13,
 
-                          fontWeight:
-                          FontWeight.w900,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
 
                     Container(
-                      padding:
-                      const EdgeInsets.symmetric(
-                        horizontal:
-                        8,
-                        vertical:
-                        5,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
                       ),
 
-                      decoration:
-                      BoxDecoration(
-                        color:
-                        style.foreground,
+                      decoration: BoxDecoration(
+                        color: style.foreground,
 
-                        borderRadius:
-                        BorderRadius.circular(
-                          20,
-                        ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
 
-                      child:
-                      Text(
-                        guide.status
-                            .replaceAll(
-                          '_',
-                          ' ',
-                        ),
+                      child: Text(
+                        guide.status.replaceAll('_', ' '),
 
-                        style:
-                        const TextStyle(
-                          color:
-                          Colors.white,
+                        style: const TextStyle(
+                          color: Colors.white,
 
-                          fontSize:
-                          6.4,
+                          fontSize: 6.4,
 
-                          fontWeight:
-                          FontWeight.w800,
+                          fontWeight: FontWeight.w800,
 
-                          letterSpacing:
-                          0.4,
+                          letterSpacing: 0.4,
                         ),
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(
-                  height: 5,
-                ),
+                const SizedBox(height: 5),
 
                 Text(
                   message,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF718279,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF718279),
 
-                    fontSize:
-                    9,
+                    fontSize: 9,
 
-                    height:
-                    1.45,
+                    height: 1.45,
                   ),
                 ),
               ],
@@ -1830,186 +1133,117 @@ class _GuideStatusOverview
   }
 }
 
-// =====================================================================
-// GUIDE PUBLIC SUMMARY
-// =====================================================================
-
-class _GuidePublicSummary
-    extends StatelessWidget {
+class _GuidePublicSummary extends StatelessWidget {
   final GuideModel guide;
 
-  const _GuidePublicSummary({
-    required this.guide,
-  });
+  const _GuidePublicSummary({required this.guide});
 
   @override
   Widget build(BuildContext context) {
     return _GuideSurface(
-      strongShadow:
-      true,
+      strongShadow: true,
 
-      child:
-      Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
           Container(
             width: 62,
             height: 62,
 
-            alignment:
-            Alignment.center,
+            alignment: Alignment.center,
 
-            decoration:
-            const BoxDecoration(
-              color:
-              Color(
-                0xFFDDEFE4,
-              ),
+            decoration: const BoxDecoration(
+              color: Color(0xFFDDEFE4),
 
-              shape:
-              BoxShape.circle,
+              shape: BoxShape.circle,
             ),
 
-            child:
-            const Icon(
+            child: const Icon(
               Icons.badge_outlined,
 
-              size:
-              29,
+              size: 29,
 
-              color:
-              Color(
-                0xFF176B4C,
-              ),
+              color: Color(0xFF176B4C),
             ),
           ),
 
-          const SizedBox(
-            width: 12,
-          ),
+          const SizedBox(width: 12),
 
           Expanded(
-            child:
-            Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
-                  guide.displayName
-                      .trim()
-                      .isEmpty
+                  guide.displayName.trim().isEmpty
                       ? 'Guide'
                       : guide.displayName,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF143C2F,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF143C2F),
 
-                    fontSize:
-                    16,
+                    fontSize: 16,
 
-                    fontWeight:
-                    FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
 
-                const SizedBox(
-                  height: 4,
-                ),
+                const SizedBox(height: 4),
 
                 Row(
                   children: [
                     const Icon(
-                      Icons
-                          .location_on_outlined,
+                      Icons.location_on_outlined,
 
-                      size:
-                      13,
+                      size: 13,
 
-                      color:
-                      Color(
-                        0xFF72847A,
-                      ),
+                      color: Color(0xFF72847A),
                     ),
 
-                    const SizedBox(
-                      width: 3,
-                    ),
+                    const SizedBox(width: 3),
 
                     Expanded(
-                      child:
-                      Text(
-                        guide.primaryServiceArea
-                            .trim()
-                            .isEmpty
+                      child: Text(
+                        guide.primaryServiceArea.trim().isEmpty
                             ? 'Not provided'
-                            : guide
-                            .primaryServiceArea,
+                            : guide.primaryServiceArea,
 
-                        style:
-                        const TextStyle(
-                          color:
-                          Color(
-                            0xFF72847A,
-                          ),
+                        style: const TextStyle(
+                          color: Color(0xFF72847A),
 
-                          fontSize:
-                          9,
+                          fontSize: 9,
                         ),
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(
-                  height: 8,
-                ),
+                const SizedBox(height: 8),
 
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(
-                    horizontal:
-                    9,
-                    vertical:
-                    5,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
                   ),
 
-                  decoration:
-                  BoxDecoration(
-                    color:
-                    const Color(
-                      0xFF176E4D,
-                    ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF176E4D),
 
-                    borderRadius:
-                    BorderRadius.circular(
-                      20,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
                   ),
 
-                  child:
-                  const Text(
-                    '✓ APPROVED GUIDE',
+                  child: const Text(
+                    'APPROVED GUIDE',
 
-                    style:
-                    TextStyle(
-                      color:
-                      Colors.white,
+                    style: TextStyle(
+                      color: Colors.white,
 
-                      fontSize:
-                      6.5,
+                      fontSize: 6.5,
 
-                      letterSpacing:
-                      0.4,
+                      letterSpacing: 0.4,
 
-                      fontWeight:
-                      FontWeight.w800,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -2022,12 +1256,7 @@ class _GuidePublicSummary
   }
 }
 
-// =====================================================================
-// REAL GUIDE METRICS
-// =====================================================================
-
-class _GuideMetricRow
-    extends StatelessWidget {
+class _GuideMetricRow extends StatelessWidget {
   final int experience;
   final int languages;
   final int areas;
@@ -2041,68 +1270,35 @@ class _GuideMetricRow
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.symmetric(
-        vertical:
-        14,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+
+      decoration: BoxDecoration(
+        color: const Color(0xFFE4F2E9),
+
+        borderRadius: BorderRadius.circular(15),
+
+        border: Border.all(color: const Color(0xFFCEE5D7)),
       ),
 
-      decoration:
-      BoxDecoration(
-        color:
-        const Color(
-          0xFFE4F2E9,
-        ),
-
-        borderRadius:
-        BorderRadius.circular(
-          15,
-        ),
-
-        border:
-        Border.all(
-          color:
-          const Color(
-            0xFFCEE5D7,
-          ),
-        ),
-      ),
-
-      child:
-      Row(
+      child: Row(
         children: [
           Expanded(
-            child:
-            _GuideMetric(
-              value:
-              experience.toString(),
-              label:
-              'YEARS',
+            child: _GuideMetric(value: experience.toString(), label: 'YEARS'),
+          ),
+
+          const _GuideMetricDivider(),
+
+          Expanded(
+            child: _GuideMetric(
+              value: languages.toString(),
+              label: 'LANGUAGES',
             ),
           ),
 
           const _GuideMetricDivider(),
 
           Expanded(
-            child:
-            _GuideMetric(
-              value:
-              languages.toString(),
-              label:
-              'LANGUAGES',
-            ),
-          ),
-
-          const _GuideMetricDivider(),
-
-          Expanded(
-            child:
-            _GuideMetric(
-              value:
-              areas.toString(),
-              label:
-              'AREAS',
-            ),
+            child: _GuideMetric(value: areas.toString(), label: 'AREAS'),
           ),
         ],
       ),
@@ -2110,15 +1306,11 @@ class _GuideMetricRow
   }
 }
 
-class _GuideMetric
-    extends StatelessWidget {
+class _GuideMetric extends StatelessWidget {
   final String value;
   final String label;
 
-  const _GuideMetric({
-    required this.value,
-    required this.label,
-  });
+  const _GuideMetric({required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -2127,43 +1319,28 @@ class _GuideMetric
         Text(
           value,
 
-          style:
-          const TextStyle(
-            color:
-            Color(
-              0xFF176A4C,
-            ),
+          style: const TextStyle(
+            color: Color(0xFF176A4C),
 
-            fontSize:
-            20,
+            fontSize: 20,
 
-            fontWeight:
-            FontWeight.w900,
+            fontWeight: FontWeight.w900,
           ),
         ),
 
-        const SizedBox(
-          height: 2,
-        ),
+        const SizedBox(height: 2),
 
         Text(
           label,
 
-          style:
-          const TextStyle(
-            color:
-            Color(
-              0xFF708279,
-            ),
+          style: const TextStyle(
+            color: Color(0xFF708279),
 
-            fontSize:
-            6.7,
+            fontSize: 6.7,
 
-            letterSpacing:
-            0.6,
+            letterSpacing: 0.6,
 
-            fontWeight:
-            FontWeight.w700,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -2171,46 +1348,27 @@ class _GuideMetric
   }
 }
 
-class _GuideMetricDivider
-    extends StatelessWidget {
+class _GuideMetricDivider extends StatelessWidget {
   const _GuideMetricDivider();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 32,
-
-      color:
-      const Color(
-        0xFFC3DDCD,
-      ),
-    );
+    return Container(width: 1, height: 32, color: const Color(0xFFC3DDCD));
   }
 }
 
-// =====================================================================
-// PROFILE COMPLETION
-// =====================================================================
-
-class _ProfileCompletionCard
-    extends StatelessWidget {
+class _ProfileCompletionCard extends StatelessWidget {
   final double value;
 
-  const _ProfileCompletionCard({
-    required this.value,
-  });
+  const _ProfileCompletionCard({required this.value});
 
   @override
   Widget build(BuildContext context) {
-    final percent =
-    (value * 100).round();
+    final percent = (value * 100).round();
 
     return _GuideSurface(
-      child:
-      Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
           Row(
@@ -2219,78 +1377,46 @@ class _ProfileCompletionCard
                 width: 40,
                 height: 40,
 
-                decoration:
-                const BoxDecoration(
-                  color:
-                  Color(
-                    0xFFE5F2E9,
-                  ),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE5F2E9),
 
-                  shape:
-                  BoxShape.circle,
+                  shape: BoxShape.circle,
                 ),
 
-                child:
-                const Icon(
-                  Icons
-                      .donut_large_outlined,
+                child: const Icon(
+                  Icons.donut_large_outlined,
 
-                  size:
-                  20,
+                  size: 20,
 
-                  color:
-                  Color(
-                    0xFF176D4E,
-                  ),
+                  color: Color(0xFF176D4E),
                 ),
               ),
 
-              const SizedBox(
-                width: 10,
-              ),
+              const SizedBox(width: 10),
 
               const Expanded(
-                child:
-                Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
                     Text(
                       'Profile completion',
 
-                      style:
-                      TextStyle(
-                        color:
-                        Color(
-                          0xFF163E31,
-                        ),
+                      style: TextStyle(
+                        color: Color(0xFF163E31),
 
-                        fontSize:
-                        11,
+                        fontSize: 11,
 
-                        fontWeight:
-                        FontWeight.w800,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
 
-                    SizedBox(
-                      height: 2,
-                    ),
+                    SizedBox(height: 2),
 
                     Text(
                       'Based on your current guide profile fields.',
 
-                      style:
-                      TextStyle(
-                        color:
-                        Color(
-                          0xFF798980,
-                        ),
-
-                        fontSize:
-                        8,
-                      ),
+                      style: TextStyle(color: Color(0xFF798980), fontSize: 8),
                     ),
                   ],
                 ),
@@ -2299,51 +1425,31 @@ class _ProfileCompletionCard
               Text(
                 '$percent%',
 
-                style:
-                const TextStyle(
-                  color:
-                  Color(
-                    0xFF176A4C,
-                  ),
+                style: const TextStyle(
+                  color: Color(0xFF176A4C),
 
-                  fontSize:
-                  18,
+                  fontSize: 18,
 
-                  fontWeight:
-                  FontWeight.w900,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(
-            height: 13,
-          ),
+          const SizedBox(height: 13),
 
           ClipRRect(
-            borderRadius:
-            BorderRadius.circular(
-              20,
-            ),
+            borderRadius: BorderRadius.circular(20),
 
-            child:
-            LinearProgressIndicator(
-              value:
-              value,
+            child: LinearProgressIndicator(
+              value: value,
 
-              minHeight:
-              8,
+              minHeight: 8,
 
-              backgroundColor:
-              const Color(
-                0xFFE0EAE4,
-              ),
+              backgroundColor: const Color(0xFFE0EAE4),
 
-              valueColor:
-              const AlwaysStoppedAnimation<Color>(
-                Color(
-                  0xFF247557,
-                ),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF247557),
               ),
             ),
           ),
@@ -2353,12 +1459,7 @@ class _ProfileCompletionCard
   }
 }
 
-// =====================================================================
-// SECTION TITLE
-// =====================================================================
-
-class _GuideSectionTitle
-    extends StatelessWidget {
+class _GuideSectionTitle extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String subtitle;
@@ -2372,72 +1473,48 @@ class _GuideSectionTitle
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
 
       children: [
         Text(
           eyebrow,
 
-          style:
-          const TextStyle(
-            color:
-            Color(
-              0xFF4C856C,
-            ),
+          style: const TextStyle(
+            color: Color(0xFF4C856C),
 
-            fontSize:
-            7.3,
+            fontSize: 7.3,
 
-            letterSpacing:
-            1,
+            letterSpacing: 1,
 
-            fontWeight:
-            FontWeight.w800,
+            fontWeight: FontWeight.w800,
           ),
         ),
 
-        const SizedBox(
-          height: 4,
-        ),
+        const SizedBox(height: 4),
 
         Text(
           title,
 
-          style:
-          const TextStyle(
-            color:
-            Color(
-              0xFF153D30,
-            ),
+          style: const TextStyle(
+            color: Color(0xFF153D30),
 
-            fontSize:
-            15,
+            fontSize: 15,
 
-            fontWeight:
-            FontWeight.w900,
+            fontWeight: FontWeight.w900,
           ),
         ),
 
-        const SizedBox(
-          height: 2,
-        ),
+        const SizedBox(height: 2),
 
         Text(
           subtitle,
 
-          style:
-          const TextStyle(
-            color:
-            Color(
-              0xFF78887F,
-            ),
+          style: const TextStyle(
+            color: Color(0xFF78887F),
 
-            fontSize:
-            8.8,
+            fontSize: 8.8,
 
-            height:
-            1.4,
+            height: 1.4,
           ),
         ),
       ],
@@ -2445,83 +1522,43 @@ class _GuideSectionTitle
   }
 }
 
-// =====================================================================
-// GUIDE SURFACE
-// =====================================================================
-
-class _GuideSurface
-    extends StatelessWidget {
+class _GuideSurface extends StatelessWidget {
   final Widget child;
   final bool strongShadow;
 
-  const _GuideSurface({
-    required this.child,
-    this.strongShadow = false,
-  });
+  const _GuideSurface({required this.child, this.strongShadow = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.all(
-        14,
-      ),
+      padding: const EdgeInsets.all(14),
 
-      decoration:
-      BoxDecoration(
-        color:
-        Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
 
-        borderRadius:
-        BorderRadius.circular(
-          16,
-        ),
+        borderRadius: BorderRadius.circular(16),
 
-        border:
-        Border.all(
-          color:
-          const Color(
-            0xFFDCE8E1,
-          ),
-        ),
+        border: Border.all(color: const Color(0xFFDCE8E1)),
 
-        boxShadow:
-        [
+        boxShadow: [
           BoxShadow(
             color: strongShadow
-                ? const Color(
-                0x16083A29)
-                : const Color(
-                0x08083A29),
+                ? const Color(0x16083A29)
+                : const Color(0x08083A29),
 
-            blurRadius:
-            strongShadow
-                ? 18
-                : 10,
+            blurRadius: strongShadow ? 18 : 10,
 
-            offset:
-            Offset(
-              0,
-              strongShadow
-                  ? 6
-                  : 4,
-            ),
+            offset: Offset(0, strongShadow ? 6 : 4),
           ),
         ],
       ),
 
-      child:
-      child,
+      child: child,
     );
   }
 }
 
-// =====================================================================
-// GUIDE INFO ROW
-// =====================================================================
-
-class _GuideInfoRow
-    extends StatelessWidget {
+class _GuideInfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
@@ -2535,89 +1572,51 @@ class _GuideInfoRow
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-      const EdgeInsets.symmetric(
-        vertical:
-        8,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
 
-      child:
-      Row(
+      child: Row(
         children: [
           Container(
             width: 38,
             height: 38,
 
-            decoration:
-            const BoxDecoration(
-              color:
-              Color(
-                0xFFE7F3EA,
-              ),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE7F3EA),
 
-              shape:
-              BoxShape.circle,
+              shape: BoxShape.circle,
             ),
 
-            child:
-            Icon(
-              icon,
-
-              size:
-              18,
-
-              color:
-              const Color(
-                0xFF267154,
-              ),
-            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF267154)),
           ),
 
-          const SizedBox(
-            width: 10,
-          ),
+          const SizedBox(width: 10),
 
           Expanded(
-            child:
-            Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
                   label,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF7B8982,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF7B8982),
 
-                    fontSize:
-                    7.8,
+                    fontSize: 7.8,
                   ),
                 ),
 
-                const SizedBox(
-                  height: 2,
-                ),
+                const SizedBox(height: 2),
 
                 Text(
                   value,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF223F34,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF223F34),
 
-                    fontSize:
-                    10.2,
+                    fontSize: 10.2,
 
-                    fontWeight:
-                    FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -2629,28 +1628,16 @@ class _GuideInfoRow
   }
 }
 
-class _GuideDivider
-    extends StatelessWidget {
+class _GuideDivider extends StatelessWidget {
   const _GuideDivider();
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      color:
-      Color(
-        0xFFE7EEE9,
-      ),
-    );
+    return const Divider(height: 1, color: Color(0xFFE7EEE9));
   }
 }
 
-// =====================================================================
-// SHORTCUT
-// =====================================================================
-
-class _GuideShortcut
-    extends StatelessWidget {
+class _GuideShortcut extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -2666,114 +1653,58 @@ class _GuideShortcut
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap:
-      onTap,
+      onTap: onTap,
 
-      borderRadius:
-      BorderRadius.circular(
-        15,
-      ),
+      borderRadius: BorderRadius.circular(15),
 
-      child:
-      Container(
-        padding:
-        const EdgeInsets.all(
-          13,
+      child: Container(
+        padding: const EdgeInsets.all(13),
+
+        decoration: BoxDecoration(
+          color: Colors.white,
+
+          borderRadius: BorderRadius.circular(15),
+
+          border: Border.all(color: const Color(0xFFDCE8E1)),
         ),
 
-        decoration:
-        BoxDecoration(
-          color:
-          Colors.white,
-
-          borderRadius:
-          BorderRadius.circular(
-            15,
-          ),
-
-          border:
-          Border.all(
-            color:
-            const Color(
-              0xFFDCE8E1,
-            ),
-          ),
-        ),
-
-        child:
-        Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
             Container(
               width: 39,
               height: 39,
 
-              decoration:
-              const BoxDecoration(
-                color:
-                Color(
-                  0xFFE4F2E9,
-                ),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE4F2E9),
 
-                shape:
-                BoxShape.circle,
+                shape: BoxShape.circle,
               ),
 
-              child:
-              Icon(
-                icon,
-
-                size:
-                19,
-
-                color:
-                const Color(
-                  0xFF176D4E,
-                ),
-              ),
+              child: Icon(icon, size: 19, color: const Color(0xFF176D4E)),
             ),
 
-            const SizedBox(
-              height: 9,
-            ),
+            const SizedBox(height: 9),
 
             Text(
               title,
 
-              style:
-              const TextStyle(
-                color:
-                Color(
-                  0xFF163E31,
-                ),
+              style: const TextStyle(
+                color: Color(0xFF163E31),
 
-                fontSize:
-                10.5,
+                fontSize: 10.5,
 
-                fontWeight:
-                FontWeight.w800,
+                fontWeight: FontWeight.w800,
               ),
             ),
 
-            const SizedBox(
-              height: 2,
-            ),
+            const SizedBox(height: 2),
 
             Text(
               subtitle,
 
-              style:
-              const TextStyle(
-                color:
-                Color(
-                  0xFF798A81,
-                ),
-
-                fontSize:
-                7.7,
-              ),
+              style: const TextStyle(color: Color(0xFF798A81), fontSize: 7.7),
             ),
           ],
         ),
@@ -2782,114 +1713,66 @@ class _GuideShortcut
   }
 }
 
-// =====================================================================
-// ADMIN FEEDBACK
-// =====================================================================
-
-class _AdminFeedbackCard
-    extends StatelessWidget {
+class _AdminFeedbackCard extends StatelessWidget {
   final String note;
 
-  const _AdminFeedbackCard({
-    required this.note,
-  });
+  const _AdminFeedbackCard({required this.note});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.all(
-        13,
+      padding: const EdgeInsets.all(13),
+
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF5DD),
+
+        borderRadius: BorderRadius.circular(14),
+
+        border: Border.all(color: const Color(0xFFF0DDAF)),
       ),
 
-      decoration:
-      BoxDecoration(
-        color:
-        const Color(
-          0xFFFFF5DD,
-        ),
-
-        borderRadius:
-        BorderRadius.circular(
-          14,
-        ),
-
-        border:
-        Border.all(
-          color:
-          const Color(
-            0xFFF0DDAF,
-          ),
-        ),
-      ),
-
-      child:
-      Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
           const Icon(
-            Icons
-                .admin_panel_settings_outlined,
+            Icons.admin_panel_settings_outlined,
 
-            color:
-            Color(
-              0xFF976817,
-            ),
+            color: Color(0xFF976817),
 
-            size:
-            20,
+            size: 20,
           ),
 
-          const SizedBox(
-            width: 9,
-          ),
+          const SizedBox(width: 9),
 
           Expanded(
-            child:
-            Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 const Text(
                   'Admin feedback',
 
-                  style:
-                  TextStyle(
-                    color:
-                    Color(
-                      0xFF76531B,
-                    ),
+                  style: TextStyle(
+                    color: Color(0xFF76531B),
 
-                    fontSize:
-                    10.5,
+                    fontSize: 10.5,
 
-                    fontWeight:
-                    FontWeight.w800,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
 
-                const SizedBox(
-                  height: 3,
-                ),
+                const SizedBox(height: 3),
 
                 Text(
                   note,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF826B42,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF826B42),
 
-                    fontSize:
-                    8.7,
+                    fontSize: 8.7,
 
-                    height:
-                    1.4,
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -2901,12 +1784,7 @@ class _AdminFeedbackCard
   }
 }
 
-// =====================================================================
-// MESSAGE CARD
-// =====================================================================
-
-class _GuideMessageCard
-    extends StatelessWidget {
+class _GuideMessageCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
@@ -2920,96 +1798,52 @@ class _GuideMessageCard
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.all(
-        12,
+      padding: const EdgeInsets.all(12),
+
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F7F3),
+
+        borderRadius: BorderRadius.circular(13),
+
+        border: Border.all(color: const Color(0xFFD7E7DD)),
       ),
 
-      decoration:
-      BoxDecoration(
-        color:
-        const Color(
-          0xFFF1F7F3,
-        ),
-
-        borderRadius:
-        BorderRadius.circular(
-          13,
-        ),
-
-        border:
-        Border.all(
-          color:
-          const Color(
-            0xFFD7E7DD,
-          ),
-        ),
-      ),
-
-      child:
-      Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-          Icon(
-            icon,
-            color:
-            const Color(
-              0xFF3C755E,
-            ),
-            size:
-            19,
-          ),
+          Icon(icon, color: const Color(0xFF3C755E), size: 19),
 
-          const SizedBox(
-            width: 8,
-          ),
+          const SizedBox(width: 8),
 
           Expanded(
-            child:
-            Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
                   title,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF315E4D,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF315E4D),
 
-                    fontSize:
-                    10,
+                    fontSize: 10,
 
-                    fontWeight:
-                    FontWeight.w800,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
 
-                const SizedBox(
-                  height: 3,
-                ),
+                const SizedBox(height: 3),
 
                 Text(
                   message,
 
-                  style:
-                  const TextStyle(
-                    color:
-                    Color(
-                      0xFF71837A,
-                    ),
+                  style: const TextStyle(
+                    color: Color(0xFF71837A),
 
-                    fontSize:
-                    8.5,
+                    fontSize: 8.5,
 
-                    height:
-                    1.4,
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -3021,12 +1855,7 @@ class _GuideMessageCard
   }
 }
 
-// =====================================================================
-// PRIMARY BUTTON
-// =====================================================================
-
-class _GuidePrimaryButton
-    extends StatelessWidget {
+class _GuidePrimaryButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
@@ -3040,154 +1869,76 @@ class _GuidePrimaryButton
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height:
-      49,
+      height: 49,
 
-      child:
-      FilledButton.icon(
-        onPressed:
-        onPressed,
+      child: FilledButton.icon(
+        onPressed: onPressed,
 
-        style:
-        FilledButton.styleFrom(
-          backgroundColor:
-          const Color(
-            0xFF176D4E,
-          ),
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF176D4E),
 
-          shape:
-          RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(
-              14,
-            ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
 
-        icon:
-        Icon(
-          icon,
-          size:
-          18,
-        ),
+        icon: Icon(icon, size: 18),
 
-        label:
-        Text(
-          label,
-
-          style:
-          const TextStyle(
-            fontWeight:
-            FontWeight.w800,
-          ),
-        ),
+        label: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
     );
   }
 }
 
-// =====================================================================
-// UNAVAILABLE
-// =====================================================================
-
-class _GuideUnavailable
-    extends StatelessWidget {
+class _GuideUnavailable extends StatelessWidget {
   const _GuideUnavailable();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-      const EdgeInsets.fromLTRB(
-        22,
-        32,
-        22,
-        30,
+      padding: const EdgeInsets.fromLTRB(22, 32, 22, 30),
+
+      decoration: BoxDecoration(
+        color: Colors.white,
+
+        borderRadius: BorderRadius.circular(17),
+
+        border: Border.all(color: const Color(0xFFDDE8E1)),
       ),
 
-      decoration:
-      BoxDecoration(
-        color:
-        Colors.white,
-
-        borderRadius:
-        BorderRadius.circular(
-          17,
-        ),
-
-        border:
-        Border.all(
-          color:
-          const Color(
-            0xFFDDE8E1,
-          ),
-        ),
-      ),
-
-      child:
-      const Column(
+      child: const Column(
         children: [
-          Icon(
-            Icons.badge_outlined,
+          Icon(Icons.badge_outlined, size: 48, color: Color(0xFF176D4E)),
 
-            size:
-            48,
-
-            color:
-            Color(
-              0xFF176D4E,
-            ),
-          ),
-
-          SizedBox(
-            height:
-            14,
-          ),
+          SizedBox(height: 14),
 
           Text(
             'Guide profile unavailable',
 
-            textAlign:
-            TextAlign.center,
+            textAlign: TextAlign.center,
 
-            style:
-            TextStyle(
-              color:
-              Color(
-                0xFF153D30,
-              ),
+            style: TextStyle(
+              color: Color(0xFF153D30),
 
-              fontSize:
-              15,
+              fontSize: 15,
 
-              fontWeight:
-              FontWeight.w900,
+              fontWeight: FontWeight.w900,
             ),
           ),
 
-          SizedBox(
-            height:
-            6,
-          ),
+          SizedBox(height: 6),
 
           Text(
             'No guide profile was returned for this account.',
 
-            textAlign:
-            TextAlign.center,
+            textAlign: TextAlign.center,
 
-            style:
-            TextStyle(
-              color:
-              Color(
-                0xFF78887F,
-              ),
+            style: TextStyle(
+              color: Color(0xFF78887F),
 
-              fontSize:
-              9,
+              fontSize: 9,
 
-              height:
-              1.4,
+              height: 1.4,
             ),
           ),
         ],
@@ -3195,10 +1946,6 @@ class _GuideUnavailable
     );
   }
 }
-
-// =====================================================================
-// STATUS STYLE
-// =====================================================================
 
 class _GuideStatusStyle {
   final Color background;
@@ -3215,65 +1962,43 @@ class _GuideStatusStyle {
     required this.icon,
   });
 
-  factory _GuideStatusStyle.from(
-      String status,
-      ) {
+  factory _GuideStatusStyle.from(String status) {
     switch (status) {
       case 'APPROVED':
         return const _GuideStatusStyle(
-          background:
-          Color(0xFFEAF6EE),
-          border:
-          Color(0xFFC7E3D1),
-          foreground:
-          Color(0xFF176E4D),
-          iconBackground:
-          Color(0xFFD8EDDF),
-          icon:
-          Icons.verified_outlined,
+          background: Color(0xFFEAF6EE),
+          border: Color(0xFFC7E3D1),
+          foreground: Color(0xFF176E4D),
+          iconBackground: Color(0xFFD8EDDF),
+          icon: Icons.verified_outlined,
         );
 
       case 'NEEDS_WORK':
         return const _GuideStatusStyle(
-          background:
-          Color(0xFFFFF7E5),
-          border:
-          Color(0xFFF0DDAE),
-          foreground:
-          Color(0xFF9B6917),
-          iconBackground:
-          Color(0xFFF8EAC7),
-          icon:
-          Icons.edit_note_outlined,
+          background: Color(0xFFFFF7E5),
+          border: Color(0xFFF0DDAE),
+          foreground: Color(0xFF9B6917),
+          iconBackground: Color(0xFFF8EAC7),
+          icon: Icons.edit_note_outlined,
         );
 
       case 'REJECTED':
         return const _GuideStatusStyle(
-          background:
-          Color(0xFFFFEEEE),
-          border:
-          Color(0xFFF1C9C6),
-          foreground:
-          Color(0xFFB94B43),
-          iconBackground:
-          Color(0xFFF7DAD7),
-          icon:
-          Icons.cancel_outlined,
+          background: Color(0xFFFFEEEE),
+          border: Color(0xFFF1C9C6),
+          foreground: Color(0xFFB94B43),
+          iconBackground: Color(0xFFF7DAD7),
+          icon: Icons.cancel_outlined,
         );
 
       case 'PENDING':
       default:
         return const _GuideStatusStyle(
-          background:
-          Color(0xFFFFF8E7),
-          border:
-          Color(0xFFF0DFB6),
-          foreground:
-          Color(0xFFA16F18),
-          iconBackground:
-          Color(0xFFF8ECCD),
-          icon:
-          Icons.hourglass_top_rounded,
+          background: Color(0xFFFFF8E7),
+          border: Color(0xFFF0DFB6),
+          foreground: Color(0xFFA16F18),
+          iconBackground: Color(0xFFF8ECCD),
+          icon: Icons.hourglass_top_rounded,
         );
     }
   }
