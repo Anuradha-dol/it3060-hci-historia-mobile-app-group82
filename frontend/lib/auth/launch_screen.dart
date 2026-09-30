@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/historia_header.dart';
 import 'login_screen.dart';
 
 class LaunchScreen extends StatelessWidget {
@@ -11,10 +12,7 @@ class LaunchScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/launch_bg.png',
-            fit: BoxFit.cover,
-          ),
+          Image.asset('assets/images/launch_bg.png', fit: BoxFit.cover),
 
           Container(
             decoration: BoxDecoration(
@@ -32,30 +30,12 @@ class LaunchScreen extends StatelessWidget {
 
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 28,
-                vertical: 26,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
               child: Column(
                 children: [
                   const Spacer(flex: 6),
 
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDDF5E7),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.eco_outlined,
-                      color: Color(0xFF176C4B),
-                      size: 32,
-                    ),
-                  ),
+                  const HistoriaLogoMark(size: 58),
 
                   const SizedBox(height: 18),
 
@@ -125,8 +105,7 @@ class LaunchScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        const Color(0xFF176C4B),
+                        backgroundColor: const Color(0xFF176C4B),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
