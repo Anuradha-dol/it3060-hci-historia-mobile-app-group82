@@ -11,8 +11,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
@@ -40,41 +39,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  // ================================================================
-  // REQUEST RESET
-  // ================================================================
-
   Future<void> _requestReset() async {
     if (_email.text.trim().isEmpty &&
         _username.text.trim().isEmpty &&
         _phone.text.trim().isEmpty) {
-      showAppMessage(
-        context,
-        'Enter email, username or phone.',
-        error: true,
-      );
+      showAppMessage(context, 'Enter email, username or phone.', error: true);
       return;
     }
 
     await _run(() async {
       final result = await AuthService().forgotPassword(
-        username: _username.text.trim().isEmpty
-            ? null
-            : _username.text.trim(),
-        email: _email.text.trim().isEmpty
-            ? null
-            : _email.text.trim(),
-        phone: _phone.text.trim().isEmpty
-            ? null
-            : _phone.text.trim(),
+        username: _username.text.trim().isEmpty ? null : _username.text.trim(),
+        email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+        phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
       );
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
 
       setState(() {
         _step = ResetStep.verify;
@@ -82,18 +64,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
   }
 
-  // ================================================================
-  // VERIFY CODE
-  // ================================================================
-
   Future<void> _verifyCode() async {
-    if (_email.text.trim().isEmpty ||
-        _code.text.trim().isEmpty) {
-      showAppMessage(
-        context,
-        'Email and code are required.',
-        error: true,
-      );
+    if (_email.text.trim().isEmpty || _code.text.trim().isEmpty) {
+      showAppMessage(context, 'Email and code are required.', error: true);
       return;
     }
 
@@ -105,10 +78,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
 
       setState(() {
         _step = ResetStep.reset;
@@ -116,17 +86,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
   }
 
-  // ================================================================
-  // RESEND
-  // ================================================================
-
   Future<void> _resendCode() async {
     if (_email.text.trim().isEmpty) {
-      showAppMessage(
-        context,
-        'Email is required.',
-        error: true,
-      );
+      showAppMessage(context, 'Email is required.', error: true);
       return;
     }
 
@@ -137,35 +99,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
     });
   }
-
-  // ================================================================
-  // RESET PASSWORD
-  // ================================================================
 
   Future<void> _resetPassword() async {
     if (_email.text.trim().isEmpty ||
         _newPassword.text.isEmpty ||
         _confirmPassword.text.isEmpty) {
-      showAppMessage(
-        context,
-        'Password fields are required.',
-        error: true,
-      );
+      showAppMessage(context, 'Password fields are required.', error: true);
       return;
     }
 
     if (_newPassword.text != _confirmPassword.text) {
-      showAppMessage(
-        context,
-        'Passwords do not match.',
-        error: true,
-      );
+      showAppMessage(context, 'Passwords do not match.', error: true);
       return;
     }
 
@@ -178,22 +125,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
 
       Navigator.pop(context);
     });
   }
 
-  // ================================================================
-  // RUN ASYNC ACTION
-  // ================================================================
-
-  Future<void> _run(
-      Future<void> Function() action,
-      ) async {
+  Future<void> _run(Future<void> Function() action) async {
     setState(() {
       _loading = true;
     });
@@ -217,10 +155,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  // ================================================================
-  // STEP INDEX
-  // ================================================================
-
   int get _stepIndex {
     switch (_step) {
       case ResetStep.request:
@@ -231,10 +165,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         return 2;
     }
   }
-
-  // ================================================================
-  // BACK
-  // ================================================================
 
   void _back() {
     if (_step == ResetStep.reset) {
@@ -254,14 +184,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     Navigator.maybePop(context);
   }
 
-  // ================================================================
-  // BUILD
-  // ================================================================
-
   @override
   Widget build(BuildContext context) {
-    final keyboardOpen =
-        MediaQuery.of(context).viewInsets.bottom > 0;
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return PopScope(
       canPop: _step == ResetStep.request,
@@ -277,9 +202,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         body: Stack(
           children: [
-            // ========================================================
-            // BACKGROUND
-            // ========================================================
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -294,9 +216,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
             ),
 
-            // ========================================================
-            // DECORATION
-            // ========================================================
             Positioned(
               top: 115,
               right: -75,
@@ -305,8 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 height: 185,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFD3EBDD)
-                      .withValues(alpha: 0.28),
+                  color: const Color(0xFFD3EBDD).withValues(alpha: 0.28),
                 ),
               ),
             ),
@@ -319,32 +237,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 height: 190,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFDDEFE5)
-                      .withValues(alpha: 0.24),
+                  color: const Color(0xFFDDEFE5).withValues(alpha: 0.24),
                 ),
               ),
             ),
 
-            // ========================================================
-            // PAGE
-            // ========================================================
             SafeArea(
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 430,
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 430),
 
                   child: Column(
                     children: [
-                      // =================================================
-                      // HEADER
-                      // =================================================
                       HistoriaHeader(
                         title: _title,
                         subtitle: _subtitle,
                         eyebrow:
-                        'ACCOUNT RECOVERY · STEP ${(_stepIndex + 1).toString().padLeft(2, '0')} OF 03',
+                            'ACCOUNT RECOVERY / STEP ${(_stepIndex + 1).toString().padLeft(2, '0')} OF 03',
                         icon: Icons.lock_reset_rounded,
                         actions: [
                           HistoriaIconButton(
@@ -359,55 +268,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ],
                       ),
 
-                      // =================================================
-                      // SCROLLABLE CONTENT
-                      // =================================================
                       Expanded(
                         child: ListView(
-                          physics:
-                          const ClampingScrollPhysics(),
+                          physics: const ClampingScrollPhysics(),
                           keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior
-                              .onDrag,
-                          padding:
-                          const EdgeInsets.fromLTRB(
-                            17,
-                            8,
-                            17,
-                            15,
-                          ),
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          padding: const EdgeInsets.fromLTRB(17, 8, 17, 15),
 
                           children: [
-                            // ===========================================
-                            // PROGRESS
-                            // ===========================================
                             HistoriaProgressStepper(
                               currentStep: _stepIndex,
-                              labels: const [
-                                'Find',
-                                'Verify',
-                                'Reset',
-                              ],
+                              labels: const ['Find', 'Verify', 'Reset'],
                             ),
 
-                            const SizedBox(
-                              height: 10,
-                            ),
+                            const SizedBox(height: 10),
 
-                            // ===========================================
-                            // STEP CARD
-                            // ===========================================
                             Container(
-                              padding:
-                              const EdgeInsets.fromLTRB(
+                              padding: const EdgeInsets.fromLTRB(
                                 14,
                                 13,
                                 14,
                                 12,
                               ),
                               decoration: BoxDecoration(
-                                gradient:
-                                const LinearGradient(
+                                gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
@@ -415,11 +299,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     Color(0xFFECF6F0),
                                   ],
                                 ),
-                                borderRadius:
-                                BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color:
-                                  const Color(0xFFCFE3D8),
+                                  color: const Color(0xFFCFE3D8),
                                 ),
                                 boxShadow: const [
                                   BoxShadow(
@@ -431,13 +313,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
 
                               child: AnimatedSwitcher(
-                                duration: const Duration(
-                                  milliseconds: 180,
-                                ),
-                                switchInCurve:
-                                Curves.easeOut,
-                                switchOutCurve:
-                                Curves.easeIn,
+                                duration: const Duration(milliseconds: 180),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeIn,
 
                                 child: KeyedSubtree(
                                   key: ValueKey(_step),
@@ -449,11 +327,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                       ),
 
-                      // =================================================
-                      // FIXED BOTTOM IMAGE
-                      // =================================================
-                      if (!keyboardOpen)
-                        const _ForgotPasswordFooter(),
+                      if (!keyboardOpen) const _ForgotPasswordFooter(),
                     ],
                   ),
                 ),
@@ -464,10 +338,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
     );
   }
-
-  // ================================================================
-  // TITLES
-  // ================================================================
 
   String get _title {
     switch (_step) {
@@ -495,10 +365,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  // ================================================================
-  // CONTENT ROUTER
-  // ================================================================
-
   Widget _content() {
     switch (_step) {
       case ResetStep.verify:
@@ -512,20 +378,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  // ================================================================
-  // STEP 01 - FIND ACCOUNT
-  // ================================================================
-
   Widget _requestContent() {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _RecoverySectionHeading(
           icon: Icons.person_search_outlined,
           title: 'Find your account',
-          subtitle:
-          'Enter the account information you remember.',
+          subtitle: 'Enter the account information you remember.',
         ),
 
         const SizedBox(height: 12),
@@ -533,7 +393,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const HistoriaInfoBox(
           title: 'Account recovery',
           message:
-          'Email is recommended. Username or phone can also help identify the account.',
+              'Email is recommended. Username or phone can also help identify the account.',
           icon: Icons.info_outline,
         ),
 
@@ -544,8 +404,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           hintText: 'name@example.com',
           controller: _email,
           icon: Icons.email_outlined,
-          keyboardType:
-          TextInputType.emailAddress,
+          keyboardType: TextInputType.emailAddress,
         ),
 
         HistoriaTextField(
@@ -560,8 +419,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           hintText: '+94 7X XXX XXXX',
           controller: _phone,
           icon: Icons.phone_outlined,
-          keyboardType:
-          TextInputType.phone,
+          keyboardType: TextInputType.phone,
         ),
 
         const SizedBox(height: 10),
@@ -576,20 +434,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  // ================================================================
-  // STEP 02 - VERIFY
-  // ================================================================
-
   Widget _verifyContent() {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _RecoverySectionHeading(
           icon: Icons.mark_email_read_outlined,
           title: 'Verify reset code',
-          subtitle:
-          'Enter the code sent to your recovery email.',
+          subtitle: 'Enter the code sent to your recovery email.',
         ),
 
         const SizedBox(height: 12),
@@ -609,8 +461,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           hintText: 'name@example.com',
           controller: _email,
           icon: Icons.email_outlined,
-          keyboardType:
-          TextInputType.emailAddress,
+          keyboardType: TextInputType.emailAddress,
         ),
 
         HistoriaTextField(
@@ -618,8 +469,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           hintText: 'Enter code',
           controller: _code,
           icon: Icons.pin_outlined,
-          keyboardType:
-          TextInputType.number,
+          keyboardType: TextInputType.number,
         ),
 
         const SizedBox(height: 9),
@@ -635,35 +485,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         Center(
           child: TextButton.icon(
-            onPressed:
-            _loading ? null : _resendCode,
-            icon: const Icon(
-              Icons.refresh_rounded,
-              size: 14,
-            ),
-            label: const Text(
-              'Resend reset code',
-            ),
+            onPressed: _loading ? null : _resendCode,
+            icon: const Icon(Icons.refresh_rounded, size: 14),
+            label: const Text('Resend reset code'),
           ),
         ),
       ],
     );
   }
 
-  // ================================================================
-  // STEP 03 - RESET
-  // ================================================================
-
   Widget _resetContent() {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _RecoverySectionHeading(
           icon: Icons.password_outlined,
           title: 'New password',
-          subtitle:
-          'Create a new secure password for your HISTORIA account.',
+          subtitle: 'Create a new secure password for your HISTORIA account.',
         ),
 
         const SizedBox(height: 12),
@@ -671,7 +509,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const HistoriaInfoBox(
           title: 'Password guidance',
           message:
-          'Use 8 or more characters and enter the same password twice.',
+              'Use 8 or more characters and enter the same password twice.',
           icon: Icons.shield_outlined,
         ),
 
@@ -679,19 +517,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         HistoriaTextField(
           label: 'New password',
-          hintText:
-          'Use 8 or more characters',
+          hintText: 'Use 8 or more characters',
           controller: _newPassword,
           icon: Icons.lock_outline,
-          obscureText:
-          _hideNewPassword,
-          suffix:
-          HistoriaPasswordSuffix(
+          obscureText: _hideNewPassword,
+          suffix: HistoriaPasswordSuffix(
             hidden: _hideNewPassword,
             onPressed: () {
               setState(() {
-                _hideNewPassword =
-                !_hideNewPassword;
+                _hideNewPassword = !_hideNewPassword;
               });
             },
           ),
@@ -699,22 +533,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         HistoriaTextField(
           label: 'Confirm password',
-          hintText:
-          'Repeat your password',
-          controller:
-          _confirmPassword,
-          icon:
-          Icons.lock_outline,
-          obscureText:
-          _hideConfirmPassword,
-          suffix:
-          HistoriaPasswordSuffix(
-            hidden:
-            _hideConfirmPassword,
+          hintText: 'Repeat your password',
+          controller: _confirmPassword,
+          icon: Icons.lock_outline,
+          obscureText: _hideConfirmPassword,
+          suffix: HistoriaPasswordSuffix(
+            hidden: _hideConfirmPassword,
             onPressed: () {
               setState(() {
-                _hideConfirmPassword =
-                !_hideConfirmPassword;
+                _hideConfirmPassword = !_hideConfirmPassword;
               });
             },
           ),
@@ -733,10 +560,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 }
 
-// =====================================================================
-// STEP SECTION HEADING
-// =====================================================================
-
 class _RecoverySectionHeading extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -751,8 +574,7 @@ class _RecoverySectionHeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 40,
@@ -761,29 +583,21 @@ class _RecoverySectionHeading extends StatelessWidget {
             color: Color(0xFFDDEFE5),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            size: 21,
-            color:
-            const Color(0xFF1D7452),
-          ),
+          child: Icon(icon, size: 21, color: const Color(0xFF1D7452)),
         ),
 
         const SizedBox(width: 10),
 
         Expanded(
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
                 style: const TextStyle(
-                  color:
-                  Color(0xFF123F32),
+                  color: Color(0xFF123F32),
                   fontSize: 13.5,
-                  fontWeight:
-                  FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
 
@@ -792,8 +606,7 @@ class _RecoverySectionHeading extends StatelessWidget {
               Text(
                 subtitle,
                 style: const TextStyle(
-                  color:
-                  Color(0xFF6A7C73),
+                  color: Color(0xFF6A7C73),
                   fontSize: 9.8,
                   height: 1.3,
                 ),
@@ -805,13 +618,6 @@ class _RecoverySectionHeading extends StatelessWidget {
     );
   }
 }
-
-// =====================================================================
-// BOTTOM IMAGE
-//
-// IMAGE EKA WITHARAI.
-// EXTRA WAVE PAINTER / TEXT NAHA.
-// =====================================================================
 
 class _ForgotPasswordFooter extends StatelessWidget {
   const _ForgotPasswordFooter();
@@ -830,22 +636,15 @@ class _ForgotPasswordFooter extends StatelessWidget {
 
         fit: BoxFit.cover,
 
-        alignment:
-        Alignment.bottomCenter,
+        alignment: Alignment.bottomCenter,
 
-        filterQuality:
-        FilterQuality.high,
+        filterQuality: FilterQuality.high,
 
-        errorBuilder: (
-            context,
-            error,
-            stackTrace,
-            ) {
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             width: double.infinity,
             height: 140,
-            color:
-            const Color(0xFFEAF5EE),
+            color: const Color(0xFFEAF5EE),
           );
         },
       ),
