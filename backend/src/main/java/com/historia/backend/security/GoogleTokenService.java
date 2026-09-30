@@ -86,7 +86,7 @@ public class GoogleTokenService {
                     lastName
             );
 
-        } catch (GeneralSecurityException | IOException exception) {
+        } catch (GeneralSecurityException | IOException | IllegalArgumentException exception) {
 
             throw new UserException(
                     "Invalid Google account"
