@@ -92,9 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       body: Stack(
         children: [
-          // ============================================================
-          // BACKGROUND
-          // ============================================================
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -109,9 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // ============================================================
-          // SOFT BACKGROUND DECORATION
-          // ============================================================
           Positioned(
             top: 110,
             right: -80,
@@ -138,9 +132,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // ============================================================
-          // MAIN PAGE
-          // ============================================================
           SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -148,9 +139,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 child: Column(
                   children: [
-                    // ==================================================
-                    // HEADER
-                    // ==================================================
                     HistoriaHeader(
                       title: 'Welcome back.',
                       subtitle: 'Sign in to continue your HISTORIA journey.',
@@ -167,9 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
 
-                    // ==================================================
-                    // SCROLLABLE LOGIN CONTENT
-                    // ==================================================
                     Expanded(
                       child: ListView(
                         physics: const ClampingScrollPhysics(),
@@ -186,9 +171,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
 
                               children: [
-                                // =====================================
-                                // LOGIN CARD
-                                // =====================================
                                 Container(
                                   padding: const EdgeInsets.fromLTRB(
                                     15,
@@ -227,9 +209,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                         CrossAxisAlignment.stretch,
 
                                     children: [
-                                      // =================================
-                                      // EMAIL / USERNAME / PHONE
-                                      // =================================
                                       HistoriaTextField(
                                         label: 'Email, username or phone',
                                         hintText: 'Enter your account details',
@@ -247,9 +226,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       const SizedBox(height: 9),
 
-                                      // =================================
-                                      // PASSWORD
-                                      // =================================
                                       HistoriaTextField(
                                         label: 'Password',
                                         hintText: 'Enter your password',
@@ -275,9 +251,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       ),
 
-                                      // =================================
-                                      // FORGOT PASSWORD
-                                      // =================================
                                       Align(
                                         alignment: Alignment.centerRight,
 
@@ -319,9 +292,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       const SizedBox(height: 2),
 
-                                      // =================================
-                                      // SIGN IN
-                                      // =================================
                                       HistoriaButton(
                                         loading: auth.loading,
                                         onPressed: _login,
@@ -330,9 +300,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       const SizedBox(height: 8),
 
-                                      // =================================
-                                      // GOOGLE LOGIN
-                                      // =================================
                                       _GoogleButton(
                                         loading: auth.loading,
                                         onPressed: _googleLogin,
@@ -340,9 +307,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       const SizedBox(height: 13),
 
-                                      // =================================
-                                      // NEW TO HISTORIA DIVIDER
-                                      // =================================
                                       Row(
                                         children: [
                                           const Expanded(
@@ -381,9 +345,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       const SizedBox(height: 9),
 
-                                      // =================================
-                                      // CREATE ACCOUNT
-                                      // =================================
                                       HistoriaOutlineButton(
                                         onPressed: () {
                                           Navigator.push(
@@ -399,9 +360,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       const SizedBox(height: 3),
 
-                                      // =================================
-                                      // GUIDE RESUBMISSION
-                                      // =================================
                                       Center(
                                         child: TextButton(
                                           style: TextButton.styleFrom(
@@ -440,14 +398,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
 
-                                // =====================================
-                                // NO SPACER HERE
-                                // =====================================
                                 const SizedBox(height: 14),
 
-                                // =====================================
-                                // GUIDE APPROVAL MESSAGE
-                                // =====================================
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
@@ -491,10 +443,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    // ==================================================
-                    // FOOTER IMAGE
-                    // Hide footer while keyboard is open
-                    // ==================================================
                     if (!keyboardOpen) const _HeritageFooter(),
                   ],
                 ),
@@ -506,10 +454,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-// =====================================================================
-// GOOGLE BUTTON
-// =====================================================================
 
 class _GoogleButton extends StatelessWidget {
   final bool loading;
@@ -563,10 +507,6 @@ class _GoogleButton extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// HERITAGE FOOTER
-// =====================================================================
-
 class _HeritageFooter extends StatelessWidget {
   const _HeritageFooter();
 
@@ -580,9 +520,6 @@ class _HeritageFooter extends StatelessWidget {
         clipBehavior: Clip.none,
 
         children: [
-          // ===========================================================
-          // IMAGE
-          // ===========================================================
           Positioned.fill(
             top: 14,
 
@@ -605,9 +542,6 @@ class _HeritageFooter extends StatelessWidget {
             ),
           ),
 
-          // ===========================================================
-          // GREEN WAVE
-          // ===========================================================
           Positioned(
             top: 0,
             left: 0,
@@ -624,10 +558,6 @@ class _HeritageFooter extends StatelessWidget {
     );
   }
 }
-
-// =====================================================================
-// IMAGE TOP SHAPE
-// =====================================================================
 
 class _LoginFooterClipper extends CustomClipper<Path> {
   @override
@@ -655,16 +585,9 @@ class _LoginFooterClipper extends CustomClipper<Path> {
   }
 }
 
-// =====================================================================
-// GREEN DOUBLE WAVE
-// =====================================================================
-
 class _LoginGreenWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // ================================================================
-    // LIGHT GREEN WAVE
-    // ================================================================
     final paint1 = Paint()
       ..color = const Color(0xFFDCEFE5)
       ..style = PaintingStyle.fill;
@@ -687,9 +610,6 @@ class _LoginGreenWavePainter extends CustomPainter {
 
     canvas.drawPath(path1, paint1);
 
-    // ================================================================
-    // SECOND MINT WAVE
-    // ================================================================
     final paint2 = Paint()
       ..color = const Color(0xFFC6E2D3)
       ..style = PaintingStyle.fill;
