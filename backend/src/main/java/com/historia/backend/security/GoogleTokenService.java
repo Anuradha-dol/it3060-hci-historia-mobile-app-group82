@@ -47,7 +47,6 @@ public class GoogleTokenService {
     }
 
 
-    // Verify Google token
     public GoogleUserInfo verify(String token) {
 
         try {
