@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/historia_components.dart';
 import 'guide_signup_screen.dart';
 import 'signup_screen.dart';
 
@@ -25,7 +26,6 @@ class AccountTypeScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 430),
             child: Stack(
               children: [
-                // Subtle page decorations
                 Positioned(
                   top: 150,
                   right: -30,
@@ -208,75 +208,12 @@ class _HistoriaHeader extends StatelessWidget {
         color: Color(0xFFF8FCF9),
         border: Border(bottom: BorderSide(color: Color(0xFFDDE9E3))),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 39,
-            height: 39,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE1F1E8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.eco_outlined,
-              color: AccountTypeScreen.primaryGreen,
-              size: 23,
-            ),
-          ),
-
-          const SizedBox(width: 11),
-
-          const Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'HISTORIA',
-                  style: TextStyle(
-                    color: AccountTypeScreen.darkGreen,
-                    fontSize: 19,
-                    height: 1,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.3,
-                  ),
-                ),
-
-                SizedBox(height: 4),
-
-                Text(
-                  'EXPLORE HISTORY / FIND YOUR GUIDE',
-                  style: TextStyle(
-                    color: AccountTypeScreen.mutedText,
-                    fontSize: 6.8,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.65,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onClose,
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAFDFB),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AccountTypeScreen.border),
-                ),
-                child: const Icon(
-                  Icons.close,
-                  size: 20,
-                  color: AccountTypeScreen.primaryGreen,
-                ),
-              ),
-            ),
+      child: HistoriaBrandRow(
+        actions: [
+          HistoriaIconButton(
+            icon: Icons.close,
+            tooltip: 'Close',
+            onPressed: onClose,
           ),
         ],
       ),
@@ -336,7 +273,6 @@ class _RoleCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               child: Stack(
                 children: [
-                  // Decorative leaf
                   Positioned(
                     right: -18,
                     top: -18,
@@ -359,7 +295,6 @@ class _RoleCard extends StatelessWidget {
 
                   Row(
                     children: [
-                      // IMAGE AREA
                       SizedBox(
                         width: 120,
                         height: double.infinity,
@@ -378,7 +313,6 @@ class _RoleCard extends StatelessWidget {
                         ),
                       ),
 
-                      // TEXT AREA
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(5, 13, 13, 11),
@@ -580,7 +514,6 @@ class _HeritageFooter extends StatelessWidget {
       width: double.infinity,
       child: Stack(
         children: [
-          // Main image
           Positioned.fill(
             top: 25,
             child: ClipPath(
@@ -594,7 +527,6 @@ class _HeritageFooter extends StatelessWidget {
             ),
           ),
 
-          // Upper light wave
           Positioned(
             top: 0,
             left: 0,
@@ -647,7 +579,6 @@ class _FooterWavePainter extends CustomPainter {
       ..color = const Color(0xFFCBE5D7)
       ..style = PaintingStyle.fill;
 
-    // First wave
     final path1 = Path();
 
     path1.moveTo(0, 24);
@@ -666,7 +597,6 @@ class _FooterWavePainter extends CustomPainter {
 
     canvas.drawPath(path1, lightPaint);
 
-    // Second wave
     final path2 = Path();
 
     path2.moveTo(0, 33);
