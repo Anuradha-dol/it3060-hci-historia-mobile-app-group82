@@ -18,7 +18,6 @@ public class UserController {
     }
 
 
-    // View profile
     @GetMapping("/me")
     public ResponseEntity<UserDto.UserProfileResponse> getProfile(
             Authentication authentication
@@ -32,7 +31,6 @@ public class UserController {
     }
 
 
-    // Update profile
     @PutMapping("/me")
     public ResponseEntity<UserDto.UserProfileResponse> updateProfile(
             Authentication authentication,
@@ -48,7 +46,6 @@ public class UserController {
     }
 
 
-    // Change password
     @PutMapping("/me/password")
     public ResponseEntity<UserDto.MessageResponse> changePassword(
             Authentication authentication,
@@ -64,7 +61,6 @@ public class UserController {
     }
 
 
-    // Logout
     @PostMapping("/logout")
     public ResponseEntity<UserDto.MessageResponse> logout(
             Authentication authentication
@@ -78,7 +74,6 @@ public class UserController {
     }
 
 
-    // Delete account
     @DeleteMapping("/me")
     public ResponseEntity<UserDto.MessageResponse> deleteAccount(
             Authentication authentication,
