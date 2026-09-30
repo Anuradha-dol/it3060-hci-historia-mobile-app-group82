@@ -146,9 +146,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     try {
       await _userService.logout();
-    } catch (_) {
-      // Local session should still be removed.
-    }
+    } catch (_) {}
 
     await _storageService.clearAuthData();
     try {
