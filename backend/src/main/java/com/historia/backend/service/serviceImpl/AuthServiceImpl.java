@@ -44,7 +44,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Tourist registration
     @Override
     @Transactional
     public UserDto.MessageResponse register(
@@ -63,7 +62,6 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // Tourist accounts only
         if (request.role() != Role.TOURIST) {
             throw new UserException(
                     "Please use guide registration for guide accounts"
@@ -136,7 +134,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Verify email
     @Override
     @Transactional
     public UserDto.MessageResponse verifyEmail(
@@ -195,7 +192,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Resend OTP
     @Override
     @Transactional
     public UserDto.MessageResponse resendOtp(
@@ -220,7 +216,6 @@ public class AuthServiceImpl implements AuthService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Check block
         if (user.getOtpBlockUntil() != null) {
 
             if (now.isBefore(
@@ -237,7 +232,6 @@ public class AuthServiceImpl implements AuthService {
             user.setOtpFirstResendTime(null);
         }
 
-        // Wait before resend
         if (user.getLastOtpSentAt() != null &&
                 now.isBefore(
                         user.getLastOtpSentAt()
@@ -249,7 +243,6 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // Reset resend count
         if (user.getOtpFirstResendTime() == null ||
                 now.isAfter(
                         user.getOtpFirstResendTime()
@@ -265,7 +258,6 @@ public class AuthServiceImpl implements AuthService {
                         ? 0
                         : user.getOtpResendCount();
 
-        // Resend limit
         if (resendCount >= 3) {
 
             user.setOtpBlockUntil(
@@ -304,7 +296,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Login
     @Override
     @Transactional
     public UserDto.AuthResponse login(
@@ -358,7 +349,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Refresh token
     @Override
     @Transactional
     public UserDto.AuthResponse refreshToken(
@@ -437,7 +427,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Google login
     @Override
     @Transactional
     public UserDto.AuthResponse googleLogin(
@@ -470,14 +459,12 @@ public class AuthServiceImpl implements AuthService {
                 );
             }
 
-            // Guide needs the full guide registration form
             if (requestedRole == Role.GUIDE) {
                 throw new UserException(
                         "Please complete the guide registration form to create a guide account"
                 );
             }
 
-            // New Google accounts are tourists
             if (requestedRole != Role.TOURIST) {
                 throw new UserException(
                         "Invalid account type"
@@ -590,7 +577,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Find user
     private User findUser(String identifier) {
 
         return userRepository
@@ -620,7 +606,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Profile response
     private UserDto.UserProfileResponse toProfileResponse(
             User user
     ) {
@@ -639,7 +624,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Create username
     private String createGoogleUsername(
             String email
     ) {
