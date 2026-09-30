@@ -4,10 +4,7 @@ import '../models/guide_model.dart';
 import '../services/api_service.dart';
 import '../services/guide_service.dart';
 import '../widgets/form_helpers.dart';
-
-// =====================================================================
-// APPROVED GUIDES SCREEN
-// =====================================================================
+import '../widgets/historia_header.dart';
 
 class ApprovedGuidesScreen extends StatelessWidget {
   const ApprovedGuidesScreen({super.key});
@@ -16,34 +13,21 @@ class ApprovedGuidesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Color(0xFFF5F9F6),
-      body: SafeArea(
-        child: ApprovedGuidesContent(
-          standalone: true,
-        ),
-      ),
+      body: SafeArea(child: ApprovedGuidesContent(standalone: true)),
     );
   }
 }
 
-// =====================================================================
-// APPROVED GUIDES CONTENT
-// =====================================================================
-
 class ApprovedGuidesContent extends StatefulWidget {
   final bool standalone;
 
-  const ApprovedGuidesContent({
-    super.key,
-    this.standalone = false,
-  });
+  const ApprovedGuidesContent({super.key, this.standalone = false});
 
   @override
-  State<ApprovedGuidesContent> createState() =>
-      _ApprovedGuidesContentState();
+  State<ApprovedGuidesContent> createState() => _ApprovedGuidesContentState();
 }
 
-class _ApprovedGuidesContentState
-    extends State<ApprovedGuidesContent> {
+class _ApprovedGuidesContentState extends State<ApprovedGuidesContent> {
   final _area = TextEditingController();
 
   List<GuideModel> _guides = [];
@@ -51,19 +35,11 @@ class _ApprovedGuidesContentState
   bool _loading = false;
   bool _searched = false;
 
-  // ===================================================================
-  // DISPOSE
-  // ===================================================================
-
   @override
   void dispose() {
     _area.dispose();
     super.dispose();
   }
-
-  // ===================================================================
-  // SEARCH
-  // ===================================================================
 
   Future<void> _search() async {
     FocusScope.of(context).unfocus();
@@ -71,11 +47,7 @@ class _ApprovedGuidesContentState
     final area = _area.text.trim();
 
     if (area.isEmpty) {
-      showAppMessage(
-        context,
-        'Area is required.',
-        error: true,
-      );
+      showAppMessage(context, 'Area is required.', error: true);
       return;
     }
 
@@ -84,10 +56,7 @@ class _ApprovedGuidesContentState
     });
 
     try {
-      final guides =
-      await GuideService().getApprovedGuides(
-        area: area,
-      );
+      final guides = await GuideService().getApprovedGuides(area: area);
 
       if (!mounted) return;
 
@@ -112,10 +81,6 @@ class _ApprovedGuidesContentState
     }
   }
 
-  // ===================================================================
-  // CLEAR SEARCH
-  // ===================================================================
-
   void _clearSearch() {
     _area.clear();
 
@@ -125,54 +90,26 @@ class _ApprovedGuidesContentState
     });
   }
 
-  // ===================================================================
-  // BUILD
-  // ===================================================================
-
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // =============================================================
-        // HEADER
-        // =============================================================
-
-        _GuideSearchHeader(
-          standalone: widget.standalone,
-        ),
-
-        // =============================================================
-        // BODY
-        // =============================================================
+        _GuideSearchHeader(standalone: widget.standalone),
 
         Expanded(
           child: ListView(
             physics: const ClampingScrollPhysics(),
-            keyboardDismissBehavior:
-            ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              18,
-              16,
-              28,
-            ),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
             children: [
-              // =======================================================
-              // INTRO
-              // =======================================================
-
               const _SectionHeading(
                 eyebrow: 'LOCAL GUIDE SEARCH',
                 title: 'Where are you exploring?',
                 subtitle:
-                'Enter a city or heritage area to find approved HISTORIA guides.',
+                    'Enter a city or heritage area to find approved HISTORIA guides.',
               ),
 
               const SizedBox(height: 13),
-
-              // =======================================================
-              // SEARCH CARD
-              // =======================================================
 
               _SearchCard(
                 controller: _area,
@@ -184,18 +121,12 @@ class _ApprovedGuidesContentState
 
               const SizedBox(height: 22),
 
-              // =======================================================
-              // RESULTS TITLE
-              // =======================================================
-
               Row(
-                crossAxisAlignment:
-                CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'GUIDES',
@@ -237,15 +168,13 @@ class _ApprovedGuidesContentState
 
                   if (_searched)
                     Container(
-                      padding:
-                      const EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 9,
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE5F2E9),
-                        borderRadius:
-                        BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '${_guides.length}',
@@ -261,32 +190,12 @@ class _ApprovedGuidesContentState
 
               const SizedBox(height: 12),
 
-              // =======================================================
-              // INITIAL STATE
-              // =======================================================
-
               if (!_searched)
                 const _InitialSearchState()
-
-              // =======================================================
-              // EMPTY RESULT
-              // =======================================================
-
               else if (_guides.isEmpty)
-                _NoGuideState(
-                  searchedArea: _area.text.trim(),
-                )
-
-              // =======================================================
-              // GUIDE RESULTS
-              // =======================================================
-
+                _NoGuideState(searchedArea: _area.text.trim())
               else
-                ..._guides.map(
-                      (guide) => _GuideResultCard(
-                    guide: guide,
-                  ),
-                ),
+                ..._guides.map((guide) => _GuideResultCard(guide: guide)),
             ],
           ),
         ),
@@ -295,35 +204,20 @@ class _ApprovedGuidesContentState
   }
 }
 
-// =====================================================================
-// HEADER
-// =====================================================================
-
 class _GuideSearchHeader extends StatelessWidget {
   final bool standalone;
 
-  const _GuideSearchHeader({
-    required this.standalone,
-  });
+  const _GuideSearchHeader({required this.standalone});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        16,
-        11,
-        12,
-        22,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 11, 12, 22),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFF9FCFA),
-            Color(0xFFE9F5ED),
-            Color(0xFFD9ECDF),
-          ],
+          colors: [Color(0xFFF9FCFA), Color(0xFFE9F5ED), Color(0xFFD9ECDF)],
         ),
       ),
       child: Stack(
@@ -335,10 +229,7 @@ class _GuideSearchHeader extends StatelessWidget {
               width: 190,
               height: 190,
               decoration: BoxDecoration(
-                color: const Color(0xFF176D4E)
-                    .withValues(
-                  alpha: 0.055,
-                ),
+                color: const Color(0xFF176D4E).withValues(alpha: 0.055),
                 shape: BoxShape.circle,
               ),
             ),
@@ -350,69 +241,20 @@ class _GuideSearchHeader extends StatelessWidget {
             child: Icon(
               Icons.travel_explore_rounded,
               size: 90,
-              color: const Color(0xFF176D4E)
-                  .withValues(
-                alpha: 0.07,
-              ),
+              color: const Color(0xFF176D4E).withValues(alpha: 0.07),
             ),
           ),
 
           Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // =======================================================
-              // BRAND
-              // =======================================================
-
               Row(
                 children: [
-                  Container(
-                    width: 35,
-                    height: 35,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE2F1E7),
-                      borderRadius:
-                      BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.eco_outlined,
-                      size: 20,
-                      color: Color(0xFF176D4E),
-                    ),
-                  ),
+                  const HistoriaLogoMark(size: 35),
 
                   const SizedBox(width: 9),
 
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'HISTORIA',
-                          style: TextStyle(
-                            color: Color(0xFF153D30),
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-
-                        SizedBox(height: 1),
-
-                        Text(
-                          'EXPLORE HISTORY · FIND YOUR GUIDE',
-                          style: TextStyle(
-                            color: Color(0xFF75877E),
-                            fontSize: 6.1,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const Expanded(child: HistoriaBrandText()),
 
                   if (standalone)
                     IconButton(
@@ -430,24 +272,12 @@ class _GuideSearchHeader extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // =======================================================
-              // PAGE INFO
-              // =======================================================
-
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(
-                    alpha: 0.70,
-                  ),
-                  borderRadius:
-                  BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFD0E5D8),
-                  ),
+                  color: Colors.white.withValues(alpha: 0.70),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFD0E5D8)),
                 ),
                 child: const Text(
                   'TOURIST / GUIDE DISCOVERY',
@@ -490,10 +320,6 @@ class _GuideSearchHeader extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// SECTION HEADING
-// =====================================================================
-
 class _SectionHeading extends StatelessWidget {
   final String eyebrow;
   final String title;
@@ -508,8 +334,7 @@ class _SectionHeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           eyebrow,
@@ -547,10 +372,6 @@ class _SectionHeading extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// SEARCH CARD
-// =====================================================================
-
 class _SearchCard extends StatelessWidget {
   final TextEditingController controller;
 
@@ -575,9 +396,7 @@ class _SearchCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFDCE8E1),
-        ),
+        border: Border.all(color: const Color(0xFFDCE8E1)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0B0A3A2B),
@@ -587,16 +406,11 @@ class _SearchCard extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Row(
             children: [
-              Icon(
-                Icons.verified_outlined,
-                color: Color(0xFF176D4E),
-                size: 18,
-              ),
+              Icon(Icons.verified_outlined, color: Color(0xFF176D4E), size: 18),
 
               SizedBox(width: 7),
 
@@ -645,39 +459,33 @@ class _SearchCard extends StatelessWidget {
                 size: 20,
               ),
 
-              suffixIcon: controller.text.isNotEmpty ||
-                  searched
+              suffixIcon: controller.text.isNotEmpty || searched
                   ? IconButton(
-                tooltip: 'Clear',
-                onPressed: onClear,
-                icon: const Icon(
-                  Icons.close_rounded,
-                  size: 18,
-                  color: Color(0xFF72837A),
-                ),
-              )
+                      tooltip: 'Clear',
+                      onPressed: onClear,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: Color(0xFF72837A),
+                      ),
+                    )
                   : null,
 
               filled: true,
               fillColor: const Color(0xFFF7FAF8),
 
-              contentPadding:
-              const EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                 horizontal: 13,
                 vertical: 14,
               ),
 
               enabledBorder: OutlineInputBorder(
-                borderRadius:
-                BorderRadius.circular(13),
-                borderSide: const BorderSide(
-                  color: Color(0xFFD5E5DB),
-                ),
+                borderRadius: BorderRadius.circular(13),
+                borderSide: const BorderSide(color: Color(0xFFD5E5DB)),
               ),
 
               focusedBorder: OutlineInputBorder(
-                borderRadius:
-                BorderRadius.circular(13),
+                borderRadius: BorderRadius.circular(13),
                 borderSide: const BorderSide(
                   color: Color(0xFF3A8667),
                   width: 1.4,
@@ -691,37 +499,26 @@ class _SearchCard extends StatelessWidget {
           SizedBox(
             height: 48,
             child: FilledButton.icon(
-              onPressed:
-              loading ? null : onSearch,
+              onPressed: loading ? null : onSearch,
               style: FilledButton.styleFrom(
-                backgroundColor:
-                const Color(0xFF176D4E),
+                backgroundColor: const Color(0xFF176D4E),
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(13),
+                  borderRadius: BorderRadius.circular(13),
                 ),
               ),
               icon: loading
                   ? const SizedBox(
-                width: 18,
-                height: 18,
-                child:
-                CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-                  : const Icon(
-                Icons.search_rounded,
-                size: 19,
-              ),
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.search_rounded, size: 19),
               label: Text(
-                loading
-                    ? 'Searching...'
-                    : 'Search guides',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                ),
+                loading ? 'Searching...' : 'Search guides',
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
           ),
@@ -731,41 +528,25 @@ class _SearchCard extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// INITIAL STATE
-// =====================================================================
-
 class _InitialSearchState extends StatelessWidget {
   const _InitialSearchState();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        22,
-        27,
-        22,
-        25,
-      ),
+      padding: const EdgeInsets.fromLTRB(22, 27, 22, 25),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Color(0xFFF1F7F3),
-          ],
+          colors: [Colors.white, Color(0xFFF1F7F3)],
         ),
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFDDE8E1),
-        ),
+        border: Border.all(color: const Color(0xFFDDE8E1)),
       ),
       child: const Column(
         children: [
-          _SearchIllustration(
-            icon: Icons.travel_explore_rounded,
-          ),
+          _SearchIllustration(icon: Icons.travel_explore_rounded),
 
           SizedBox(height: 16),
 
@@ -796,38 +577,23 @@ class _InitialSearchState extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// NO GUIDE STATE
-// =====================================================================
-
 class _NoGuideState extends StatelessWidget {
   final String searchedArea;
 
-  const _NoGuideState({
-    required this.searchedArea,
-  });
+  const _NoGuideState({required this.searchedArea});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        22,
-        27,
-        22,
-        25,
-      ),
+      padding: const EdgeInsets.fromLTRB(22, 27, 22, 25),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFDDE8E1),
-        ),
+        border: Border.all(color: const Color(0xFFDDE8E1)),
       ),
       child: Column(
         children: [
-          const _SearchIllustration(
-            icon: Icons.person_search_outlined,
-          ),
+          const _SearchIllustration(icon: Icons.person_search_outlined),
 
           const SizedBox(height: 16),
 
@@ -860,16 +626,10 @@ class _NoGuideState extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// SEARCH ILLUSTRATION
-// =====================================================================
-
 class _SearchIllustration extends StatelessWidget {
   final IconData icon;
 
-  const _SearchIllustration({
-    required this.icon,
-  });
+  const _SearchIllustration({required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -891,31 +651,19 @@ class _SearchIllustration extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFFD2E5D8),
-            ),
+            border: Border.all(color: const Color(0xFFD2E5D8)),
           ),
-          child: Icon(
-            icon,
-            size: 29,
-            color: const Color(0xFF176D4E),
-          ),
+          child: Icon(icon, size: 29, color: const Color(0xFF176D4E)),
         ),
       ],
     );
   }
 }
 
-// =====================================================================
-// GUIDE RESULT CARD
-// =====================================================================
-
 class _GuideResultCard extends StatelessWidget {
   final GuideModel guide;
 
-  const _GuideResultCard({
-    required this.guide,
-  });
+  const _GuideResultCard({required this.guide});
 
   @override
   Widget build(BuildContext context) {
@@ -923,20 +671,15 @@ class _GuideResultCard extends StatelessWidget {
         ? 'Not provided'
         : guide.languages.join(', ');
 
-    final initials =
-    _getInitials(guide.title);
+    final initials = _getInitials(guide.title);
 
     return Container(
-      margin: const EdgeInsets.only(
-        bottom: 13,
-      ),
+      margin: const EdgeInsets.only(bottom: 13),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFDCE8E1),
-        ),
+        border: Border.all(color: const Color(0xFFDCE8E1)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A093B2B),
@@ -946,16 +689,10 @@ class _GuideResultCard extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ===========================================================
-          // GUIDE IDENTITY
-          // ===========================================================
-
           Row(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 54,
@@ -979,8 +716,7 @@ class _GuideResultCard extends StatelessWidget {
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       guide.title,
@@ -1006,19 +742,16 @@ class _GuideResultCard extends StatelessWidget {
                     const SizedBox(height: 7),
 
                     Container(
-                      padding:
-                      const EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 9,
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                        const Color(0xFF176E4D),
-                        borderRadius:
-                        BorderRadius.circular(20),
+                        color: const Color(0xFF176E4D),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
-                        '✓ APPROVED GUIDE',
+                        'APPROVED GUIDE',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 6.7,
@@ -1035,10 +768,6 @@ class _GuideResultCard extends StatelessWidget {
 
           const SizedBox(height: 15),
 
-          // ===========================================================
-          // AREA
-          // ===========================================================
-
           _GuideInfoLine(
             icon: Icons.location_on_outlined,
             label: 'Primary service area',
@@ -1047,19 +776,11 @@ class _GuideResultCard extends StatelessWidget {
 
           const _GuideDivider(),
 
-          // ===========================================================
-          // LANGUAGES
-          // ===========================================================
-
           _GuideInfoLine(
             icon: Icons.translate_outlined,
             label: 'Languages',
             value: languages,
           ),
-
-          // ===========================================================
-          // SPECIALTIES
-          // ===========================================================
 
           if (guide.specialties.isNotEmpty) ...[
             const _GuideDivider(),
@@ -1084,42 +805,30 @@ class _GuideResultCard extends StatelessWidget {
               children: guide.specialties
                   .map(
                     (specialty) => Container(
-                  padding:
-                  const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                    const Color(0xFFE8F3EB),
-                    borderRadius:
-                    BorderRadius.circular(18),
-                    border: Border.all(
-                      color:
-                      const Color(0xFFD0E4D7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F3EB),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFD0E4D7)),
+                      ),
+                      child: Text(
+                        specialty,
+                        style: const TextStyle(
+                          color: Color(0xFF2B6A51),
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    specialty,
-                    style: const TextStyle(
-                      color:
-                      Color(0xFF2B6A51),
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              )
+                  )
                   .toList(),
             ),
           ],
 
-          // ===========================================================
-          // BIO
-          // ===========================================================
-
-          if (guide.bio != null &&
-              guide.bio!.trim().isNotEmpty) ...[
+          if (guide.bio != null && guide.bio!.trim().isNotEmpty) ...[
             const SizedBox(height: 14),
 
             Container(
@@ -1127,8 +836,7 @@ class _GuideResultCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F8F6),
-                borderRadius:
-                BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 guide.bio!,
@@ -1145,15 +853,11 @@ class _GuideResultCard extends StatelessWidget {
     );
   }
 
-  static String _getInitials(
-      String value,
-      ) {
+  static String _getInitials(String value) {
     final parts = value
         .trim()
         .split(RegExp(r'\s+'))
-        .where(
-          (part) => part.isNotEmpty,
-    )
+        .where((part) => part.isNotEmpty)
         .toList();
 
     if (parts.isEmpty) {
@@ -1161,20 +865,14 @@ class _GuideResultCard extends StatelessWidget {
     }
 
     if (parts.length == 1) {
-      return parts.first
-          .substring(0, 1)
-          .toUpperCase();
+      return parts.first.substring(0, 1).toUpperCase();
     }
 
     return '${parts.first.substring(0, 1)}'
-        '${parts.last.substring(0, 1)}'
+            '${parts.last.substring(0, 1)}'
         .toUpperCase();
   }
 }
-
-// =====================================================================
-// GUIDE INFO
-// =====================================================================
 
 class _GuideInfoLine extends StatelessWidget {
   final IconData icon;
@@ -1190,9 +888,7 @@ class _GuideInfoLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 9,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 9),
       child: Row(
         children: [
           Container(
@@ -1202,19 +898,14 @@ class _GuideInfoLine extends StatelessWidget {
               color: Color(0xFFE7F3EA),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 18,
-              color: const Color(0xFF267154),
-            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF267154)),
           ),
 
           const SizedBox(width: 10),
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
@@ -1227,9 +918,7 @@ class _GuideInfoLine extends StatelessWidget {
                 const SizedBox(height: 2),
 
                 Text(
-                  value.trim().isEmpty
-                      ? 'Not provided'
-                      : value,
+                  value.trim().isEmpty ? 'Not provided' : value,
                   style: const TextStyle(
                     color: Color(0xFF223F34),
                     fontSize: 10,
@@ -1250,9 +939,6 @@ class _GuideDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      color: Color(0xFFE7EEE9),
-    );
+    return const Divider(height: 1, color: Color(0xFFE7EEE9));
   }
 }
