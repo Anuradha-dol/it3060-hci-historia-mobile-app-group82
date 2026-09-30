@@ -10,10 +10,6 @@ import '../tourist/notifications_screen.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
 
-// =====================================================================
-// ADMIN HOME
-// =====================================================================
-
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
 
@@ -22,12 +18,7 @@ class AdminHomeScreen extends StatefulWidget {
 }
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
-  static const _statuses = [
-    'PENDING',
-    'NEEDS_WORK',
-    'APPROVED',
-    'REJECTED',
-  ];
+  static const _statuses = ['PENDING', 'NEEDS_WORK', 'APPROVED', 'REJECTED'];
 
   final _service = AdminGuideService();
 
@@ -41,19 +32,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   bool _loading = true;
 
-  // ===================================================================
-  // INIT
-  // ===================================================================
-
   @override
   void initState() {
     super.initState();
     _loadAll();
   }
-
-  // ===================================================================
-  // LOAD ALL GUIDE APPLICATIONS
-  // ===================================================================
 
   Future<void> _loadAll() async {
     if (mounted) {
@@ -64,14 +47,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
     try {
       final results = await Future.wait(
-        _statuses.map(
-              (status) async {
-            return MapEntry(
-              status,
-              await _service.getGuidesByStatus(status),
-            );
-          },
-        ),
+        _statuses.map((status) async {
+          return MapEntry(status, await _service.getGuidesByStatus(status));
+        }),
       );
 
       if (!mounted) return;
@@ -98,21 +76,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     }
   }
 
-  // ===================================================================
-  // REVIEW GUIDE
-  // ===================================================================
+  Future<void> _review(GuideModel guide, String status) async {
+    final noteController = TextEditingController(text: guide.adminNote ?? '');
 
-  Future<void> _review(
-      GuideModel guide,
-      String status,
-      ) async {
-    final noteController = TextEditingController(
-      text: guide.adminNote ?? '',
-    );
-
-    final requiresNote =
-        status == 'NEEDS_WORK' ||
-            status == 'REJECTED';
+    final requiresNote = status == 'NEEDS_WORK' || status == 'REJECTED';
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -124,24 +91,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          titlePadding: const EdgeInsets.fromLTRB(
-            20,
-            20,
-            20,
-            8,
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(
-            20,
-            5,
-            20,
-            8,
-          ),
-          actionsPadding: const EdgeInsets.fromLTRB(
-            14,
-            4,
-            14,
-            14,
-          ),
+          titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+          contentPadding: const EdgeInsets.fromLTRB(20, 5, 20, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
           title: Row(
             children: [
               Container(
@@ -151,10 +103,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   color: palette.soft,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  palette.icon,
-                  color: palette.main,
-                ),
+                child: Icon(palette.icon, color: palette.main),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -171,8 +120,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 requiresNote
@@ -188,19 +136,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               TextField(
                 controller: noteController,
                 maxLines: 4,
-                decoration: fieldDecoration(
-                  'Admin note',
-                ),
+                decoration: fieldDecoration('Admin note'),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  false,
-                );
+                Navigator.pop(dialogContext, false);
               },
               child: const Text('Cancel'),
             ),
@@ -208,15 +151,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: palette.main,
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(11),
                 ),
               ),
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  true,
-                );
+                Navigator.pop(dialogContext, true);
               },
               child: const Text('Submit'),
             ),
@@ -225,23 +164,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       },
     );
 
-    if (confirmed != true ||
-        guide.id == null) {
+    if (confirmed != true || guide.id == null) {
       noteController.dispose();
       return;
     }
 
-    if (requiresNote &&
-        noteController.text.trim().isEmpty) {
+    if (requiresNote && noteController.text.trim().isEmpty) {
       noteController.dispose();
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        'Admin note is required.',
-        error: true,
-      );
+      showAppMessage(context, 'Admin note is required.', error: true);
 
       return;
     }
@@ -254,8 +187,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       await _service.reviewGuide(
         guideProfileId: guide.id!,
         status: status,
-        adminNote:
-        noteController.text.trim(),
+        adminNote: noteController.text.trim(),
       );
 
       noteController.dispose();
@@ -287,28 +219,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     }
   }
 
-  // ===================================================================
-  // NAVIGATION
-  // ===================================================================
-
   void _setIndex(int index) {
     setState(() {
       _index = index;
     });
   }
 
-  void _openApplications({
-    String status = 'PENDING',
-  }) {
+  void _openApplications({String status = 'PENDING'}) {
     setState(() {
       _selectedStatus = status;
       _index = 1;
     });
   }
-
-  // ===================================================================
-  // BUILD
-  // ===================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -317,9 +239,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       _applications(),
       _guidesDirectory(),
 
-      const NotificationsContent(
-        roleLabel: 'ADMIN ACCOUNT',
-      ),
+      const NotificationsContent(roleLabel: 'ADMIN ACCOUNT'),
 
       RoleProfileContent(
         onAdminApplications: () {
@@ -332,52 +252,38 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor:
-      const Color(0xFFF4F8F5),
+      backgroundColor: const Color(0xFFF4F8F5),
 
       body: SafeArea(
-        child: IndexedStack(
-          index: _index,
-          children: pages,
-        ),
+        child: IndexedStack(index: _index, children: pages),
       ),
 
-      bottomNavigationBar:
-      HistoriaBottomNavigation(
+      bottomNavigationBar: HistoriaBottomNavigation(
         currentIndex: _index,
         onTap: _setIndex,
         items: const [
           HistoriaNavItem(
-            icon:
-            Icons.dashboard_outlined,
-            activeIcon:
-            Icons.dashboard_rounded,
+            icon: Icons.dashboard_outlined,
+            activeIcon: Icons.dashboard_rounded,
             label: 'Dashboard',
           ),
           HistoriaNavItem(
-            icon:
-            Icons.fact_check_outlined,
-            activeIcon:
-            Icons.fact_check_rounded,
+            icon: Icons.fact_check_outlined,
+            activeIcon: Icons.fact_check_rounded,
             label: 'Apps',
           ),
           HistoriaNavItem(
-            icon:
-            Icons.badge_outlined,
-            activeIcon:
-            Icons.badge_rounded,
+            icon: Icons.badge_outlined,
+            activeIcon: Icons.badge_rounded,
             label: 'Guides',
           ),
           HistoriaNavItem(
-            icon:
-            Icons.notifications_outlined,
-            activeIcon:
-            Icons.notifications_rounded,
+            icon: Icons.notifications_outlined,
+            activeIcon: Icons.notifications_rounded,
             label: 'Alerts',
           ),
           HistoriaNavItem(
-            icon:
-            Icons.person_outline,
+            icon: Icons.person_outline,
             activeIcon: Icons.person,
             label: 'Profile',
           ),
@@ -386,40 +292,26 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // DASHBOARD
-  // ===================================================================
-
   Widget _dashboard() {
-    final user =
-        context.watch<AuthProvider>().user;
+    final user = context.watch<AuthProvider>().user;
 
-    final pending =
-        _guidesByStatus['PENDING'] ?? [];
+    final pending = _guidesByStatus['PENDING'] ?? [];
 
-    final needsWork =
-        _guidesByStatus['NEEDS_WORK'] ?? [];
+    final needsWork = _guidesByStatus['NEEDS_WORK'] ?? [];
 
-    final approved =
-        _guidesByStatus['APPROVED'] ?? [];
+    final approved = _guidesByStatus['APPROVED'] ?? [];
 
-    final rejected =
-        _guidesByStatus['REJECTED'] ?? [];
+    final rejected = _guidesByStatus['REJECTED'] ?? [];
 
     final total =
-        pending.length +
-            needsWork.length +
-            approved.length +
-            rejected.length;
+        pending.length + needsWork.length + approved.length + rejected.length;
 
     return ListView(
-      physics:
-      const ClampingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
         _AdminHero(
-          name:
-          user?.fullName ?? 'Administrator',
+          name: user?.fullName ?? 'Administrator',
           onRefresh: _loadAll,
           onApplications: () {
             _openApplications();
@@ -428,29 +320,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             _setIndex(4);
           },
           onLogout: () {
-            context
-                .read<AuthProvider>()
-                .logout();
+            context.read<AuthProvider>().logout();
           },
         ),
 
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            18,
-            16,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (_loading) ...[
                 const LinearProgressIndicator(
                   minHeight: 3,
                   color: Color(0xFF176D4E),
-                  backgroundColor:
-                  Color(0xFFDDE9E2),
+                  backgroundColor: Color(0xFFDDE9E2),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -459,7 +342,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 eyebrow: 'OVERVIEW',
                 title: 'Guide review status',
                 subtitle:
-                'Live counts from the current guide application records.',
+                    'Live counts from the current guide application records.',
               ),
 
               const SizedBox(height: 12),
@@ -471,56 +354,41 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 rejected: rejected.length,
                 total: total,
                 onPending: () {
-                  _openApplications(
-                    status: 'PENDING',
-                  );
+                  _openApplications(status: 'PENDING');
                 },
                 onApproved: () {
-                  _openApplications(
-                    status: 'APPROVED',
-                  );
+                  _openApplications(status: 'APPROVED');
                 },
                 onNeedsWork: () {
-                  _openApplications(
-                    status: 'NEEDS_WORK',
-                  );
+                  _openApplications(status: 'NEEDS_WORK');
                 },
                 onRejected: () {
-                  _openApplications(
-                    status: 'REJECTED',
-                  );
+                  _openApplications(status: 'REJECTED');
                 },
               ),
 
               const SizedBox(height: 22),
 
               Row(
-                crossAxisAlignment:
-                CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Expanded(
                     child: _AdminSectionTitle(
                       eyebrow: 'REVIEW QUEUE',
-                      title:
-                      'Pending applications',
-                      subtitle:
-                      'Applications waiting for an admin decision.',
+                      title: 'Pending applications',
+                      subtitle: 'Applications waiting for an admin decision.',
                     ),
                   ),
                   if (pending.isNotEmpty)
                     TextButton(
                       onPressed: () {
-                        _openApplications(
-                          status: 'PENDING',
-                        );
+                        _openApplications(status: 'PENDING');
                       },
                       child: const Text(
                         'View all',
                         style: TextStyle(
-                          color:
-                          Color(0xFF176D4E),
-                          fontWeight:
-                          FontWeight.w800,
+                          color: Color(0xFF176D4E),
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
@@ -532,23 +400,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               if (pending.isEmpty)
                 const _AdminEmptyState(
                   icon: Icons.task_alt_rounded,
-                  title:
-                  'Review queue is clear',
-                  message:
-                  'There are no pending guide applications right now.',
+                  title: 'Review queue is clear',
+                  message: 'There are no pending guide applications right now.',
                 )
               else
-                ...pending.take(3).map(
-                      (guide) =>
-                      _CompactGuideCard(
+                ...pending
+                    .take(3)
+                    .map(
+                      (guide) => _CompactGuideCard(
                         guide: guide,
                         onTap: () {
-                          _openApplications(
-                            status: guide.status,
-                          );
+                          _openApplications(status: guide.status);
                         },
                       ),
-                ),
+                    ),
 
               const SizedBox(height: 20),
 
@@ -556,7 +421,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 eyebrow: 'MANAGEMENT',
                 title: 'Admin tools',
                 subtitle:
-                'Access the guide review functions available in this build.',
+                    'Access the guide review functions available in this build.',
               ),
 
               const SizedBox(height: 11),
@@ -565,11 +430,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 children: [
                   Expanded(
                     child: _AdminShortcutCard(
-                      icon: Icons
-                          .fact_check_outlined,
+                      icon: Icons.fact_check_outlined,
                       title: 'Applications',
-                      subtitle:
-                      'Review guide status',
+                      subtitle: 'Review guide status',
                       onTap: () {
                         _openApplications();
                       },
@@ -578,11 +441,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _AdminShortcutCard(
-                      icon:
-                      Icons.badge_outlined,
+                      icon: Icons.badge_outlined,
                       title: 'Directory',
-                      subtitle:
-                      'Browse guide records',
+                      subtitle: 'Browse guide records',
                       onTap: () {
                         _setIndex(2);
                       },
@@ -597,8 +458,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 children: [
                   Expanded(
                     child: _AdminShortcutCard(
-                      icon: Icons
-                          .notifications_none_rounded,
+                      icon: Icons.notifications_none_rounded,
                       title: 'Notifications',
                       subtitle: 'Account alerts',
                       onTap: () {
@@ -609,8 +469,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _AdminShortcutCard(
-                      icon:
-                      Icons.person_outline,
+                      icon: Icons.person_outline,
                       title: 'Profile',
                       subtitle: 'Admin account',
                       onTap: () {
@@ -627,46 +486,31 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // APPLICATIONS
-  // ===================================================================
-
   Widget _applications() {
-    final guides =
-        _guidesByStatus[_selectedStatus] ??
-            [];
+    final guides = _guidesByStatus[_selectedStatus] ?? [];
 
     return ListView(
-      physics:
-      const ClampingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
         _AdminSubpageHeader(
           eyebrow: 'ADMIN / REVIEWS',
           title: 'Guide applications',
-          subtitle:
-          'Review applications by their current status.',
-          icon:
-          Icons.fact_check_outlined,
+          subtitle: 'Review applications by their current status.',
+          icon: Icons.fact_check_outlined,
           onRefresh: _loadAll,
         ),
 
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            18,
-            16,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _AdminSectionTitle(
                 eyebrow: 'FILTER',
                 title: 'Application status',
                 subtitle:
-                'Choose a review state to inspect its guide applications.',
+                    'Choose a review state to inspect its guide applications.',
               ),
 
               const SizedBox(height: 12),
@@ -678,17 +522,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   for (final status in _statuses)
                     _AdminStatusFilter(
                       status: status,
-                      count:
-                      _guidesByStatus[status]
-                          ?.length ??
-                          0,
-                      selected:
-                      status ==
-                          _selectedStatus,
+                      count: _guidesByStatus[status]?.length ?? 0,
+                      selected: status == _selectedStatus,
                       onTap: () {
                         setState(() {
-                          _selectedStatus =
-                              status;
+                          _selectedStatus = status;
                         });
                       },
                     ),
@@ -701,8 +539,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 const LinearProgressIndicator(
                   minHeight: 3,
                   color: Color(0xFF176D4E),
-                  backgroundColor:
-                  Color(0xFFDDE9E2),
+                  backgroundColor: Color(0xFFDDE9E2),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -712,13 +549,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   Expanded(
                     child: _AdminSectionTitle(
                       eyebrow: 'APPLICATIONS',
-                      title: _selectedStatus
-                          .replaceAll(
-                        '_',
-                        ' ',
-                      ),
+                      title: _selectedStatus.replaceAll('_', ' '),
                       subtitle:
-                      '${guides.length} guide application${guides.length == 1 ? '' : 's'}',
+                          '${guides.length} guide application${guides.length == 1 ? '' : 's'}',
                     ),
                   ),
 
@@ -733,19 +566,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               if (guides.isEmpty)
                 _AdminEmptyState(
-                  icon:
-                  _statusPalette(
-                    _selectedStatus,
-                  ).icon,
+                  icon: _statusPalette(_selectedStatus).icon,
                   title:
-                  'No ${_selectedStatus.replaceAll('_', ' ').toLowerCase()} applications',
-                  message:
-                  'There are no guide applications in this status.',
+                      'No ${_selectedStatus.replaceAll('_', ' ').toLowerCase()} applications',
+                  message: 'There are no guide applications in this status.',
                 )
               else
-                ...guides.map(
-                  _reviewGuideCard,
-                ),
+                ...guides.map(_reviewGuideCard),
             ],
           ),
         ),
@@ -753,51 +580,35 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // GUIDE DIRECTORY
-  // ===================================================================
-
   Widget _guidesDirectory() {
-    final approved =
-        _guidesByStatus['APPROVED'] ?? [];
+    final approved = _guidesByStatus['APPROVED'] ?? [];
 
-    final needsWork =
-        _guidesByStatus['NEEDS_WORK'] ?? [];
+    final needsWork = _guidesByStatus['NEEDS_WORK'] ?? [];
 
-    final rejected =
-        _guidesByStatus['REJECTED'] ?? [];
+    final rejected = _guidesByStatus['REJECTED'] ?? [];
 
     return ListView(
-      physics:
-      const ClampingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
         _AdminSubpageHeader(
           eyebrow: 'ADMIN / GUIDES',
           title: 'Guide directory',
-          subtitle:
-          'Browse guide applications grouped by review state.',
+          subtitle: 'Browse guide applications grouped by review state.',
           icon: Icons.badge_outlined,
           onRefresh: _loadAll,
         ),
 
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            18,
-            16,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (_loading) ...[
                 const LinearProgressIndicator(
                   minHeight: 3,
                   color: Color(0xFF176D4E),
-                  backgroundColor:
-                  Color(0xFFDDE9E2),
+                  backgroundColor: Color(0xFFDDE9E2),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -812,24 +623,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               if (approved.isEmpty)
                 const _AdminEmptyState(
-                  icon:
-                  Icons.verified_outlined,
-                  title:
-                  'No approved guides',
-                  message:
-                  'Approved guide records will appear here.',
+                  icon: Icons.verified_outlined,
+                  title: 'No approved guides',
+                  message: 'Approved guide records will appear here.',
                 )
               else
                 ...approved.map(
-                      (guide) =>
-                      _CompactGuideCard(
-                        guide: guide,
-                        onTap: () {
-                          _openApplications(
-                            status: 'APPROVED',
-                          );
-                        },
-                      ),
+                  (guide) => _CompactGuideCard(
+                    guide: guide,
+                    onTap: () {
+                      _openApplications(status: 'APPROVED');
+                    },
+                  ),
                 ),
 
               const SizedBox(height: 22),
@@ -844,24 +649,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               if (needsWork.isEmpty)
                 const _AdminEmptyState(
-                  icon:
-                  Icons.edit_note_outlined,
-                  title:
-                  'No applications need changes',
+                  icon: Icons.edit_note_outlined,
+                  title: 'No applications need changes',
                   message:
-                  'Guide applications requiring updates will appear here.',
+                      'Guide applications requiring updates will appear here.',
                 )
               else
                 ...needsWork.map(
-                      (guide) =>
-                      _CompactGuideCard(
-                        guide: guide,
-                        onTap: () {
-                          _openApplications(
-                            status: 'NEEDS_WORK',
-                          );
-                        },
-                      ),
+                  (guide) => _CompactGuideCard(
+                    guide: guide,
+                    onTap: () {
+                      _openApplications(status: 'NEEDS_WORK');
+                    },
+                  ),
                 ),
 
               const SizedBox(height: 22),
@@ -876,24 +676,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               if (rejected.isEmpty)
                 const _AdminEmptyState(
-                  icon:
-                  Icons.cancel_outlined,
-                  title:
-                  'No rejected applications',
-                  message:
-                  'Rejected guide applications will appear here.',
+                  icon: Icons.cancel_outlined,
+                  title: 'No rejected applications',
+                  message: 'Rejected guide applications will appear here.',
                 )
               else
                 ...rejected.map(
-                      (guide) =>
-                      _CompactGuideCard(
-                        guide: guide,
-                        onTap: () {
-                          _openApplications(
-                            status: 'REJECTED',
-                          );
-                        },
-                      ),
+                  (guide) => _CompactGuideCard(
+                    guide: guide,
+                    onTap: () {
+                      _openApplications(status: 'REJECTED');
+                    },
+                  ),
                 ),
             ],
           ),
@@ -902,31 +696,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // REVIEW GUIDE CARD
-  // ===================================================================
-
-  Widget _reviewGuideCard(
-      GuideModel guide,
-      ) {
+  Widget _reviewGuideCard(GuideModel guide) {
     final status = guide.status;
-    final palette =
-    _statusPalette(status);
+    final palette = _statusPalette(status);
 
     return Container(
-      margin: const EdgeInsets.only(
-        bottom: 13,
-      ),
-      padding: const EdgeInsets.all(
-        14,
-      ),
+      margin: const EdgeInsets.only(bottom: 13),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-        BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFDCE8E1),
-        ),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: const Color(0xFFDCE8E1)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A083829),
@@ -936,12 +716,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 52,
@@ -962,17 +740,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       guide.title,
                       style: const TextStyle(
-                        color:
-                        Color(0xFF153D30),
+                        color: Color(0xFF153D30),
                         fontSize: 14,
-                        fontWeight:
-                        FontWeight.w900,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
 
@@ -981,25 +756,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Text(
                       guide.email,
                       maxLines: 1,
-                      overflow:
-                      TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color:
-                        Color(0xFF77877F),
+                        color: Color(0xFF77877F),
                         fontSize: 8.5,
                       ),
                     ),
 
                     if (guide.phone != null &&
-                        guide.phone!
-                            .trim()
-                            .isNotEmpty) ...[
+                        guide.phone!.trim().isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         guide.phone!,
                         style: const TextStyle(
-                          color:
-                          Color(0xFF89978F),
+                          color: Color(0xFF89978F),
                           fontSize: 8,
                         ),
                       ),
@@ -1008,9 +778,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
               ),
 
-              _GuideStatusBadge(
-                status: status,
-              ),
+              _GuideStatusBadge(status: status),
             ],
           ),
 
@@ -1018,11 +786,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
           _AdminInfoLine(
             icon: Icons.map_outlined,
-            label:
-            'Primary service area',
-            value: _emptyText(
-              guide.primaryServiceArea,
-            ),
+            label: 'Primary service area',
+            value: _emptyText(guide.primaryServiceArea),
           ),
 
           const _AdminDivider(),
@@ -1030,65 +795,48 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           _AdminInfoLine(
             icon: Icons.route_outlined,
             label: 'Service areas',
-            value: _listText(
-              guide.serviceAreas,
-            ),
+            value: _listText(guide.serviceAreas),
           ),
 
           const _AdminDivider(),
 
           _AdminInfoLine(
-            icon:
-            Icons.translate_outlined,
+            icon: Icons.translate_outlined,
             label: 'Languages',
-            value: _listText(
-              guide.languages,
-            ),
+            value: _listText(guide.languages),
           ),
 
           const _AdminDivider(),
 
           _AdminInfoLine(
-            icon:
-            Icons.history_edu_outlined,
+            icon: Icons.history_edu_outlined,
             label: 'Experience',
-            value:
-            '${guide.yearsExperience} years',
+            value: '${guide.yearsExperience} years',
           ),
 
           if (guide.specialties.isNotEmpty) ...[
             const _AdminDivider(),
             _AdminInfoLine(
-              icon: Icons
-                  .workspace_premium_outlined,
+              icon: Icons.workspace_premium_outlined,
               label: 'Specialties',
-              value: _listText(
-                guide.specialties,
-              ),
+              value: _listText(guide.specialties),
             ),
           ],
 
-          if (guide.bio != null &&
-              guide.bio!
-                  .trim()
-                  .isNotEmpty) ...[
+          if (guide.bio != null && guide.bio!.trim().isNotEmpty) ...[
             const SizedBox(height: 13),
 
             Container(
               width: double.infinity,
-              padding:
-              const EdgeInsets.all(11),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color:
-                const Color(0xFFF4F8F5),
-                borderRadius:
-                BorderRadius.circular(12),
+                color: const Color(0xFFF4F8F5),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 guide.bio!,
                 style: const TextStyle(
-                  color:
-                  Color(0xFF687A71),
+                  color: Color(0xFF687A71),
                   fontSize: 8.8,
                   height: 1.45,
                 ),
@@ -1097,14 +845,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ],
 
           if (guide.adminNote != null &&
-              guide.adminNote!
-                  .trim()
-                  .isNotEmpty) ...[
+              guide.adminNote!.trim().isNotEmpty) ...[
             const SizedBox(height: 13),
 
-            _AdminNote(
-              note: guide.adminNote!,
-            ),
+            _AdminNote(note: guide.adminNote!),
           ],
 
           const SizedBox(height: 14),
@@ -1118,85 +862,43 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   onPressed: _loading
                       ? null
                       : () {
-                    _review(
-                      guide,
-                      'APPROVED',
-                    );
-                  },
+                          _review(guide, 'APPROVED');
+                        },
                   style: FilledButton.styleFrom(
-                    backgroundColor:
-                    const Color(
-                      0xFF176D4E,
-                    ),
+                    backgroundColor: const Color(0xFF176D4E),
                   ),
-                  icon: const Icon(
-                    Icons.verified_outlined,
-                    size: 17,
-                  ),
-                  label:
-                  const Text('Approve'),
+                  icon: const Icon(Icons.verified_outlined, size: 17),
+                  label: const Text('Approve'),
                 ),
 
-              if (guide.status !=
-                  'NEEDS_WORK')
+              if (guide.status != 'NEEDS_WORK')
                 OutlinedButton.icon(
                   onPressed: _loading
                       ? null
                       : () {
-                    _review(
-                      guide,
-                      'NEEDS_WORK',
-                    );
-                  },
-                  style:
-                  OutlinedButton.styleFrom(
-                    foregroundColor:
-                    const Color(
-                      0xFF9A6A18,
-                    ),
-                    side:
-                    const BorderSide(
-                      color:
-                      Color(0xFFE2C77E),
-                    ),
+                          _review(guide, 'NEEDS_WORK');
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF9A6A18),
+                    side: const BorderSide(color: Color(0xFFE2C77E)),
                   ),
-                  icon: const Icon(
-                    Icons.edit_note_outlined,
-                    size: 17,
-                  ),
-                  label:
-                  const Text('Needs work'),
+                  icon: const Icon(Icons.edit_note_outlined, size: 17),
+                  label: const Text('Needs work'),
                 ),
 
-              if (guide.status !=
-                  'REJECTED')
+              if (guide.status != 'REJECTED')
                 OutlinedButton.icon(
                   onPressed: _loading
                       ? null
                       : () {
-                    _review(
-                      guide,
-                      'REJECTED',
-                    );
-                  },
-                  style:
-                  OutlinedButton.styleFrom(
-                    foregroundColor:
-                    const Color(
-                      0xFFB94B43,
-                    ),
-                    side:
-                    const BorderSide(
-                      color:
-                      Color(0xFFE8B8B4),
-                    ),
+                          _review(guide, 'REJECTED');
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFB94B43),
+                    side: const BorderSide(color: Color(0xFFE8B8B4)),
                   ),
-                  icon: const Icon(
-                    Icons.cancel_outlined,
-                    size: 17,
-                  ),
-                  label:
-                  const Text('Reject'),
+                  icon: const Icon(Icons.cancel_outlined, size: 17),
+                  label: const Text('Reject'),
                 ),
             ],
           ),
@@ -1205,24 +907,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  // ===================================================================
-  // HELPERS
-  // ===================================================================
-
-  String _emptyText(
-      String? value,
-      ) {
-    if (value == null ||
-        value.trim().isEmpty) {
+  String _emptyText(String? value) {
+    if (value == null || value.trim().isEmpty) {
       return 'Not provided';
     }
 
     return value.trim();
   }
 
-  String _listText(
-      List<String> values,
-      ) {
+  String _listText(List<String> values) {
     if (values.isEmpty) {
       return 'Not provided';
     }
@@ -1230,9 +923,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return values.join(', ');
   }
 
-  String _decisionTitle(
-      String status,
-      ) {
+  String _decisionTitle(String status) {
     switch (status) {
       case 'APPROVED':
         return 'Approve guide';
@@ -1248,10 +939,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     }
   }
 }
-
-// =====================================================================
-// ADMIN HERO
-// =====================================================================
 
 class _AdminHero extends StatelessWidget {
   final String name;
@@ -1277,11 +964,7 @@ class _AdminHero extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF102F27),
-            Color(0xFF174F3C),
-            Color(0xFF276B50),
-          ],
+          colors: [Color(0xFF102F27), Color(0xFF174F3C), Color(0xFF276B50)],
         ),
       ),
       child: Stack(
@@ -1294,10 +977,7 @@ class _AdminHero extends StatelessWidget {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                Colors.white.withValues(
-                  alpha: 0.045,
-                ),
+                color: Colors.white.withValues(alpha: 0.045),
               ),
             ),
           ),
@@ -1306,100 +986,41 @@ class _AdminHero extends StatelessWidget {
             right: 8,
             bottom: -14,
             child: Icon(
-              Icons
-                  .admin_panel_settings_outlined,
+              Icons.admin_panel_settings_outlined,
               size: 140,
-              color:
-              Colors.white.withValues(
-                alpha: 0.055,
-              ),
+              color: Colors.white.withValues(alpha: 0.055),
             ),
           ),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              11,
-              8,
-              22,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 11, 8, 22),
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration:
-                      BoxDecoration(
-                        color:
-                        Colors.white.withValues(
-                          alpha: 0.12,
-                        ),
-                        borderRadius:
-                        BorderRadius.circular(
-                          10,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.eco_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
+                    const HistoriaLogoMark(dark: true, size: 36),
 
                     const SizedBox(width: 9),
 
                     const Expanded(
-                      child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'HISTORIA',
-                            style: TextStyle(
-                              color:
-                              Colors.white,
-                              fontSize: 14,
-                              fontWeight:
-                              FontWeight.w900,
-                              letterSpacing:
-                              0.3,
-                            ),
-                          ),
-                          Text(
-                            'ADMINISTRATION · GUIDE REVIEW',
-                            style: TextStyle(
-                              color: Color(
-                                0xFFCBE1D6,
-                              ),
-                              fontSize: 6.2,
-                              fontWeight:
-                              FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: HistoriaBrandText(
+                        dark: true,
+                        subtitle: 'ADMINISTRATION / GUIDE REVIEW',
                       ),
                     ),
 
                     IconButton(
                       tooltip: 'Applications',
-                      onPressed:
-                      onApplications,
+                      onPressed: onApplications,
                       icon: const Icon(
-                        Icons
-                            .fact_check_outlined,
+                        Icons.fact_check_outlined,
                         color: Colors.white,
                       ),
                     ),
 
                     PopupMenuButton<String>(
-                      icon: const Icon(
-                        Icons.more_vert,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
                       onSelected: (value) {
                         switch (value) {
                           case 'refresh':
@@ -1413,16 +1034,12 @@ class _AdminHero extends StatelessWidget {
                             break;
                         }
                       },
-                      itemBuilder:
-                          (context) => const [
+                      itemBuilder: (context) => const [
                         PopupMenuItem(
                           value: 'refresh',
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.refresh,
-                                size: 18,
-                              ),
+                              Icon(Icons.refresh, size: 18),
                               SizedBox(width: 9),
                               Text('Refresh'),
                             ],
@@ -1432,11 +1049,7 @@ class _AdminHero extends StatelessWidget {
                           value: 'profile',
                           child: Row(
                             children: [
-                              Icon(
-                                Icons
-                                    .person_outline,
-                                size: 18,
-                              ),
+                              Icon(Icons.person_outline, size: 18),
                               SizedBox(width: 9),
                               Text('Profile'),
                             ],
@@ -1446,10 +1059,7 @@ class _AdminHero extends StatelessWidget {
                           value: 'logout',
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.logout,
-                                size: 18,
-                              ),
+                              Icon(Icons.logout, size: 18),
                               SizedBox(width: 9),
                               Text('Logout'),
                             ],
@@ -1463,35 +1073,24 @@ class _AdminHero extends StatelessWidget {
                 const Spacer(),
 
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 9,
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                    Colors.white.withValues(
-                      alpha: 0.12,
-                    ),
-                    borderRadius:
-                    BorderRadius.circular(20),
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color:
-                      Colors.white.withValues(
-                        alpha: 0.13,
-                      ),
+                      color: Colors.white.withValues(alpha: 0.13),
                     ),
                   ),
                   child: const Text(
                     'ADMIN DASHBOARD',
                     style: TextStyle(
-                      color: Color(
-                        0xFFE1F0E8,
-                      ),
+                      color: Color(0xFFE1F0E8),
                       fontSize: 7,
                       letterSpacing: 1,
-                      fontWeight:
-                      FontWeight.w800,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -1501,14 +1100,12 @@ class _AdminHero extends StatelessWidget {
                 Text(
                   'Welcome, $name',
                   maxLines: 1,
-                  overflow:
-                  TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 25,
                     height: 1,
-                    fontWeight:
-                    FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
 
@@ -1517,9 +1114,7 @@ class _AdminHero extends StatelessWidget {
                 const Text(
                   'Review guide applications and manage their approval status.',
                   style: TextStyle(
-                    color: Color(
-                      0xFFCEE2D8,
-                    ),
+                    color: Color(0xFFCEE2D8),
                     fontSize: 10,
                     height: 1.35,
                   ),
@@ -1533,12 +1128,7 @@ class _AdminHero extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// SUBPAGE HEADER
-// =====================================================================
-
-class _AdminSubpageHeader
-    extends StatelessWidget {
+class _AdminSubpageHeader extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String subtitle;
@@ -1556,83 +1146,31 @@ class _AdminSubpageHeader
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        16,
-        12,
-        12,
-        22,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 22),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFF9FCFA),
-            Color(0xFFE9F4ED),
-            Color(0xFFDCEEE3),
-          ],
+          colors: [Color(0xFFF9FCFA), Color(0xFFE9F4ED), Color(0xFFDCEEE3)],
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color:
-                  const Color(0xFFE1F0E7),
-                  borderRadius:
-                  BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.eco_outlined,
-                  color: Color(0xFF176D4E),
-                  size: 20,
-                ),
-              ),
+              const HistoriaLogoMark(size: 36),
 
               const SizedBox(width: 9),
 
               const Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'HISTORIA',
-                      style: TextStyle(
-                        color:
-                        Color(0xFF153D30),
-                        fontSize: 13.5,
-                        fontWeight:
-                        FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      'ADMINISTRATION',
-                      style: TextStyle(
-                        color:
-                        Color(0xFF76877E),
-                        fontSize: 6.2,
-                        fontWeight:
-                        FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+                child: HistoriaBrandText(subtitle: 'ADMINISTRATION'),
               ),
 
               IconButton(
                 tooltip: 'Refresh',
                 onPressed: onRefresh,
-                icon: const Icon(
-                  Icons.refresh,
-                  color: Color(0xFF176D4E),
-                ),
+                icon: const Icon(Icons.refresh, color: Color(0xFF176D4E)),
               ),
             ],
           ),
@@ -1640,21 +1178,11 @@ class _AdminSubpageHeader
           const SizedBox(height: 22),
 
           Container(
-            padding:
-            const EdgeInsets.symmetric(
-              horizontal: 9,
-              vertical: 5,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(
-                alpha: 0.68,
-              ),
-              borderRadius:
-              BorderRadius.circular(20),
-              border: Border.all(
-                color:
-                const Color(0xFFD2E5D9),
-              ),
+              color: Colors.white.withValues(alpha: 0.68),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFD2E5D9)),
             ),
             child: Text(
               eyebrow,
@@ -1662,8 +1190,7 @@ class _AdminSubpageHeader
                 color: Color(0xFF417A61),
                 fontSize: 7,
                 letterSpacing: 1,
-                fontWeight:
-                FontWeight.w800,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -1674,17 +1201,14 @@ class _AdminSubpageHeader
             children: [
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
                       style: const TextStyle(
-                        color:
-                        Color(0xFF143C2F),
+                        color: Color(0xFF143C2F),
                         fontSize: 24,
-                        fontWeight:
-                        FontWeight.w900,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
 
@@ -1693,8 +1217,7 @@ class _AdminSubpageHeader
                     Text(
                       subtitle,
                       style: const TextStyle(
-                        color:
-                        Color(0xFF71837A),
+                        color: Color(0xFF71837A),
                         fontSize: 9.5,
                         height: 1.4,
                       ),
@@ -1706,18 +1229,11 @@ class _AdminSubpageHeader
               Container(
                 width: 58,
                 height: 58,
-                decoration:
-                const BoxDecoration(
-                  color:
-                  Color(0xFFE4F2E9),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE4F2E9),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color:
-                  const Color(0xFF176D4E),
-                  size: 27,
-                ),
+                child: Icon(icon, color: const Color(0xFF176D4E), size: 27),
               ),
             ],
           ),
@@ -1727,12 +1243,7 @@ class _AdminSubpageHeader
   }
 }
 
-// =====================================================================
-// SECTION TITLE
-// =====================================================================
-
-class _AdminSectionTitle
-    extends StatelessWidget {
+class _AdminSectionTitle extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String subtitle;
@@ -1746,8 +1257,7 @@ class _AdminSectionTitle
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           eyebrow,
@@ -1781,12 +1291,7 @@ class _AdminSectionTitle
   }
 }
 
-// =====================================================================
-// STATS GRID
-// =====================================================================
-
-class _AdminStatsGrid
-    extends StatelessWidget {
+class _AdminStatsGrid extends StatelessWidget {
   final int pending;
   final int approved;
   final int needsWork;
@@ -1820,8 +1325,7 @@ class _AdminStatsGrid
               child: _AdminStatCard(
                 value: pending,
                 label: 'Pending',
-                icon:
-                Icons.hourglass_top_rounded,
+                icon: Icons.hourglass_top_rounded,
                 status: 'PENDING',
                 onTap: onPending,
               ),
@@ -1833,8 +1337,7 @@ class _AdminStatsGrid
               child: _AdminStatCard(
                 value: approved,
                 label: 'Approved',
-                icon:
-                Icons.verified_outlined,
+                icon: Icons.verified_outlined,
                 status: 'APPROVED',
                 onTap: onApproved,
               ),
@@ -1850,8 +1353,7 @@ class _AdminStatsGrid
               child: _AdminStatCard(
                 value: needsWork,
                 label: 'Needs work',
-                icon:
-                Icons.edit_note_outlined,
+                icon: Icons.edit_note_outlined,
                 status: 'NEEDS_WORK',
                 onTap: onNeedsWork,
               ),
@@ -1863,8 +1365,7 @@ class _AdminStatsGrid
               child: _AdminStatCard(
                 value: rejected,
                 label: 'Rejected',
-                icon:
-                Icons.cancel_outlined,
+                icon: Icons.cancel_outlined,
                 status: 'REJECTED',
                 onTap: onRejected,
               ),
@@ -1876,16 +1377,10 @@ class _AdminStatsGrid
 
         Container(
           width: double.infinity,
-          padding:
-          const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color:
-            const Color(0xFF173F32),
-            borderRadius:
-            BorderRadius.circular(15),
+            color: const Color(0xFF173F32),
+            borderRadius: BorderRadius.circular(15),
           ),
           child: Row(
             children: [
@@ -1893,10 +1388,7 @@ class _AdminStatsGrid
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color:
-                  Colors.white.withValues(
-                    alpha: 0.12,
-                  ),
+                  color: Colors.white.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1912,11 +1404,9 @@ class _AdminStatsGrid
                 child: Text(
                   'Total guide records',
                   style: TextStyle(
-                    color:
-                    Color(0xFFD5E9DF),
+                    color: Color(0xFFD5E9DF),
                     fontSize: 9,
-                    fontWeight:
-                    FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -1926,8 +1416,7 @@ class _AdminStatsGrid
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
-                  fontWeight:
-                  FontWeight.w900,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
@@ -1938,12 +1427,7 @@ class _AdminStatsGrid
   }
 }
 
-// =====================================================================
-// STAT CARD
-// =====================================================================
-
-class _AdminStatCard
-    extends StatelessWidget {
+class _AdminStatCard extends StatelessWidget {
   final int value;
   final String label;
   final IconData icon;
@@ -1960,23 +1444,17 @@ class _AdminStatCard
 
   @override
   Widget build(BuildContext context) {
-    final palette =
-    _statusPalette(status);
+    final palette = _statusPalette(status);
 
     return InkWell(
       onTap: onTap,
-      borderRadius:
-      BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius:
-          BorderRadius.circular(16),
-          border: Border.all(
-            color:
-            const Color(0xFFDDE8E1),
-          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFDDE8E1)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x08083A29),
@@ -1986,8 +1464,7 @@ class _AdminStatCard
           ],
         ),
         child: Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 40,
@@ -1996,11 +1473,7 @@ class _AdminStatCard
                 color: palette.soft,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color: palette.main,
-                size: 20,
-              ),
+              child: Icon(icon, color: palette.main, size: 20),
             ),
 
             const SizedBox(height: 12),
@@ -2010,8 +1483,7 @@ class _AdminStatCard
               style: TextStyle(
                 color: palette.main,
                 fontSize: 22,
-                fontWeight:
-                FontWeight.w900,
+                fontWeight: FontWeight.w900,
               ),
             ),
 
@@ -2020,11 +1492,9 @@ class _AdminStatCard
             Text(
               label,
               style: const TextStyle(
-                color:
-                Color(0xFF6F8178),
+                color: Color(0xFF6F8178),
                 fontSize: 9,
-                fontWeight:
-                FontWeight.w700,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -2034,12 +1504,7 @@ class _AdminStatCard
   }
 }
 
-// =====================================================================
-// SHORTCUT CARD
-// =====================================================================
-
-class _AdminShortcutCard
-    extends StatelessWidget {
+class _AdminShortcutCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -2056,37 +1521,25 @@ class _AdminShortcutCard
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius:
-      BorderRadius.circular(15),
+      borderRadius: BorderRadius.circular(15),
       child: Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius:
-          BorderRadius.circular(15),
-          border: Border.all(
-            color:
-            const Color(0xFFDDE8E1),
-          ),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: const Color(0xFFDDE8E1)),
         ),
         child: Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 39,
               height: 39,
-              decoration:
-              const BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xFFE5F2E9),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color:
-                const Color(0xFF176D4E),
-                size: 19,
-              ),
+              child: Icon(icon, color: const Color(0xFF176D4E), size: 19),
             ),
 
             const SizedBox(height: 9),
@@ -2096,8 +1549,7 @@ class _AdminShortcutCard
               style: const TextStyle(
                 color: Color(0xFF163E31),
                 fontSize: 10.5,
-                fontWeight:
-                FontWeight.w800,
+                fontWeight: FontWeight.w800,
               ),
             ),
 
@@ -2105,10 +1557,7 @@ class _AdminShortcutCard
 
             Text(
               subtitle,
-              style: const TextStyle(
-                color: Color(0xFF798A81),
-                fontSize: 7.7,
-              ),
+              style: const TextStyle(color: Color(0xFF798A81), fontSize: 7.7),
             ),
           ],
         ),
@@ -2117,46 +1566,27 @@ class _AdminShortcutCard
   }
 }
 
-// =====================================================================
-// COMPACT GUIDE CARD
-// =====================================================================
-
-class _CompactGuideCard
-    extends StatelessWidget {
+class _CompactGuideCard extends StatelessWidget {
   final GuideModel guide;
   final VoidCallback onTap;
 
-  const _CompactGuideCard({
-    required this.guide,
-    required this.onTap,
-  });
+  const _CompactGuideCard({required this.guide, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final palette =
-    _statusPalette(
-      guide.status,
-    );
+    final palette = _statusPalette(guide.status);
 
     return Padding(
-      padding:
-      const EdgeInsets.only(
-        bottom: 10,
-      ),
+      padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: onTap,
-        borderRadius:
-        BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius:
-            BorderRadius.circular(15),
-            border: Border.all(
-              color:
-              const Color(0xFFDDE8E1),
-            ),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: const Color(0xFFDDE8E1)),
           ),
           child: Row(
             children: [
@@ -2178,33 +1608,27 @@ class _CompactGuideCard
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       guide.title,
                       maxLines: 1,
-                      overflow:
-                      TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color:
-                        Color(0xFF153D30),
+                        color: Color(0xFF153D30),
                         fontSize: 11,
-                        fontWeight:
-                        FontWeight.w800,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
 
                     const SizedBox(height: 3),
 
                     Text(
-                      '${guide.primaryServiceArea} · ${guide.email}',
+                      '${guide.primaryServiceArea} / ${guide.email}',
                       maxLines: 1,
-                      overflow:
-                      TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color:
-                        Color(0xFF78887F),
+                        color: Color(0xFF78887F),
                         fontSize: 8,
                       ),
                     ),
@@ -2214,9 +1638,7 @@ class _CompactGuideCard
 
               const SizedBox(width: 7),
 
-              _GuideStatusBadge(
-                status: guide.status,
-              ),
+              _GuideStatusBadge(status: guide.status),
             ],
           ),
         ),
@@ -2225,12 +1647,7 @@ class _CompactGuideCard
   }
 }
 
-// =====================================================================
-// STATUS FILTER
-// =====================================================================
-
-class _AdminStatusFilter
-    extends StatelessWidget {
+class _AdminStatusFilter extends StatelessWidget {
   final String status;
   final int count;
   final bool selected;
@@ -2245,30 +1662,18 @@ class _AdminStatusFilter
 
   @override
   Widget build(BuildContext context) {
-    final palette =
-    _statusPalette(status);
+    final palette = _statusPalette(status);
 
     return InkWell(
       onTap: onTap,
-      borderRadius:
-      BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(30),
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(
-          horizontal: 11,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
         decoration: BoxDecoration(
-          color: selected
-              ? palette.soft
-              : Colors.white,
-          borderRadius:
-          BorderRadius.circular(30),
+          color: selected ? palette.soft : Colors.white,
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: selected
-                ? palette.border
-                : const Color(
-                0xFFDCE8E1),
+            color: selected ? palette.border : const Color(0xFFDCE8E1),
           ),
         ),
         child: Row(
@@ -2277,22 +1682,15 @@ class _AdminStatusFilter
             Icon(
               palette.icon,
               size: 14,
-              color: selected
-                  ? palette.main
-                  : const Color(
-                  0xFF75867D),
+              color: selected ? palette.main : const Color(0xFF75867D),
             ),
             const SizedBox(width: 5),
             Text(
               '${status.replaceAll('_', ' ')} ($count)',
               style: TextStyle(
-                color: selected
-                    ? palette.main
-                    : const Color(
-                    0xFF65776E),
+                color: selected ? palette.main : const Color(0xFF65776E),
                 fontSize: 8,
-                fontWeight:
-                FontWeight.w800,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
@@ -2302,62 +1700,39 @@ class _AdminStatusFilter
   }
 }
 
-// =====================================================================
-// STATUS COUNT - FIXED
-// =====================================================================
-
-class _StatusCountBadge
-    extends StatelessWidget {
+class _StatusCountBadge extends StatelessWidget {
   final String status;
   final int count;
 
-  const _StatusCountBadge({
-    required this.status,
-    required this.count,
-  });
+  const _StatusCountBadge({required this.status, required this.count});
 
   @override
   Widget build(BuildContext context) {
-    final palette =
-    _statusPalette(status);
+    final palette = _statusPalette(status);
 
     return Container(
-      constraints: const BoxConstraints(
-        minWidth: 38,
-      ),
+      constraints: const BoxConstraints(minWidth: 38),
       height: 38,
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 9,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: palette.soft,
-        borderRadius:
-        BorderRadius.circular(12),
-        border: Border.all(
-          color: palette.border,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.border),
       ),
       child: Text(
         '$count',
         style: TextStyle(
           color: palette.main,
           fontSize: 15,
-          fontWeight:
-          FontWeight.w900,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
   }
 }
 
-// =====================================================================
-// DIRECTORY HEADING
-// =====================================================================
-
-class _DirectoryHeading
-    extends StatelessWidget {
+class _DirectoryHeading extends StatelessWidget {
   final String status;
   final String title;
   final int count;
@@ -2370,8 +1745,7 @@ class _DirectoryHeading
 
   @override
   Widget build(BuildContext context) {
-    final palette =
-    _statusPalette(status);
+    final palette = _statusPalette(status);
 
     return Row(
       children: [
@@ -2382,11 +1756,7 @@ class _DirectoryHeading
             color: palette.soft,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            palette.icon,
-            size: 18,
-            color: palette.main,
-          ),
+          child: Icon(palette.icon, size: 18, color: palette.main),
         ),
 
         const SizedBox(width: 9),
@@ -2407,8 +1777,7 @@ class _DirectoryHeading
           style: TextStyle(
             color: palette.main,
             fontSize: 15,
-            fontWeight:
-            FontWeight.w900,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ],
@@ -2416,60 +1785,36 @@ class _DirectoryHeading
   }
 }
 
-// =====================================================================
-// STATUS BADGE
-// =====================================================================
-
-class _GuideStatusBadge
-    extends StatelessWidget {
+class _GuideStatusBadge extends StatelessWidget {
   final String status;
 
-  const _GuideStatusBadge({
-    required this.status,
-  });
+  const _GuideStatusBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final palette =
-    _statusPalette(status);
+    final palette = _statusPalette(status);
 
     return Container(
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 7,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       decoration: BoxDecoration(
         color: palette.soft,
-        borderRadius:
-        BorderRadius.circular(20),
-        border: Border.all(
-          color: palette.border,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: palette.border),
       ),
       child: Text(
-        status.replaceAll(
-          '_',
-          ' ',
-        ),
+        status.replaceAll('_', ' '),
         style: TextStyle(
           color: palette.main,
           fontSize: 6.2,
           letterSpacing: 0.3,
-          fontWeight:
-          FontWeight.w800,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
   }
 }
 
-// =====================================================================
-// ADMIN INFO LINE
-// =====================================================================
-
-class _AdminInfoLine
-    extends StatelessWidget {
+class _AdminInfoLine extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
@@ -2483,40 +1828,29 @@ class _AdminInfoLine
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-      const EdgeInsets.symmetric(
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
             width: 37,
             height: 37,
-            decoration:
-            const BoxDecoration(
+            decoration: const BoxDecoration(
               color: Color(0xFFE7F3EA),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 18,
-              color:
-              const Color(0xFF267154),
-            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF267154)),
           ),
 
           const SizedBox(width: 10),
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
                   style: const TextStyle(
-                    color:
-                    Color(0xFF7A8981),
+                    color: Color(0xFF7A8981),
                     fontSize: 7.8,
                   ),
                 ),
@@ -2524,11 +1858,9 @@ class _AdminInfoLine
                 Text(
                   value,
                   style: const TextStyle(
-                    color:
-                    Color(0xFF223F34),
+                    color: Color(0xFF223F34),
                     fontSize: 10.2,
-                    fontWeight:
-                    FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -2540,30 +1872,19 @@ class _AdminInfoLine
   }
 }
 
-class _AdminDivider
-    extends StatelessWidget {
+class _AdminDivider extends StatelessWidget {
   const _AdminDivider();
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      color: Color(0xFFE7EEE9),
-    );
+    return const Divider(height: 1, color: Color(0xFFE7EEE9));
   }
 }
 
-// =====================================================================
-// ADMIN NOTE
-// =====================================================================
-
-class _AdminNote
-    extends StatelessWidget {
+class _AdminNote extends StatelessWidget {
   final String note;
 
-  const _AdminNote({
-    required this.note,
-  });
+  const _AdminNote({required this.note});
 
   @override
   Widget build(BuildContext context) {
@@ -2571,19 +1892,14 @@ class _AdminNote
       padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF6E1),
-        borderRadius:
-        BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFEFDCAD),
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEFDCAD)),
       ),
       child: Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
-            Icons
-                .admin_panel_settings_outlined,
+            Icons.admin_panel_settings_outlined,
             size: 18,
             color: Color(0xFF936415),
           ),
@@ -2592,25 +1908,21 @@ class _AdminNote
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Admin note',
                   style: TextStyle(
-                    color:
-                    Color(0xFF75511B),
+                    color: Color(0xFF75511B),
                     fontSize: 9.5,
-                    fontWeight:
-                    FontWeight.w800,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   note,
                   style: const TextStyle(
-                    color:
-                    Color(0xFF816A42),
+                    color: Color(0xFF816A42),
                     fontSize: 8.4,
                     height: 1.4,
                   ),
@@ -2624,12 +1936,7 @@ class _AdminNote
   }
 }
 
-// =====================================================================
-// EMPTY STATE
-// =====================================================================
-
-class _AdminEmptyState
-    extends StatelessWidget {
+class _AdminEmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
@@ -2643,36 +1950,22 @@ class _AdminEmptyState
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        22,
-        28,
-        22,
-        26,
-      ),
+      padding: const EdgeInsets.fromLTRB(22, 28, 22, 26),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-        BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFDDE8E1),
-        ),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: const Color(0xFFDDE8E1)),
       ),
       child: Column(
         children: [
           Container(
             width: 70,
             height: 70,
-            decoration:
-            const BoxDecoration(
+            decoration: const BoxDecoration(
               color: Color(0xFFE6F2EA),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 31,
-              color:
-              const Color(0xFF176D4E),
-            ),
+            child: Icon(icon, size: 31, color: const Color(0xFF176D4E)),
           ),
 
           const SizedBox(height: 15),
@@ -2704,10 +1997,6 @@ class _AdminEmptyState
   }
 }
 
-// =====================================================================
-// STATUS PALETTE
-// =====================================================================
-
 class _AdminStatusPalette {
   final Color main;
   final Color soft;
@@ -2722,9 +2011,7 @@ class _AdminStatusPalette {
   });
 }
 
-_AdminStatusPalette _statusPalette(
-    String status,
-    ) {
+_AdminStatusPalette _statusPalette(String status) {
   switch (status) {
     case 'APPROVED':
       return const _AdminStatusPalette(
