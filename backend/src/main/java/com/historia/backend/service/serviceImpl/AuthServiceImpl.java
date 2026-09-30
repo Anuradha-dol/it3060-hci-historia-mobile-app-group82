@@ -520,26 +520,55 @@ public class AuthServiceImpl implements AuthService {
 
         } else {
 
+            if (user.getRole() == Role.ADMIN) {
+                throw new UserException(
+                        "Google login is not allowed for admin accounts"
+                );
+            }
+
+            if (request.role() != null &&
+                    request.role() != user.getRole()) {
+                throw new UserException(
+                        "Selected account type does not match this account"
+                );
+            }
+
+            if (user.getProvider() == null ||
+                    user.getProvider() == AuthProvider.LOCAL) {
+
+                if (user.getProviderId() != null &&
+                        !user.getProviderId()
+                                .equals(
+                                        googleUser.providerId()
+                                )) {
+
+                    throw new UserException(
+                            "Google account does not match"
+                    );
+                }
+
+                user.setProviderId(googleUser.providerId());
+                user.setEmailVerified(true);
+                user.setVerifyCode(null);
+                user.setVerifyCodeExpiry(null);
+
+            } else if (user.getProvider() == AuthProvider.GOOGLE) {
+
+                if (user.getProviderId() == null ||
+                        !user.getProviderId()
+                                .equals(
+                                        googleUser.providerId()
+                                )) {
+
+                    throw new UserException(
+                            "Google account does not match"
+                    );
+                }
+            }
+
             if (!user.isEnabled()) {
                 throw new UserException(
                         "Account is not active"
-                );
-            }
-
-            if (user.getProvider() != AuthProvider.GOOGLE) {
-                throw new UserException(
-                        "An account already exists with this email. Please login with your password."
-                );
-            }
-
-            if (user.getProviderId() == null ||
-                    !user.getProviderId()
-                            .equals(
-                                    googleUser.providerId()
-                            )) {
-
-                throw new UserException(
-                        "Google account does not match"
                 );
             }
         }
