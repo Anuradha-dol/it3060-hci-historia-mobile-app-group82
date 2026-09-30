@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // User errors
     @ExceptionHandler(UserException.class)
     public ResponseEntity<UserDto.MessageResponse> handleUserException(
             UserException exception
@@ -27,7 +26,6 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    // Missing or invalid authentication
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<UserDto.MessageResponse> handleAuthenticationException(
             AuthenticationException exception
@@ -42,7 +40,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Role or permission errors
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<UserDto.MessageResponse> handleAccessDeniedException(
             AccessDeniedException exception
@@ -57,7 +54,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<UserDto.MessageResponse> handleValidationException(
             MethodArgumentNotValidException exception
@@ -80,7 +76,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Invalid query or path parameter values
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<UserDto.MessageResponse> handleTypeMismatchException(
             MethodArgumentTypeMismatchException exception
@@ -95,7 +90,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Other errors
     @ExceptionHandler(Exception.class)
     public ResponseEntity<UserDto.MessageResponse> handleException(
             Exception exception
