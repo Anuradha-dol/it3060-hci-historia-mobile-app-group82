@@ -32,7 +32,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // View profile
     @Override
     public UserDto.UserProfileResponse getProfile(String username) {
 
@@ -42,7 +41,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Update profile
     @Override
     @Transactional
     public UserDto.UserProfileResponse updateProfile(
@@ -91,7 +89,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Change password
     @Override
     @Transactional
     public UserDto.MessageResponse changePassword(
@@ -135,7 +132,6 @@ public class UserServiceImpl implements UserService {
                 )
         );
 
-        // End old refresh sessions
         user.setRefreshTokenHash(null);
 
         userRepository.save(user);
@@ -147,7 +143,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Logout
     @Override
     @Transactional
     public UserDto.MessageResponse logout(String username) {
@@ -165,7 +160,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Delete account
     @Override
     @Transactional
     public UserDto.MessageResponse deleteAccount(
@@ -187,10 +181,8 @@ public class UserServiceImpl implements UserService {
 
         Long userId = user.getId();
 
-        // Remove temporary reset data
         forgotPasswordRepository.deleteByUserId(userId);
 
-        // Remove personal data
         user.setFirstName(null);
         user.setLastName(null);
         user.setAddress(null);
@@ -209,7 +201,6 @@ public class UserServiceImpl implements UserService {
 
         user.setProviderId(null);
 
-        // Clear login data
         user.setPassword(
                 passwordEncoder.encode(
                         UUID.randomUUID().toString()
@@ -218,7 +209,6 @@ public class UserServiceImpl implements UserService {
 
         user.setRefreshTokenHash(null);
 
-        // Clear OTP data
         user.setVerifyCode(null);
         user.setVerifyCodeExpiry(null);
         user.setLastOtpSentAt(null);
@@ -226,7 +216,6 @@ public class UserServiceImpl implements UserService {
         user.setOtpFirstResendTime(null);
         user.setOtpBlockUntil(null);
 
-        // Disable account
         user.setEmailVerified(false);
         user.setEnabled(false);
         user.setDeleted(true);
@@ -241,7 +230,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Find user
     private User getUser(String username) {
 
         return userRepository
@@ -252,7 +240,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Profile response
     private UserDto.UserProfileResponse toProfileResponse(
             User user
     ) {
