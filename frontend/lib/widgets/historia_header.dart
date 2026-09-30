@@ -26,49 +26,26 @@ class HistoriaHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 18, 20, 13),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Icon(icon, color: AppColors.primary, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('HISTORIA', style: AppTextStyles.brand),
-                    const SizedBox(height: 1),
-                    Text(
-                      'EXPLORE HISTORY / FIND YOUR GUIDE',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.label.copyWith(
-                        fontSize: 8,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (actions.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Wrap(spacing: 6, children: actions),
-              ],
-            ],
+        Container(
+          height: 86,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/historia_header_banner.png'),
+              fit: BoxFit.cover,
+              alignment: Alignment.centerRight,
+            ),
+            border: Border(bottom: BorderSide(color: AppColors.border)),
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.50),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(22, 14, 18, 14),
+              child: HistoriaBrandRow(actions: actions),
+            ),
           ),
         ),
-        const Divider(height: 1, thickness: 1, color: AppColors.border),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
           child: Column(
@@ -81,7 +58,18 @@ class HistoriaHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
-              Text(title, style: AppTextStyles.screenTitle),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(title, style: AppTextStyles.screenTitle),
+                  ),
+                  Icon(
+                    icon,
+                    color: AppColors.primary.withValues(alpha: 0.18),
+                    size: 32,
+                  ),
+                ],
+              ),
               if (subtitle != null && subtitle!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(subtitle!, style: AppTextStyles.bodyMuted),
@@ -94,6 +82,124 @@ class HistoriaHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class HistoriaBrandRow extends StatelessWidget {
+  final bool dark;
+  final String subtitle;
+  final List<Widget> actions;
+
+  const HistoriaBrandRow({
+    super.key,
+    this.dark = false,
+    this.subtitle = 'EXPLORE HISTORY / FIND YOUR GUIDE',
+    this.actions = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = dark ? Colors.white : AppColors.primaryDark;
+    final mutedColor = dark ? const Color(0xFFD5E9DF) : AppColors.textSecondary;
+
+    return Row(
+      children: [
+        HistoriaLogoMark(dark: dark),
+        const SizedBox(width: 11),
+        Expanded(
+          child: HistoriaBrandText(
+            dark: dark,
+            subtitle: subtitle,
+            titleColor: textColor,
+            subtitleColor: mutedColor,
+          ),
+        ),
+        if (actions.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Wrap(spacing: 4, children: actions),
+        ],
+      ],
+    );
+  }
+}
+
+class HistoriaBrandText extends StatelessWidget {
+  final bool dark;
+  final String subtitle;
+  final Color? titleColor;
+  final Color? subtitleColor;
+
+  const HistoriaBrandText({
+    super.key,
+    this.dark = false,
+    this.subtitle = 'EXPLORE HISTORY / FIND YOUR GUIDE',
+    this.titleColor,
+    this.subtitleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'HISTORIA',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.brand.copyWith(
+            color: titleColor ?? (dark ? Colors.white : AppColors.primaryDark),
+            fontSize: 19,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.label.copyWith(
+            color:
+                subtitleColor ??
+                (dark ? const Color(0xFFD5E9DF) : AppColors.textSecondary),
+            fontSize: 7.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class HistoriaLogoMark extends StatelessWidget {
+  final bool dark;
+  final double size;
+
+  const HistoriaLogoMark({super.key, this.dark = false, this.size = 42});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * 0.17),
+      decoration: BoxDecoration(
+        color: dark
+            ? Colors.white.withValues(alpha: 0.14)
+            : AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: dark ? Colors.white.withValues(alpha: 0.18) : AppColors.border,
+        ),
+      ),
+      child: Image.asset(
+        'assets/images/historia_logo.png',
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => Icon(
+          Icons.eco_outlined,
+          color: dark ? Colors.white : AppColors.primary,
+          size: size * 0.52,
+        ),
+      ),
     );
   }
 }
