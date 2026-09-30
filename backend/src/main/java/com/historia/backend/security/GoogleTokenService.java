@@ -18,9 +18,15 @@ public class GoogleTokenService {
     private final GoogleIdTokenVerifier verifier;
 
     public GoogleTokenService(
-            @Value("${spring.security.oauth2.client.registration.google.client-id}")
+            @Value("${google.oauth.client-id:${spring.security.oauth2.client.registration.google.client-id:}}")
             String clientId
     ) {
+
+        if (clientId == null || clientId.isBlank()) {
+            throw new IllegalStateException(
+                    "Google OAuth client ID is not configured. Set GOOGLE_CLIENT_ID or google.oauth.client-id."
+            );
+        }
 
         try {
             this.verifier = new GoogleIdTokenVerifier.Builder(
@@ -28,7 +34,7 @@ public class GoogleTokenService {
                     GsonFactory.getDefaultInstance()
             )
                     .setAudience(
-                            Collections.singletonList(clientId)
+                            Collections.singletonList(clientId.trim())
                     )
                     .build();
 
