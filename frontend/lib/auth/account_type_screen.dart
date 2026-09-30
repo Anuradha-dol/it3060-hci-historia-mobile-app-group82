@@ -6,182 +6,185 @@ import 'signup_screen.dart';
 class AccountTypeScreen extends StatelessWidget {
   const AccountTypeScreen({super.key});
 
-  static const Color background = Color(0xFFFCFCF7);
-  static const Color darkGreen = Color(0xFF0E4A37);
+  static const Color pageBg = Color(0xFFF7FBF8);
+  static const Color darkGreen = Color(0xFF0D4A37);
   static const Color primaryGreen = Color(0xFF176C4B);
-  static const Color mediumGreen = Color(0xFF3B8C67);
+  static const Color mutedText = Color(0xFF6D8078);
 
-  static const Color mint = Color(0xFFEDF8F2);
-  static const Color border = Color(0xFFCEE3D8);
-  static const Color muted = Color(0xFF71837A);
+  static const Color cardStart = Color(0xFFF5FBF7);
+  static const Color cardEnd = Color(0xFFEAF6F0);
+  static const Color border = Color(0xFFCFE3D8);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: pageBg,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 430,
-            ),
-            child: Column(
+            constraints: const BoxConstraints(maxWidth: 430),
+            child: Stack(
               children: [
-                _HistoriaHeader(
-                  onClose: () {
-                    Navigator.maybePop(context);
-                  },
-                ),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(
-                      18,
-                      13,
-                      18,
-                      10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'REGISTRATION / CHOOSE YOUR PATH',
-                          style: TextStyle(
-                            color: primaryGreen,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.15,
-                          ),
-                        ),
-
-                        const SizedBox(height: 5),
-
-                        const Text(
-                          'Your journey starts here.',
-                          style: TextStyle(
-                            color: darkGreen,
-                            fontSize: 27,
-                            height: 1.05,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.6,
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        const Text(
-                          'Choose how you would like to join HISTORIA.',
-                          style: TextStyle(
-                            color: muted,
-                            fontSize: 12,
-                            height: 1.35,
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        const Divider(
-                          height: 1,
-                          color: Color(0xFFE0EBE5),
-                        ),
-
-                        const SizedBox(height: 13),
-
-                        _RoleCard(
-                          eyebrow: 'EXPLORE',
-                          title: 'Join as a tourist',
-                          description:
-                          'Discover historic places with a knowledgeable local guide.',
-                          actionText:
-                          'CREATE TOURIST ACCOUNT',
-                          imagePath:
-                          'assets/images/tourist_role_bg.png',
-                          imageWidth: 94,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                const SignupScreen(),
-                              ),
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 11),
-
-                        _RoleCard(
-                          eyebrow: 'LEAD',
-                          title: 'Join as a local guide',
-                          description:
-                          'Share local stories and welcome travellers.',
-                          actionText:
-                          'APPLY TO BECOME A GUIDE',
-                          imagePath:
-                          'assets/images/guide_role_bg.png',
-                          imageWidth: 96,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                const GuideSignupScreen(),
-                              ),
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 11),
-
-                        const _DifferenceBox(),
-
-                        const SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Already have an account?',
-                              style: TextStyle(
-                                color: muted,
-                                fontSize: 11.5,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            InkWell(
-                              borderRadius:
-                              BorderRadius.circular(5),
-                              onTap: () {
-                                Navigator.maybePop(context);
-                              },
-                              child: const Padding(
-                                padding:
-                                EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: 2,
-                                ),
-                                child: Text(
-                                  'Sign in',
-                                  style: TextStyle(
-                                    color: primaryGreen,
-                                    fontSize: 11.5,
-                                    fontWeight:
-                                    FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                // Subtle page decorations
+                Positioned(
+                  top: 150,
+                  right: -30,
+                  child: Icon(
+                    Icons.eco_outlined,
+                    size: 110,
+                    color: primaryGreen.withValues(alpha: 0.035),
                   ),
                 ),
 
-                const _HeritageFooter(),
+                Positioned(
+                  bottom: 115,
+                  left: -40,
+                  child: Icon(
+                    Icons.eco_outlined,
+                    size: 120,
+                    color: primaryGreen.withValues(alpha: 0.035),
+                  ),
+                ),
+
+                Column(
+                  children: [
+                    _HistoriaHeader(onClose: () => Navigator.maybePop(context)),
+
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'REGISTRATION / CHOOSE YOUR PATH',
+                              style: TextStyle(
+                                color: primaryGreen,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            const Text(
+                              'Your journey starts here.',
+                              style: TextStyle(
+                                color: darkGreen,
+                                fontSize: 29,
+                                height: 1.04,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.7,
+                              ),
+                            ),
+
+                            const SizedBox(height: 7),
+
+                            const Text(
+                              'Choose how you would like to join HISTORIA.',
+                              style: TextStyle(
+                                color: mutedText,
+                                fontSize: 12.5,
+                                height: 1.3,
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            const Divider(height: 1, color: Color(0xFFD9E7E0)),
+
+                            const SizedBox(height: 14),
+
+                            _RoleCard(
+                              eyebrow: 'EXPLORE',
+                              title: 'Join as a tourist',
+                              description:
+                                  'Discover historic places with a knowledgeable local guide.',
+                              action: 'CREATE TOURIST ACCOUNT',
+                              imagePath: 'assets/images/tourist_role_bg.png',
+                              imageWidth: 96,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const SignupScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            _RoleCard(
+                              eyebrow: 'LEAD',
+                              title: 'Join as a local guide',
+                              description:
+                                  'Share local stories and welcome travellers.',
+                              action: 'APPLY TO BECOME A GUIDE',
+                              imagePath: 'assets/images/guide_role_bg.png',
+                              imageWidth: 98,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const GuideSignupScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            const _DifferenceBox(),
+
+                            const Spacer(),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Already have an account?',
+                                  style: TextStyle(
+                                    color: mutedText,
+                                    fontSize: 12,
+                                  ),
+                                ),
+
+                                const SizedBox(width: 5),
+
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(6),
+                                  onTap: () {
+                                    Navigator.maybePop(context);
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 3,
+                                      vertical: 5,
+                                    ),
+                                    child: Text(
+                                      'Sign in',
+                                      style: TextStyle(
+                                        color: primaryGreen,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const _HeritageFooter(),
+                  ],
+                ),
               ],
             ),
           ),
@@ -194,77 +197,60 @@ class AccountTypeScreen extends StatelessWidget {
 class _HistoriaHeader extends StatelessWidget {
   final VoidCallback onClose;
 
-  const _HistoriaHeader({
-    required this.onClose,
-  });
+  const _HistoriaHeader({required this.onClose});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-      ),
+      height: 74,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: const BoxDecoration(
-        color: AccountTypeScreen.background,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFE2EBE6),
-          ),
-        ),
+        color: Color(0xFFF8FCF9),
+        border: Border(bottom: BorderSide(color: Color(0xFFDDE9E3))),
       ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 39,
+            height: 39,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE9F7EF),
-                  Color(0xFFD8EEE2),
-                ],
-              ),
+              color: const Color(0xFFE1F1E8),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.eco_outlined,
-              color:
-              AccountTypeScreen.primaryGreen,
-              size: 22,
+              color: AccountTypeScreen.primaryGreen,
+              size: 23,
             ),
           ),
 
-          const SizedBox(width: 10),
+          const SizedBox(width: 11),
 
           const Expanded(
             child: Column(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'HISTORIA',
                   style: TextStyle(
-                    color:
-                    AccountTypeScreen.darkGreen,
-                    fontSize: 18,
+                    color: AccountTypeScreen.darkGreen,
+                    fontSize: 19,
                     height: 1,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.3,
                   ),
                 ),
+
                 SizedBox(height: 4),
+
                 Text(
                   'EXPLORE HISTORY / FIND YOUR GUIDE',
                   style: TextStyle(
-                    color: AccountTypeScreen.muted,
-                    fontSize: 6.7,
+                    color: AccountTypeScreen.mutedText,
+                    fontSize: 6.8,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.55,
+                    letterSpacing: 0.65,
                   ),
                 ),
               ],
@@ -274,25 +260,20 @@ class _HistoriaHeader extends StatelessWidget {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius:
-              BorderRadius.circular(9),
               onTap: onClose,
+              borderRadius: BorderRadius.circular(10),
               child: Container(
-                width: 34,
-                height: 34,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                  BorderRadius.circular(9),
-                  border: Border.all(
-                    color: AccountTypeScreen.border,
-                  ),
+                  color: const Color(0xFFFAFDFB),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AccountTypeScreen.border),
                 ),
                 child: const Icon(
                   Icons.close,
-                  color:
-                  AccountTypeScreen.primaryGreen,
-                  size: 19,
+                  size: 20,
+                  color: AccountTypeScreen.primaryGreen,
                 ),
               ),
             ),
@@ -307,18 +288,16 @@ class _RoleCard extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String description;
-  final String actionText;
-
+  final String action;
   final String imagePath;
   final double imageWidth;
-
   final VoidCallback onTap;
 
   const _RoleCard({
     required this.eyebrow,
     required this.title,
     required this.description,
-    required this.actionText,
+    required this.action,
     required this.imagePath,
     required this.imageWidth,
     required this.onTap,
@@ -327,164 +306,130 @@ class _RoleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 142,
+      height: 150,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius:
-          BorderRadius.circular(16),
           onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
           child: Ink(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFF5FBF7),
-                  Color(0xFFE8F5EE),
+                  AccountTypeScreen.cardStart,
+                  AccountTypeScreen.cardEnd,
                 ],
               ),
-              borderRadius:
-              BorderRadius.circular(16),
-              border: Border.all(
-                color: AccountTypeScreen.border,
-              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AccountTypeScreen.border),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x0C123F30),
-                  blurRadius: 14,
+                  color: Color(0x0D123F30),
+                  blurRadius: 15,
                   offset: Offset(0, 5),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius:
-              BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               child: Stack(
                 children: [
-                  // Very subtle green decoration.
+                  // Decorative leaf
                   Positioned(
-                    right: -22,
-                    top: -22,
-                    child: Icon(
-                      Icons.eco_outlined,
-                      size: 82,
-                      color:
-                      AccountTypeScreen.mediumGreen
-                          .withValues(alpha: 0.045),
+                    right: -18,
+                    top: -18,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFD7EDE2).withValues(alpha: 0.45),
+                      ),
+                      child: Icon(
+                        Icons.eco_outlined,
+                        size: 42,
+                        color: AccountTypeScreen.primaryGreen.withValues(
+                          alpha: 0.08,
+                        ),
+                      ),
                     ),
                   ),
 
                   Row(
                     children: [
-                      // New image already contains
-                      // the person + mint heritage background.
+                      // IMAGE AREA
                       SizedBox(
-                        width: 112,
+                        width: 120,
                         height: double.infinity,
                         child: Padding(
-                          padding:
-                          const EdgeInsets.fromLTRB(
-                            4,
-                            7,
-                            1,
-                            0,
-                          ),
+                          padding: const EdgeInsets.fromLTRB(6, 8, 3, 2),
                           child: Align(
-                            alignment:
-                            Alignment.bottomCenter,
+                            alignment: Alignment.bottomCenter,
                             child: Image.asset(
                               imagePath,
                               width: imageWidth,
-                              height: 127,
+                              height: 136,
                               fit: BoxFit.contain,
-                              alignment:
-                              Alignment.bottomCenter,
-                              filterQuality:
-                              FilterQuality.high,
+                              filterQuality: FilterQuality.high,
                             ),
                           ),
                         ),
                       ),
 
+                      // TEXT AREA
                       Expanded(
                         child: Padding(
-                          padding:
-                          const EdgeInsets.fromLTRB(
-                            2,
-                            12,
-                            11,
-                            9,
-                          ),
+                          padding: const EdgeInsets.fromLTRB(5, 13, 13, 11),
                           child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding:
-                                const EdgeInsets
-                                    .symmetric(
-                                  horizontal: 8,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
                                   vertical: 3,
                                 ),
-                                decoration:
-                                BoxDecoration(
-                                  color:
-                                  const Color(
-                                    0xFFD7ECDF,
-                                  ),
-                                  borderRadius:
-                                  BorderRadius.circular(
-                                    18,
-                                  ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD4EBDD),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   eyebrow,
-                                  style:
-                                  const TextStyle(
-                                    color:
-                                    AccountTypeScreen
-                                        .primaryGreen,
-                                    fontSize: 7.4,
-                                    fontWeight:
-                                    FontWeight.w800,
+                                  style: const TextStyle(
+                                    color: AccountTypeScreen.primaryGreen,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
                                     letterSpacing: 1,
                                   ),
                                 ),
                               ),
 
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 5),
 
                               Text(
                                 title,
                                 maxLines: 1,
-                                overflow:
-                                TextOverflow.ellipsis,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color:
-                                  AccountTypeScreen
-                                      .darkGreen,
-                                  fontSize: 17.5,
+                                  color: AccountTypeScreen.darkGreen,
+                                  fontSize: 19,
                                   height: 1.05,
-                                  fontWeight:
-                                  FontWeight.w800,
+                                  fontWeight: FontWeight.w800,
                                   letterSpacing: -0.2,
                                 ),
                               ),
 
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 5),
 
                               Text(
                                 description,
                                 maxLines: 2,
-                                overflow:
-                                TextOverflow.ellipsis,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color:
-                                  AccountTypeScreen
-                                      .muted,
-                                  fontSize: 10,
-                                  height: 1.28,
+                                  color: AccountTypeScreen.mutedText,
+                                  fontSize: 11,
+                                  height: 1.3,
                                 ),
                               ),
 
@@ -493,52 +438,38 @@ class _RoleCard extends StatelessWidget {
                               const Divider(
                                 height: 1,
                                 thickness: 0.8,
-                                color:
-                                Color(0xFFC6DCCF),
+                                color: Color(0xFFC2D9CC),
                               ),
 
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 7),
 
                               Row(
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      actionText,
+                                      action,
                                       maxLines: 1,
-                                      overflow:
-                                      TextOverflow
-                                          .ellipsis,
-                                      style:
-                                      const TextStyle(
-                                        color:
-                                        AccountTypeScreen
-                                            .primaryGreen,
-                                        fontSize: 8.2,
-                                        fontWeight:
-                                        FontWeight.w800,
-                                        letterSpacing:
-                                        0.3,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: AccountTypeScreen.primaryGreen,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.4,
                                       ),
                                     ),
                                   ),
 
                                   Container(
-                                    width: 27,
-                                    height: 27,
-                                    decoration:
-                                    const BoxDecoration(
-                                      color:
-                                      Color(0xFFD7ECDF),
-                                      shape:
-                                      BoxShape.circle,
+                                    width: 30,
+                                    height: 30,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFD0E8D9),
+                                      shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
-                                      Icons
-                                          .arrow_forward_rounded,
-                                      color:
-                                      AccountTypeScreen
-                                          .primaryGreen,
-                                      size: 16,
+                                      Icons.arrow_forward_rounded,
+                                      size: 18,
+                                      color: AccountTypeScreen.primaryGreen,
                                     ),
                                   ),
                                 ],
@@ -565,27 +496,14 @@ class _DifferenceBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 66,
-      padding: const EdgeInsets.fromLTRB(
-        10,
-        8,
-        10,
-        8,
-      ),
+      height: 72,
+      padding: const EdgeInsets.fromLTRB(11, 9, 12, 9),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Color(0xFFE6F5ED),
-            Color(0xFFF1F9F5),
-          ],
+          colors: [Color(0xFFE5F3EB), Color(0xFFF0F8F4)],
         ),
-        borderRadius:
-        BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFD6E8DF),
-        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFD1E5DA)),
       ),
       child: Row(
         children: [
@@ -594,58 +512,53 @@ class _DifferenceBox extends StatelessWidget {
             height: double.infinity,
             decoration: BoxDecoration(
               color: const Color(0xFF2D8A62),
-              borderRadius:
-              BorderRadius.circular(3),
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
 
-          const SizedBox(width: 9),
+          const SizedBox(width: 10),
 
           Container(
-            width: 29,
-            height: 29,
+            width: 31,
+            height: 31,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFFDAEEE4),
+              color: Color(0xFFD3EADF),
             ),
             child: const Icon(
               Icons.info_outline,
-              size: 17,
-              color:
-              AccountTypeScreen.primaryGreen,
+              size: 18,
+              color: AccountTypeScreen.primaryGreen,
             ),
           ),
 
-          const SizedBox(width: 9),
+          const SizedBox(width: 10),
 
           const Expanded(
             child: Column(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'ONE IMPORTANT DIFFERENCE',
                   style: TextStyle(
-                    color:
-                    AccountTypeScreen.darkGreen,
-                    fontSize: 8,
+                    color: AccountTypeScreen.darkGreen,
+                    fontSize: 8.6,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
+                    letterSpacing: 0.7,
                   ),
                 ),
-                SizedBox(height: 3),
+
+                SizedBox(height: 4),
+
                 Text(
                   'Tourists verify email. Guides must also pass an admin review before access.',
                   maxLines: 2,
-                  overflow:
-                  TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color:
-                    AccountTypeScreen.muted,
-                    fontSize: 9.5,
-                    height: 1.22,
+                    color: AccountTypeScreen.mutedText,
+                    fontSize: 10.2,
+                    height: 1.25,
                   ),
                 ),
               ],
@@ -663,60 +576,32 @@ class _HeritageFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 138,
+      height: 122,
       width: double.infinity,
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
+          // Main image
           Positioned.fill(
-            top: 15,
+            top: 25,
             child: ClipPath(
-              clipper:
-              _FooterWaveClipper(),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/account_type_footer_4k.webp',
-                    fit: BoxFit.cover,
-                    alignment:
-                    const Alignment(0, 0.10),
-                    filterQuality:
-                    FilterQuality.high,
-                  ),
-
-                  Container(
-                    decoration:
-                    const BoxDecoration(
-                      gradient:
-                      LinearGradient(
-                        begin:
-                        Alignment.topCenter,
-                        end:
-                        Alignment.bottomCenter,
-                        colors: [
-                          Color(0x73FCFCF7),
-                          Color(0x10FCFCF7),
-                          Color(0x00124D3A),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+              clipper: _FooterClipper(),
+              child: Image.asset(
+                'assets/images/account_type_footer_4k.webp',
+                fit: BoxFit.cover,
+                alignment: const Alignment(0, 0.12),
+                filterQuality: FilterQuality.high,
               ),
             ),
           ),
 
+          // Upper light wave
           Positioned(
-            top: 1,
+            top: 0,
             left: 0,
             right: 0,
-            child: SizedBox(
-              height: 38,
-              child: CustomPaint(
-                painter:
-                _GreenWavePainter(),
-              ),
+            child: CustomPaint(
+              size: const Size(double.infinity, 45),
+              painter: _FooterWavePainter(),
             ),
           ),
         ],
@@ -725,40 +610,20 @@ class _HeritageFooter extends StatelessWidget {
   }
 }
 
-class _FooterWaveClipper
-    extends CustomClipper<Path> {
+class _FooterClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
 
-    path.moveTo(
-      0,
-      23,
-    );
+    path.moveTo(0, 16);
 
-    path.quadraticBezierTo(
-      size.width * 0.20,
-      -2,
-      size.width * 0.45,
-      12,
-    );
+    path.quadraticBezierTo(size.width * 0.20, 0, size.width * 0.45, 12);
 
-    path.quadraticBezierTo(
-      size.width * 0.72,
-      29,
-      size.width,
-      8,
-    );
+    path.quadraticBezierTo(size.width * 0.72, 27, size.width, 5);
 
-    path.lineTo(
-      size.width,
-      size.height,
-    );
+    path.lineTo(size.width, size.height);
 
-    path.lineTo(
-      0,
-      size.height,
-    );
+    path.lineTo(0, size.height);
 
     path.close();
 
@@ -766,132 +631,63 @@ class _FooterWaveClipper
   }
 
   @override
-  bool shouldReclip(
-      covariant CustomClipper<Path>
-      oldClipper,
-      ) {
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
     return false;
   }
 }
 
-class _GreenWavePainter
-    extends CustomPainter {
+class _FooterWavePainter extends CustomPainter {
   @override
-  void paint(
-      Canvas canvas,
-      Size size,
-      ) {
+  void paint(Canvas canvas, Size size) {
     final lightPaint = Paint()
-      ..color =
-      const Color(0xFFE0F1E8)
-      ..style =
-          PaintingStyle.fill;
+      ..color = const Color(0xFFE5F3EB)
+      ..style = PaintingStyle.fill;
 
     final darkPaint = Paint()
-      ..color =
-      const Color(0xFFCBE5D8)
-      ..style =
-          PaintingStyle.fill;
+      ..color = const Color(0xFFCBE5D7)
+      ..style = PaintingStyle.fill;
 
-    final lightPath = Path();
+    // First wave
+    final path1 = Path();
 
-    lightPath.moveTo(
-      0,
-      25,
-    );
+    path1.moveTo(0, 24);
 
-    lightPath.quadraticBezierTo(
-      size.width * 0.22,
-      3,
-      size.width * 0.48,
-      16,
-    );
+    path1.quadraticBezierTo(size.width * 0.22, 4, size.width * 0.46, 15);
 
-    lightPath.quadraticBezierTo(
-      size.width * 0.74,
-      31,
-      size.width,
-      8,
-    );
+    path1.quadraticBezierTo(size.width * 0.74, 30, size.width, 8);
 
-    lightPath.lineTo(
-      size.width,
-      24,
-    );
+    path1.lineTo(size.width, 26);
 
-    lightPath.quadraticBezierTo(
-      size.width * 0.72,
-      42,
-      size.width * 0.48,
-      29,
-    );
+    path1.quadraticBezierTo(size.width * 0.73, 40, size.width * 0.46, 30);
 
-    lightPath.quadraticBezierTo(
-      size.width * 0.21,
-      17,
-      0,
-      35,
-    );
+    path1.quadraticBezierTo(size.width * 0.21, 19, 0, 35);
 
-    lightPath.close();
+    path1.close();
 
-    canvas.drawPath(
-      lightPath,
-      lightPaint,
-    );
+    canvas.drawPath(path1, lightPaint);
 
-    final darkPath = Path();
+    // Second wave
+    final path2 = Path();
 
-    darkPath.moveTo(
-      0,
-      32,
-    );
+    path2.moveTo(0, 33);
 
-    darkPath.quadraticBezierTo(
-      size.width * 0.25,
-      15,
-      size.width * 0.50,
-      27,
-    );
+    path2.quadraticBezierTo(size.width * 0.24, 20, size.width * 0.50, 29);
 
-    darkPath.quadraticBezierTo(
-      size.width * 0.78,
-      38,
-      size.width,
-      19,
-    );
+    path2.quadraticBezierTo(size.width * 0.78, 40, size.width, 21);
 
-    darkPath.lineTo(
-      size.width,
-      28,
-    );
+    path2.lineTo(size.width, 31);
 
-    darkPath.quadraticBezierTo(
-      size.width * 0.78,
-      45,
-      size.width * 0.50,
-      34,
-    );
+    path2.quadraticBezierTo(size.width * 0.77, 44, size.width * 0.50, 37);
 
-    darkPath.quadraticBezierTo(
-      size.width * 0.25,
-      24,
-      0,
-      38,
-    );
+    path2.quadraticBezierTo(size.width * 0.24, 28, 0, 40);
 
-    darkPath.close();
+    path2.close();
 
-    canvas.drawPath(
-      darkPath,
-      darkPaint,
-    );
+    canvas.drawPath(path2, darkPaint);
   }
 
   @override
-  bool shouldRepaint(
-      covariant CustomPainter oldDelegate,
-      ) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
 }

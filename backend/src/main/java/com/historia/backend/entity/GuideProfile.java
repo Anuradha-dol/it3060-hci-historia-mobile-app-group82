@@ -3,6 +3,8 @@ package com.historia.backend.entity;
 import com.historia.backend.enums.GuideApplicationStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -29,6 +31,7 @@ public class GuideProfile {
             nullable = false,
             unique = true
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
 
@@ -44,6 +47,7 @@ public class GuideProfile {
             name = "guide_service_areas",
             joinColumns = @JoinColumn(name = "guide_profile_id")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Column(name = "service_area", length = 100)
     @Builder.Default
     private Set<String> serviceAreas = new LinkedHashSet<>();
@@ -53,6 +57,7 @@ public class GuideProfile {
             name = "guide_languages",
             joinColumns = @JoinColumn(name = "guide_profile_id")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Column(name = "language", length = 50)
     @Builder.Default
     private Set<String> languages = new LinkedHashSet<>();
@@ -71,6 +76,7 @@ public class GuideProfile {
             name = "guide_specialties",
             joinColumns = @JoinColumn(name = "guide_profile_id")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Column(name = "specialty", length = 100)
     @Builder.Default
     private Set<String> specialties = new LinkedHashSet<>();

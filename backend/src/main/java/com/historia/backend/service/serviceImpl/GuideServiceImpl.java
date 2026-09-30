@@ -363,7 +363,7 @@ public class GuideServiceImpl implements GuideService {
     ) {
 
         return guideProfileRepository
-                .findByStatus(status)
+                .findByStatusAndUserDeletedFalse(status)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -380,7 +380,7 @@ public class GuideServiceImpl implements GuideService {
 
         GuideProfile guideProfile =
                 guideProfileRepository
-                        .findById(guideProfileId)
+                        .findByIdAndUserDeletedFalse(guideProfileId)
                         .orElseThrow(() ->
                                 new UserException(
                                         "Guide profile not found"
@@ -461,7 +461,7 @@ public class GuideServiceImpl implements GuideService {
         }
 
         return guideProfileRepository
-                .findByStatus(
+                .findByStatusAndUserDeletedFalse(
                         GuideApplicationStatus.APPROVED
                 )
                 .stream()

@@ -7,12 +7,14 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../services/guide_service.dart';
 import '../services/user_service.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 import '../tourist/notifications_screen.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
 import 'approved_guides_screen.dart';
+
+// =====================================================================
+// PROFILE SCREEN
+// =====================================================================
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -20,13 +22,23 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: SafeArea(child: RoleProfileContent(standalone: true)),
+      backgroundColor: Color(0xFFF4F8F5),
+      body: SafeArea(
+        child: RoleProfileContent(
+          standalone: true,
+        ),
+      ),
     );
   }
 }
 
+// =====================================================================
+// ROLE PROFILE CONTENT
+// =====================================================================
+
 class RoleProfileContent extends StatefulWidget {
   final bool standalone;
+
   final VoidCallback? onTouristGuides;
   final VoidCallback? onNotifications;
   final VoidCallback? onGuideDashboard;
@@ -42,24 +54,44 @@ class RoleProfileContent extends StatefulWidget {
   });
 
   @override
-  State<RoleProfileContent> createState() => _RoleProfileContentState();
+  State<RoleProfileContent> createState() =>
+      _RoleProfileContentState();
 }
 
 class _RoleProfileContentState extends State<RoleProfileContent> {
+  // ===================================================================
+  // CONTROLLERS
+  // ===================================================================
+
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   final _phone = TextEditingController();
   final _address = TextEditingController();
+
   final _currentPassword = TextEditingController();
   final _newPassword = TextEditingController();
   final _confirmPassword = TextEditingController();
+
   final _deletePassword = TextEditingController();
+
+  // ===================================================================
+  // DATA
+  // ===================================================================
 
   UserModel? _profile;
   GuideModel? _guide;
+
   String? _guideError;
+
   bool _loading = true;
   bool _saving = false;
+
+  bool _showEditProfile = false;
+  bool _showSecurity = false;
+
+  // ===================================================================
+  // INIT
+  // ===================================================================
 
   @override
   void initState() {
@@ -67,23 +99,40 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     _load();
   }
 
+  // ===================================================================
+  // DISPOSE
+  // ===================================================================
+
   @override
   void dispose() {
     _firstName.dispose();
     _lastName.dispose();
     _phone.dispose();
     _address.dispose();
+
     _currentPassword.dispose();
     _newPassword.dispose();
     _confirmPassword.dispose();
+
     _deletePassword.dispose();
+
     super.dispose();
   }
 
+  // ===================================================================
+  // LOAD PROFILE
+  // ===================================================================
+
   Future<void> _load() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() {
+        _loading = true;
+      });
+    }
+
     try {
       final profile = await UserService().getMyProfile();
+
       GuideModel? guide;
       String? guideError;
 
@@ -91,21 +140,30 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
         try {
           guide = await GuideService().getMyGuideProfile();
         } catch (e) {
-          guideError = ApiService.instance.getErrorMessage(e);
+          guideError =
+              ApiService.instance.getErrorMessage(e);
         }
       }
 
       if (!mounted) return;
+
       _profile = profile;
       _guide = guide;
       _guideError = guideError;
+
       _firstName.text = profile.firstName ?? '';
       _lastName.text = profile.lastName ?? '';
       _phone.text = profile.phone ?? '';
       _address.text = profile.address ?? '';
+
       await context.read<AuthProvider>().refreshProfile();
+
+      if (!mounted) return;
+
+      setState(() {});
     } catch (e) {
       if (!mounted) return;
+
       showAppMessage(
         context,
         ApiService.instance.getErrorMessage(e),
@@ -113,13 +171,22 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
       );
     } finally {
       if (mounted) {
-        setState(() => _loading = false);
+        setState(() {
+          _loading = false;
+        });
       }
     }
   }
 
+  // ===================================================================
+  // UPDATE PROFILE
+  // ===================================================================
+
   Future<void> _updateProfile() async {
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+    });
+
     try {
       final updated = await UserService().updateProfile(
         firstName: _firstName.text.trim(),
@@ -127,13 +194,25 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
         phone: _phone.text.trim(),
         address: _address.text.trim(),
       );
+
       if (!mounted) return;
-      setState(() => _profile = updated);
+
+      setState(() {
+        _profile = updated;
+        _showEditProfile = false;
+      });
+
       await context.read<AuthProvider>().refreshProfile();
+
       if (!mounted) return;
-      showAppMessage(context, 'Profile updated.');
+
+      showAppMessage(
+        context,
+        'Profile updated.',
+      );
     } catch (e) {
       if (!mounted) return;
+
       showAppMessage(
         context,
         ApiService.instance.getErrorMessage(e),
@@ -141,33 +220,66 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
       );
     } finally {
       if (mounted) {
-        setState(() => _saving = false);
+        setState(() {
+          _saving = false;
+        });
       }
     }
   }
+
+  // ===================================================================
+  // CHANGE PASSWORD
+  // ===================================================================
 
   Future<void> _changePassword() async {
     if (_currentPassword.text.isEmpty ||
         _newPassword.text.isEmpty ||
         _confirmPassword.text.isEmpty) {
-      showAppMessage(context, 'Password fields are required.', error: true);
+      showAppMessage(
+        context,
+        'Password fields are required.',
+        error: true,
+      );
       return;
     }
 
-    setState(() => _saving = true);
+    if (_newPassword.text != _confirmPassword.text) {
+      showAppMessage(
+        context,
+        'New passwords do not match.',
+        error: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+    });
+
     try {
       final result = await UserService().changePassword(
         currentPassword: _currentPassword.text,
         newPassword: _newPassword.text,
         confirmPassword: _confirmPassword.text,
       );
+
       if (!mounted) return;
+
       _currentPassword.clear();
       _newPassword.clear();
       _confirmPassword.clear();
-      showAppMessage(context, result.message);
+
+      setState(() {
+        _showSecurity = false;
+      });
+
+      showAppMessage(
+        context,
+        result.message,
+      );
     } catch (e) {
       if (!mounted) return;
+
       showAppMessage(
         context,
         ApiService.instance.getErrorMessage(e),
@@ -175,10 +287,16 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
       );
     } finally {
       if (mounted) {
-        setState(() => _saving = false);
+        setState(() {
+          _saving = false;
+        });
       }
     }
   }
+
+  // ===================================================================
+  // DELETE ACCOUNT
+  // ===================================================================
 
   Future<void> _deleteAccount() async {
     _deletePassword.clear();
@@ -187,44 +305,87 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete account'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: const Text(
+            'Delete account',
+            style: TextStyle(
+              color: Color(0xFF173C30),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           content: TextField(
             controller: _deletePassword,
             obscureText: true,
-            decoration: fieldDecoration('Current password'),
+            decoration: fieldDecoration(
+              'Current password',
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  false,
+                );
+              },
+              child: const Text(
+                'Cancel',
+              ),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete'),
+              style: FilledButton.styleFrom(
+                backgroundColor:
+                const Color(0xFFC7473F),
+              ),
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  true,
+                );
+              },
+              child: const Text(
+                'Delete',
+              ),
             ),
           ],
         );
       },
     );
 
-    if (confirmed != true || _deletePassword.text.isEmpty) {
+    if (confirmed != true ||
+        _deletePassword.text.isEmpty) {
       return;
     }
 
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+    });
+
     try {
       final result = await UserService().deleteAccount(
         currentPassword: _deletePassword.text,
       );
+
       if (!mounted) return;
-      showAppMessage(context, result.message);
+
+      showAppMessage(
+        context,
+        result.message,
+      );
+
       await context.read<AuthProvider>().logout();
+
       if (!mounted) return;
+
       if (widget.standalone) {
         Navigator.maybePop(context);
       }
     } catch (e) {
       if (!mounted) return;
+
       showAppMessage(
         context,
         ApiService.instance.getErrorMessage(e),
@@ -232,18 +393,56 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
       );
     } finally {
       if (mounted) {
-        setState(() => _saving = false);
+        setState(() {
+          _saving = false;
+        });
       }
     }
   }
 
+  // ===================================================================
+  // NAVIGATION
+  // ===================================================================
+
+  void _openNotifications() {
+    if (widget.onNotifications != null) {
+      widget.onNotifications!();
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NotificationsScreen(),
+      ),
+    );
+  }
+
+  void _openApprovedGuides() {
+    if (widget.onTouristGuides != null) {
+      widget.onTouristGuides!();
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ApprovedGuidesScreen(),
+      ),
+    );
+  }
+
+  // ===================================================================
+  // FIELD
+  // ===================================================================
+
   Widget _field(
-    String label,
-    TextEditingController controller, {
-    bool obscure = false,
-    TextInputType? keyboardType,
-    IconData? icon,
-  }) {
+      String label,
+      TextEditingController controller, {
+        bool obscure = false,
+        TextInputType? keyboardType,
+        IconData? icon,
+      }) {
     return HistoriaTextField(
       label: label,
       controller: controller,
@@ -253,420 +452,959 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     );
   }
 
+  // ===================================================================
+  // BUILD
+  // ===================================================================
+
   @override
   Widget build(BuildContext context) {
-    final profile = _profile;
-
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF176B4D),
+        ),
+      );
     }
 
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          HistoriaHeader(
-            title: _profileTitle(profile),
-            subtitle: _profileSubtitle(profile),
-            eyebrow: _roleLabel(profile?.role),
-            icon: Icons.person_outline,
-            actions: [
-              HistoriaIconButton(
-                icon: Icons.refresh,
-                tooltip: 'Refresh',
-                onPressed: _load,
-              ),
-              if (widget.standalone)
-                HistoriaIconButton(
-                  icon: Icons.close,
-                  tooltip: 'Close',
-                  onPressed: () => Navigator.maybePop(context),
-                ),
-            ],
-          ),
-          HistoriaScreenPadding(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (profile != null) _identityCard(profile),
-                const SizedBox(height: 14),
-                if (profile?.role == 'GUIDE') ...[
-                  _guideProfileBlock(),
-                  const SizedBox(height: 14),
-                ],
-                _roleActions(profile),
-                const SizedBox(height: 14),
-                _personalInfoSection(),
-                const SizedBox(height: 14),
-                _passwordSection(),
-                if (profile?.role != 'ADMIN') ...[
-                  const SizedBox(height: 14),
-                  _accountDangerSection(),
-                ],
-                const SizedBox(height: 14),
-                HistoriaOutlineButton(
-                  label: 'Logout',
-                  icon: Icons.logout,
-                  onPressed: _saving
-                      ? null
-                      : () => context.read<AuthProvider>().logout(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    final profile = _profile;
+
+    if (profile == null) {
+      return const Center(
+        child: Text(
+          'Profile details are not available.',
+        ),
+      );
+    }
+
+    switch (profile.role) {
+      case 'GUIDE':
+        return _buildGuideProfile(profile);
+
+      case 'ADMIN':
+        return _buildAdminProfile(profile);
+
+      case 'TOURIST':
+      default:
+        return _buildTouristProfile(profile);
+    }
   }
 
-  Widget _identityCard(UserModel profile) {
-    return HistoriaCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  // ===================================================================
+  // TOURIST PROFILE
+  // ===================================================================
+
+  Widget _buildTouristProfile(
+      UserModel profile,
+      ) {
+    return ListView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.zero,
+      children: [
+        _TouristHero(
+          profile: profile,
+          initials: _initials(profile.fullName),
+          onNotification: _openNotifications,
+          onClose: widget.standalone
+              ? () => Navigator.maybePop(context)
+              : null,
+        ),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            18,
+            16,
+            26,
+          ),
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    _initials(profile.fullName),
-                    style: AppTextStyles.sectionTitle.copyWith(
-                      color: AppColors.primary,
+              // =======================================================
+              // TOURIST ACTIONS
+              // =======================================================
+
+              const _SectionTitle(
+                eyebrow: 'QUICK ACCESS',
+                title: 'Your account',
+                subtitle:
+                'Access guides and your HISTORIA updates.',
+              ),
+
+              const SizedBox(height: 11),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionTile(
+                      icon: Icons.travel_explore,
+                      title: 'Find guides',
+                      subtitle: 'Approved local guides',
+                      onTap: _openApprovedGuides,
                     ),
                   ),
-                ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: _ActionTile(
+                      icon:
+                      Icons.notifications_none_rounded,
+                      title: 'Notifications',
+                      subtitle: 'Account updates',
+                      onTap: _openNotifications,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
+
+              const SizedBox(height: 22),
+
+              // =======================================================
+              // ACCOUNT DETAILS
+              // =======================================================
+
+              const _SectionTitle(
+                eyebrow: 'PROFILE',
+                title: 'Account details',
+                subtitle:
+                'Your current HISTORIA account information.',
+              ),
+
+              const SizedBox(height: 11),
+
+              _WhiteCard(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(profile.fullName, style: AppTextStyles.title),
-                    const SizedBox(height: 4),
-                    Text(profile.email, style: AppTextStyles.bodyMuted),
+                    _InfoLine(
+                      icon: Icons.alternate_email,
+                      label: 'Username',
+                      value: profile.username,
+                    ),
+
+                    const _SoftDivider(),
+
+                    _InfoLine(
+                      icon: Icons.email_outlined,
+                      label: 'Email',
+                      value: profile.email,
+                    ),
+
+                    const _SoftDivider(),
+
+                    _InfoLine(
+                      icon: Icons.phone_outlined,
+                      label: 'Phone',
+                      value: _emptyText(
+                        profile.phone,
+                      ),
+                    ),
+
+                    const _SoftDivider(),
+
+                    _InfoLine(
+                      icon:
+                      Icons.location_on_outlined,
+                      label: 'Address',
+                      value: _emptyText(
+                        profile.address,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              HistoriaStatusChip(
-                status: profile.emailVerified ? 'VERIFIED' : 'PENDING',
+
+              const SizedBox(height: 18),
+
+              // =======================================================
+              // EDIT PROFILE
+              // =======================================================
+
+              _PrimaryButton(
+                icon: _showEditProfile
+                    ? Icons.close
+                    : Icons.edit_outlined,
+                label: _showEditProfile
+                    ? 'Close edit'
+                    : 'Edit profile',
+                onPressed: () {
+                  setState(() {
+                    _showEditProfile =
+                    !_showEditProfile;
+                  });
+                },
               ),
+
+              if (_showEditProfile) ...[
+                const SizedBox(height: 12),
+                _buildEditSection(),
+              ],
+
+              const SizedBox(height: 10),
+
+              // =======================================================
+              // SECURITY
+              // =======================================================
+
+              _OutlineProfileButton(
+                icon: Icons.lock_outline,
+                label: _showSecurity
+                    ? 'Close security'
+                    : 'Change password',
+                onPressed: () {
+                  setState(() {
+                    _showSecurity =
+                    !_showSecurity;
+                  });
+                },
+              ),
+
+              if (_showSecurity) ...[
+                const SizedBox(height: 12),
+                _buildSecuritySection(),
+              ],
+
+              const SizedBox(height: 20),
+
+              _buildLogout(),
+
+              const SizedBox(height: 10),
+
+              _buildDeleteAccount(),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  // ===================================================================
+  // GUIDE PROFILE
+  // ===================================================================
+
+  Widget _buildGuideProfile(
+      UserModel profile,
+      ) {
+    final guide = _guide;
+
+    final guideName = guide?.displayName;
+
+    final displayName =
+    guideName != null &&
+        guideName.trim().isNotEmpty
+        ? guideName.trim()
+        : profile.fullName;
+
+    return ListView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.zero,
+      children: [
+        // =============================================================
+        // GUIDE HERO
+        // =============================================================
+
+        _GuideHero(
+          onRefresh: _load,
+          onClose: widget.standalone
+              ? () => Navigator.maybePop(context)
+              : null,
+        ),
+
+        Transform.translate(
+          offset: const Offset(
+            0,
+            -31,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+            ),
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+              children: [
+                // =====================================================
+                // GUIDE IDENTITY
+                // =====================================================
+
+                _GuideIdentityCard(
+                  initials:
+                  _initials(profile.fullName),
+                  name: displayName,
+                  area: _emptyText(
+                    guide?.primaryServiceArea,
+                  ),
+                  status:
+                  guide?.status ?? 'PENDING',
+                ),
+
+                const SizedBox(height: 12),
+
+                if (guide == null)
+                  _WhiteCard(
+                    child: HistoriaInfoBox(
+                      title: 'Guide profile',
+                      message: _guideError ??
+                          'Guide details are not available right now.',
+                      icon: Icons.badge_outlined,
+                    ),
+                  )
+                else ...[
+                  // ===================================================
+                  // REAL GUIDE STATS
+                  // ===================================================
+
+                  _GuideStats(
+                    experience:
+                    guide.yearsExperience,
+                    languages:
+                    guide.languages.length,
+                    areas:
+                    guide.serviceAreas.length,
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  // ===================================================
+                  // GUIDE ABOUT
+                  // ===================================================
+
+                  const _SectionTitle(
+                    eyebrow: 'PUBLIC GUIDE PROFILE',
+                    title: 'About your guiding',
+                    subtitle:
+                    'The guide information stored in your profile.',
+                  ),
+
+                  const SizedBox(height: 11),
+
+                  _WhiteCard(
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        if (guide.headline != null &&
+                            guide.headline!
+                                .trim()
+                                .isNotEmpty) ...[
+                          Text(
+                            guide.headline!,
+                            style: const TextStyle(
+                              color:
+                              Color(0xFF133D2F),
+                              fontSize: 16,
+                              fontWeight:
+                              FontWeight.w800,
+                              height: 1.25,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            height: 9,
+                          ),
+                        ],
+
+                        Text(
+                          guide.bio == null ||
+                              guide.bio!
+                                  .trim()
+                                  .isEmpty
+                              ? 'Not provided'
+                              : guide.bio!,
+                          style: const TextStyle(
+                            color:
+                            Color(0xFF63776D),
+                            fontSize: 11,
+                            height: 1.55,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // ===================================================
+                  // SERVICE AREAS
+                  // ===================================================
+
+                  const _SectionTitle(
+                    eyebrow: 'SERVICE',
+                    title: 'Where you guide',
+                    subtitle:
+                    'Your current service information.',
+                  ),
+
+                  const SizedBox(height: 11),
+
+                  _WhiteCard(
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        _GuideDetailLine(
+                          icon: Icons.map_outlined,
+                          label:
+                          'Primary service area',
+                          value: _emptyText(
+                            guide.primaryServiceArea,
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        const Text(
+                          'Service areas',
+                          style: TextStyle(
+                            color:
+                            Color(0xFF75867E),
+                            fontSize: 8,
+                            fontWeight:
+                            FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(height: 7),
+
+                        if (guide.serviceAreas.isEmpty)
+                          const Text(
+                            'Not provided',
+                            style: TextStyle(
+                              color:
+                              Color(0xFF213F34),
+                              fontSize: 10,
+                              fontWeight:
+                              FontWeight.w700,
+                            ),
+                          )
+                        else
+                          Wrap(
+                            spacing: 7,
+                            runSpacing: 7,
+                            children: guide
+                                .serviceAreas
+                                .map(
+                                  (area) =>
+                                  _GuideTag(
+                                    text: area,
+                                  ),
+                            )
+                                .toList(),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // ===================================================
+                  // EXPERTISE
+                  // ===================================================
+
+                  const _SectionTitle(
+                    eyebrow: 'EXPERTISE',
+                    title: 'Guide details',
+                    subtitle:
+                    'Your language and specialty information.',
+                  ),
+
+                  const SizedBox(height: 11),
+
+                  _WhiteCard(
+                    child: Column(
+                      children: [
+                        _InfoLine(
+                          icon:
+                          Icons.translate_outlined,
+                          label: 'Languages',
+                          value: _listText(
+                            guide.languages,
+                          ),
+                        ),
+
+                        const _SoftDivider(),
+
+                        _InfoLine(
+                          icon: Icons
+                              .workspace_premium_outlined,
+                          label: 'Specialties',
+                          value: _listText(
+                            guide.specialties,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  if (guide.adminNote != null &&
+                      guide.adminNote!
+                          .trim()
+                          .isNotEmpty) ...[
+                    const SizedBox(height: 16),
+
+                    _AdminNoteCard(
+                      text: guide.adminNote!,
+                    ),
+                  ],
+                ],
+
+                const SizedBox(height: 18),
+
+                // =====================================================
+                // GUIDE DASHBOARD
+                // =====================================================
+
+                if (widget.onGuideDashboard !=
+                    null) ...[
+                  _PrimaryButton(
+                    icon:
+                    Icons.dashboard_outlined,
+                    label: 'Guide dashboard',
+                    onPressed:
+                    widget.onGuideDashboard!,
+                  ),
+
+                  const SizedBox(height: 10),
+                ],
+
+                // =====================================================
+                // EDIT ACCOUNT
+                // =====================================================
+
+                _OutlineProfileButton(
+                  icon: _showEditProfile
+                      ? Icons.close
+                      : Icons.edit_outlined,
+                  label: _showEditProfile
+                      ? 'Close account edit'
+                      : 'Edit account details',
+                  onPressed: () {
+                    setState(() {
+                      _showEditProfile =
+                      !_showEditProfile;
+                    });
+                  },
+                ),
+
+                if (_showEditProfile) ...[
+                  const SizedBox(height: 12),
+                  _buildEditSection(),
+                ],
+
+                const SizedBox(height: 10),
+
+                // =====================================================
+                // SECURITY
+                // =====================================================
+
+                _OutlineProfileButton(
+                  icon: Icons.lock_outline,
+                  label: _showSecurity
+                      ? 'Close security'
+                      : 'Change password',
+                  onPressed: () {
+                    setState(() {
+                      _showSecurity =
+                      !_showSecurity;
+                    });
+                  },
+                ),
+
+                if (_showSecurity) ...[
+                  const SizedBox(height: 12),
+                  _buildSecuritySection(),
+                ],
+
+                const SizedBox(height: 20),
+
+                _buildLogout(),
+
+                const SizedBox(height: 10),
+
+                _buildDeleteAccount(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===================================================================
+  // ADMIN PROFILE
+  // ===================================================================
+
+  Widget _buildAdminProfile(
+      UserModel profile,
+      ) {
+    return ListView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.zero,
+      children: [
+        _AdminHero(
+          profile: profile,
+          onRefresh: _load,
+          onClose: widget.standalone
+              ? () => Navigator.maybePop(context)
+              : null,
+        ),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            18,
+            16,
+            26,
+          ),
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.stretch,
+            children: [
+              const _SectionTitle(
+                eyebrow: 'ADMIN ACCOUNT',
+                title: 'Account details',
+                subtitle:
+                'Your HISTORIA administrator account.',
+              ),
+
+              const SizedBox(height: 11),
+
+              _WhiteCard(
+                child: Column(
+                  children: [
+                    _InfoLine(
+                      icon: Icons.alternate_email,
+                      label: 'Username',
+                      value: profile.username,
+                    ),
+
+                    const _SoftDivider(),
+
+                    _InfoLine(
+                      icon: Icons.email_outlined,
+                      label: 'Email',
+                      value: profile.email,
+                    ),
+
+                    const _SoftDivider(),
+
+                    _InfoLine(
+                      icon:
+                      Icons.verified_user_outlined,
+                      label: 'Email status',
+                      value: profile.emailVerified
+                          ? 'Verified'
+                          : 'Pending',
+                    ),
+                  ],
+                ),
+              ),
+
+              if (widget.onAdminApplications !=
+                  null) ...[
+                const SizedBox(height: 16),
+
+                _PrimaryButton(
+                  icon: Icons.fact_check_outlined,
+                  label: 'Guide applications',
+                  onPressed:
+                  widget.onAdminApplications!,
+                ),
+              ],
+
+              const SizedBox(height: 18),
+
+              _OutlineProfileButton(
+                icon: _showEditProfile
+                    ? Icons.close
+                    : Icons.edit_outlined,
+                label: _showEditProfile
+                    ? 'Close edit'
+                    : 'Edit account details',
+                onPressed: () {
+                  setState(() {
+                    _showEditProfile =
+                    !_showEditProfile;
+                  });
+                },
+              ),
+
+              if (_showEditProfile) ...[
+                const SizedBox(height: 12),
+                _buildEditSection(),
+              ],
+
+              const SizedBox(height: 10),
+
+              _OutlineProfileButton(
+                icon: Icons.lock_outline,
+                label: _showSecurity
+                    ? 'Close security'
+                    : 'Change password',
+                onPressed: () {
+                  setState(() {
+                    _showSecurity =
+                    !_showSecurity;
+                  });
+                },
+              ),
+
+              if (_showSecurity) ...[
+                const SizedBox(height: 12),
+                _buildSecuritySection(),
+              ],
+
+              const SizedBox(height: 20),
+
+              _buildLogout(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===================================================================
+  // EDIT PERSONAL INFO
+  // ===================================================================
+
+  Widget _buildEditSection() {
+    return _WhiteCard(
+      child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Personal information',
+            style: TextStyle(
+              color: Color(0xFF153D30),
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+
           const SizedBox(height: 14),
-          HistoriaListTile(
-            icon: Icons.alternate_email,
-            title: 'Username',
-            subtitle: profile.username,
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 340) {
+                return Column(
+                  children: [
+                    _field(
+                      'First name (optional)',
+                      _firstName,
+                    ),
+
+                    _field(
+                      'Last name (optional)',
+                      _lastName,
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _field(
+                      'First name (optional)',
+                      _firstName,
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: _field(
+                      'Last name (optional)',
+                      _lastName,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          HistoriaListTile(
+
+          _field(
+            'Phone (optional)',
+            _phone,
+            keyboardType:
+            TextInputType.phone,
             icon: Icons.phone_outlined,
-            title: 'Phone',
-            subtitle: _emptyText(profile.phone),
           ),
-          HistoriaListTile(
-            icon: Icons.location_on_outlined,
-            title: 'Address',
-            subtitle: _emptyText(profile.address),
+
+          _field(
+            'Address (optional)',
+            _address,
+            icon:
+            Icons.location_on_outlined,
+          ),
+
+          const SizedBox(height: 4),
+
+          AsyncButton(
+            loading: _saving,
+            onPressed: _updateProfile,
+            label: 'Save changes',
+            icon: Icons.save_outlined,
           ),
         ],
       ),
     );
   }
 
-  Widget _guideProfileBlock() {
-    final guide = _guide;
-    final error = _guideError;
+  // ===================================================================
+  // SECURITY
+  // ===================================================================
 
-    if (guide == null) {
-      return HistoriaInfoBox(
-        title: 'Guide profile',
-        message: error ?? 'Guide details are not available right now.',
-        icon: Icons.badge_outlined,
-      );
-    }
+  Widget _buildSecuritySection() {
+    return _WhiteCard(
+      child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Change password',
+            style: TextStyle(
+              color: Color(0xFF153D30),
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        HistoriaStatusCard(
-          status: guide.status,
-          title: 'Guide application: ${guide.status.replaceAll('_', ' ')}',
-          message: _guideStatusMessage(guide),
-        ),
-        const SizedBox(height: 14),
-        HistoriaProfileSection(
-          title: 'Guide details',
-          children: [
-            HistoriaListTile(
-              icon: Icons.badge_outlined,
-              title: 'Display name',
-              subtitle: _emptyText(guide.displayName),
-            ),
-            HistoriaListTile(
-              icon: Icons.map_outlined,
-              title: 'Primary service area',
-              subtitle: _emptyText(guide.primaryServiceArea),
-            ),
-            HistoriaListTile(
-              icon: Icons.route_outlined,
-              title: 'Service areas',
-              subtitle: _listText(guide.serviceAreas),
-            ),
-            HistoriaListTile(
-              icon: Icons.translate_outlined,
-              title: 'Languages',
-              subtitle: _listText(guide.languages),
-            ),
-            HistoriaListTile(
-              icon: Icons.history_edu_outlined,
-              title: 'Experience',
-              subtitle: '${guide.yearsExperience} years',
-            ),
-            HistoriaListTile(
-              icon: Icons.workspace_premium_outlined,
-              title: 'Specialties',
-              subtitle: _listText(guide.specialties),
-            ),
-            if (guide.headline != null && guide.headline!.isNotEmpty)
-              HistoriaListTile(
-                icon: Icons.short_text,
-                title: 'Headline',
-                subtitle: guide.headline,
-              ),
-            if (guide.bio != null && guide.bio!.isNotEmpty)
-              HistoriaListTile(
-                icon: Icons.notes_outlined,
-                title: 'Bio',
-                subtitle: guide.bio,
-              ),
-            if (guide.adminNote != null && guide.adminNote!.isNotEmpty)
-              HistoriaListTile(
-                icon: Icons.admin_panel_settings_outlined,
-                title: 'Admin note',
-                subtitle: guide.adminNote,
-              ),
-          ],
-        ),
-      ],
+          const SizedBox(height: 14),
+
+          _field(
+            'Current password',
+            _currentPassword,
+            obscure: true,
+            icon: Icons.lock_outline,
+          ),
+
+          _field(
+            'New password',
+            _newPassword,
+            obscure: true,
+            icon:
+            Icons.password_outlined,
+          ),
+
+          _field(
+            'Confirm password',
+            _confirmPassword,
+            obscure: true,
+            icon:
+            Icons.lock_reset_outlined,
+          ),
+
+          const SizedBox(height: 4),
+
+          AsyncButton(
+            loading: _saving,
+            onPressed: _changePassword,
+            label: 'Change password',
+            icon: Icons.lock_outline,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _roleActions(UserModel? profile) {
-    final role = profile?.role ?? 'TOURIST';
-    final children = <Widget>[];
+  // ===================================================================
+  // LOGOUT
+  // ===================================================================
 
-    if (role == 'TOURIST') {
-      children.addAll([
-        HistoriaListTile(
-          icon: Icons.travel_explore,
-          title: 'Find approved guides',
-          subtitle: 'Search local guides by service area.',
-          onTap:
-              widget.onTouristGuides ??
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ApprovedGuidesScreen(),
-                  ),
-                );
-              },
-        ),
-        HistoriaListTile(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
-          subtitle: 'View trip and account updates.',
-          onTap:
-              widget.onNotifications ??
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotificationsScreen(),
-                  ),
-                );
-              },
-        ),
-      ]);
-    } else if (role == 'GUIDE') {
-      children.add(
-        HistoriaListTile(
-          icon: Icons.dashboard_outlined,
-          title: 'Guide dashboard',
-          subtitle: 'Review your guide status and profile details.',
-          onTap: widget.onGuideDashboard,
-        ),
-      );
-    } else if (role == 'ADMIN') {
-      children.add(
-        HistoriaListTile(
-          icon: Icons.fact_check_outlined,
-          title: 'Guide applications',
-          subtitle: 'Review pending, approved, and rejected guides.',
-          onTap: widget.onAdminApplications,
-        ),
-      );
-    }
-
-    return HistoriaProfileSection(
-      title: role == 'ADMIN' ? 'Admin navigation' : 'Account shortcuts',
-      children: children,
+  Widget _buildLogout() {
+    return _OutlineProfileButton(
+      icon: Icons.logout_rounded,
+      label: 'Logout',
+      onPressed: _saving
+          ? null
+          : () {
+        context
+            .read<AuthProvider>()
+            .logout();
+      },
     );
   }
 
-  Widget _personalInfoSection() {
-    return HistoriaProfileSection(
-      title: 'Personal information',
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 340) {
-              return Column(
-                children: [
-                  _field('First name (optional)', _firstName),
-                  _field('Last name (optional)', _lastName),
-                ],
-              );
-            }
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _field('First name (optional)', _firstName)),
-                const SizedBox(width: 12),
-                Expanded(child: _field('Last name (optional)', _lastName)),
-              ],
-            );
-          },
+  // ===================================================================
+  // DELETE
+  // ===================================================================
+
+  Widget _buildDeleteAccount() {
+    if (_profile?.role == 'ADMIN') {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      height: 49,
+      child: OutlinedButton.icon(
+        onPressed:
+        _saving ? null : _deleteAccount,
+        style: OutlinedButton.styleFrom(
+          foregroundColor:
+          const Color(0xFFC64C44),
+          side: const BorderSide(
+            color: Color(0xFFEBC6C2),
+          ),
+          backgroundColor:
+          const Color(0xFFFFFAFA),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(14),
+          ),
         ),
-        _field(
-          'Phone (optional)',
-          _phone,
-          keyboardType: TextInputType.phone,
-          icon: Icons.phone_outlined,
+        icon: const Icon(
+          Icons.delete_outline,
+          size: 18,
         ),
-        _field(
-          'Address (optional)',
-          _address,
-          icon: Icons.location_on_outlined,
+        label: const Text(
+          'Delete account',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+          ),
         ),
-        const HistoriaInfoBox(
-          title: 'Email verification',
-          message: 'Your email is changed through verification.',
-        ),
-        const SizedBox(height: 14),
-        AsyncButton(
-          loading: _saving,
-          onPressed: _updateProfile,
-          label: 'Save my changes',
-          icon: Icons.save_outlined,
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _passwordSection() {
-    return HistoriaProfileSection(
-      title: 'Change password',
-      children: [
-        _field('Current Password', _currentPassword, obscure: true),
-        _field('New Password', _newPassword, obscure: true),
-        _field('Confirm Password', _confirmPassword, obscure: true),
-        AsyncButton(
-          loading: _saving,
-          onPressed: _changePassword,
-          label: 'Change Password',
-          icon: Icons.lock_outline,
-        ),
-      ],
-    );
-  }
-
-  Widget _accountDangerSection() {
-    return HistoriaProfileSection(
-      title: 'Account',
-      children: [
-        HistoriaOutlineButton(
-          label: 'Delete Account',
-          icon: Icons.delete_outline,
-          onPressed: _saving ? null : _deleteAccount,
-          danger: true,
-        ),
-      ],
-    );
-  }
-
-  String _profileTitle(UserModel? profile) {
-    if (profile == null) return 'Profile';
-    if (profile.role == 'ADMIN') return 'Admin profile';
-    if (profile.role == 'GUIDE') return 'Guide profile.';
-    return 'Update your details.';
-  }
-
-  String _profileSubtitle(UserModel? profile) {
-    if (profile == null) return '';
-    if (profile.role == 'ADMIN') {
-      return 'Manage your account and guide review access.';
-    }
-    if (profile.role == 'GUIDE') {
-      return 'Your account details and guide application information.';
-    }
-    return 'Your travel account, contact details, and settings.';
-  }
-
-  String _roleLabel(String? role) {
-    switch (role) {
-      case 'ADMIN':
-        return 'ADMIN ACCOUNT';
-      case 'GUIDE':
-        return 'GUIDE ACCOUNT';
-      case 'TOURIST':
-      default:
-        return 'TOURIST ACCOUNT';
-    }
-  }
-
-  String _guideStatusMessage(GuideModel guide) {
-    switch (guide.status) {
-      case 'APPROVED':
-        return 'Your guide profile is visible to tourists searching approved guides.';
-      case 'NEEDS_WORK':
-        return guide.adminNote == null || guide.adminNote!.isEmpty
-            ? 'Admin requested updates before approval.'
-            : guide.adminNote!;
-      case 'REJECTED':
-        return guide.adminNote == null || guide.adminNote!.isEmpty
-            ? 'This guide application was rejected.'
-            : guide.adminNote!;
-      case 'PENDING':
-      default:
-        return 'Your guide application is waiting for admin review.';
-    }
-  }
+  // ===================================================================
+  // HELPERS
+  // ===================================================================
 
   String _initials(String value) {
     final parts = value
         .trim()
         .split(RegExp(r'\s+'))
-        .where((part) => part.isNotEmpty)
+        .where(
+          (part) => part.isNotEmpty,
+    )
         .toList();
-    if (parts.isEmpty) return 'H';
-    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+
+    if (parts.isEmpty) {
+      return 'H';
+    }
+
+    if (parts.length == 1) {
+      return parts.first
+          .substring(0, 1)
+          .toUpperCase();
+    }
+
+    return '${parts.first.substring(0, 1)}'
+        '${parts.last.substring(0, 1)}'
         .toUpperCase();
   }
 
   String _emptyText(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null ||
+        value.trim().isEmpty) {
       return 'Not provided';
     }
+
     return value.trim();
   }
 
@@ -674,6 +1412,1318 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     if (values.isEmpty) {
       return 'Not provided';
     }
+
     return values.join(', ');
+  }
+}
+
+// =====================================================================
+// TOURIST HERO
+// =====================================================================
+
+class _TouristHero extends StatelessWidget {
+  final UserModel profile;
+  final String initials;
+
+  final VoidCallback onNotification;
+  final VoidCallback? onClose;
+
+  const _TouristHero({
+    required this.profile,
+    required this.initials,
+    required this.onNotification,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        17,
+        12,
+        17,
+        23,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFF7FBF8),
+            Color(0xFFE6F3EB),
+            Color(0xFFD3E9DC),
+          ],
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const _HistoriaMark(),
+
+              const SizedBox(width: 9),
+
+              const Expanded(
+                child: _HistoriaBrand(),
+              ),
+
+              IconButton(
+                tooltip: 'Notifications',
+                onPressed: onNotification,
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Color(0xFF176A4C),
+                ),
+              ),
+
+              if (onClose != null)
+                IconButton(
+                  tooltip: 'Close',
+                  onPressed: onClose,
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFF176A4C),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          Row(
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color:
+                    const Color(0xFFB9D9C7),
+                    width: 3,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x16083B2A),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    color: Color(0xFF176A4C),
+                    fontSize: 23,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 15),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'TOURIST PROFILE',
+                      style: TextStyle(
+                        color:
+                        Color(0xFF4D806A),
+                        fontSize: 7.5,
+                        letterSpacing: 1.2,
+                        fontWeight:
+                        FontWeight.w800,
+                      ),
+                    ),
+
+                    const SizedBox(height: 5),
+
+                    Text(
+                      profile.fullName,
+                      style: const TextStyle(
+                        color:
+                        Color(0xFF133C2E),
+                        fontSize: 21,
+                        fontWeight:
+                        FontWeight.w900,
+                      ),
+                    ),
+
+                    const SizedBox(height: 3),
+
+                    Text(
+                      '@${profile.username}',
+                      style: const TextStyle(
+                        color:
+                        Color(0xFF73857B),
+                        fontSize: 10,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    _StatusBadge(
+                      text: profile.emailVerified
+                          ? 'VERIFIED'
+                          : 'EMAIL PENDING',
+                      success:
+                      profile.emailVerified,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// GUIDE HERO
+// =====================================================================
+
+class _GuideHero extends StatelessWidget {
+  final VoidCallback onRefresh;
+  final VoidCallback? onClose;
+
+  const _GuideHero({
+    required this.onRefresh,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 225,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF173E31),
+            Color(0xFF21654A),
+            Color(0xFF5B8B67),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -15,
+            bottom: -12,
+            child: Icon(
+              Icons.account_balance_outlined,
+              size: 155,
+              color: Colors.white.withValues(
+                alpha: 0.10,
+              ),
+            ),
+          ),
+
+          Positioned(
+            left: -25,
+            bottom: -25,
+            child: Icon(
+              Icons.landscape_outlined,
+              size: 145,
+              color: Colors.white.withValues(
+                alpha: 0.08,
+              ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              12,
+              12,
+              21,
+            ),
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const _HistoriaMark(
+                      dark: true,
+                    ),
+
+                    const SizedBox(width: 9),
+
+                    const Expanded(
+                      child: _HistoriaBrand(
+                        dark: true,
+                      ),
+                    ),
+
+                    IconButton(
+                      tooltip: 'Refresh',
+                      onPressed: onRefresh,
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    if (onClose != null)
+                      IconButton(
+                        tooltip: 'Close',
+                        onPressed: onClose,
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                        ),
+                      ),
+                  ],
+                ),
+
+                const Spacer(),
+
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                    Colors.white.withValues(
+                      alpha: 0.14,
+                    ),
+                    borderRadius:
+                    BorderRadius.circular(20),
+                    border: Border.all(
+                      color:
+                      Colors.white.withValues(
+                        alpha: 0.18,
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    'GUIDE PROFILE',
+                    style: TextStyle(
+                      color:
+                      Color(0xFFE0F3E8),
+                      fontSize: 7.5,
+                      letterSpacing: 1.2,
+                      fontWeight:
+                      FontWeight.w800,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 9),
+
+                const Text(
+                  'Your guide profile.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                const Text(
+                  'Your professional information in HISTORIA.',
+                  style: TextStyle(
+                    color: Color(0xFFCFE5D8),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// ADMIN HERO
+// =====================================================================
+
+class _AdminHero extends StatelessWidget {
+  final UserModel profile;
+  final VoidCallback onRefresh;
+  final VoidCallback? onClose;
+
+  const _AdminHero({
+    required this.profile,
+    required this.onRefresh,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        17,
+        12,
+        17,
+        24,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF122F27),
+            Color(0xFF174E3B),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const _HistoriaMark(
+                dark: true,
+              ),
+
+              const SizedBox(width: 9),
+
+              const Expanded(
+                child: _HistoriaBrand(
+                  dark: true,
+                ),
+              ),
+
+              IconButton(
+                onPressed: onRefresh,
+                icon: const Icon(
+                  Icons.refresh,
+                  color: Colors.white,
+                ),
+              ),
+
+              if (onClose != null)
+                IconButton(
+                  onPressed: onClose,
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 26),
+
+          const Text(
+            'ADMIN PROFILE',
+            style: TextStyle(
+              color: Color(0xFFB9DDCD),
+              fontSize: 8,
+              letterSpacing: 1.3,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          Text(
+            profile.fullName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 23,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          Text(
+            profile.email,
+            style: const TextStyle(
+              color: Color(0xFFD1E6DC),
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// GUIDE IDENTITY
+// =====================================================================
+
+class _GuideIdentityCard extends StatelessWidget {
+  final String initials;
+  final String name;
+  final String area;
+  final String status;
+
+  const _GuideIdentityCard({
+    required this.initials,
+    required this.name,
+    required this.area,
+    required this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _WhiteCard(
+      strongShadow: true,
+      child: Row(
+        children: [
+          Container(
+            width: 62,
+            height: 62,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Color(0xFFDCEFE4),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: Color(0xFF166747),
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 13),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Color(0xFF153D30),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 13,
+                      color: Color(0xFF74867D),
+                    ),
+
+                    const SizedBox(width: 3),
+
+                    Expanded(
+                      child: Text(
+                        area,
+                        style: const TextStyle(
+                          color:
+                          Color(0xFF74867D),
+                          fontSize: 9,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                _StatusBadge(
+                  text: status.replaceAll(
+                    '_',
+                    ' ',
+                  ),
+                  success:
+                  status == 'APPROVED',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// GUIDE STATS
+// =====================================================================
+
+class _GuideStats extends StatelessWidget {
+  final int experience;
+  final int languages;
+  final int areas;
+
+  const _GuideStats({
+    required this.experience,
+    required this.languages,
+    required this.areas,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(
+        vertical: 14,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE3F2E8),
+        borderRadius:
+        BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFCFE5D7),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatItem(
+              value: experience.toString(),
+              label: 'YEARS',
+            ),
+          ),
+
+          const _StatDivider(),
+
+          Expanded(
+            child: _StatItem(
+              value: languages.toString(),
+              label: 'LANGUAGES',
+            ),
+          ),
+
+          const _StatDivider(),
+
+          Expanded(
+            child: _StatItem(
+              value: areas.toString(),
+              label: 'AREAS',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _StatItem({
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Color(0xFF176A4C),
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+
+        const SizedBox(height: 2),
+
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF6F8278),
+            fontSize: 6.8,
+            letterSpacing: 0.6,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 31,
+      color: const Color(0xFFC3DDCE),
+    );
+  }
+}
+
+// =====================================================================
+// SECTION TITLE
+// =====================================================================
+
+class _SectionTitle extends StatelessWidget {
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+
+  const _SectionTitle({
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+      children: [
+        Text(
+          eyebrow,
+          style: const TextStyle(
+            color: Color(0xFF4C846B),
+            fontSize: 7.4,
+            letterSpacing: 1,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF153D30),
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+
+        const SizedBox(height: 2),
+
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: Color(0xFF78877F),
+            fontSize: 9,
+            height: 1.35,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// =====================================================================
+// WHITE CARD
+// =====================================================================
+
+class _WhiteCard extends StatelessWidget {
+  final Widget child;
+  final bool strongShadow;
+
+  const _WhiteCard({
+    required this.child,
+    this.strongShadow = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+        BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFDDE8E1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: strongShadow
+                ? const Color(0x18093829)
+                : const Color(0x09093829),
+            blurRadius:
+            strongShadow ? 18 : 10,
+            offset: Offset(
+              0,
+              strongShadow ? 6 : 4,
+            ),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+// =====================================================================
+// INFO LINE
+// =====================================================================
+
+class _InfoLine extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+      const EdgeInsets.symmetric(
+        vertical: 8,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 37,
+            height: 37,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F4EC),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color:
+              const Color(0xFF267154),
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color:
+                    Color(0xFF7A8981),
+                    fontSize: 8,
+                  ),
+                ),
+
+                const SizedBox(height: 2),
+
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color:
+                    Color(0xFF233F35),
+                    fontSize: 10.5,
+                    fontWeight:
+                    FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SoftDivider extends StatelessWidget {
+  const _SoftDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Divider(
+      height: 1,
+      color: Color(0xFFE8EEEA),
+    );
+  }
+}
+
+// =====================================================================
+// GUIDE DETAIL
+// =====================================================================
+
+class _GuideDetailLine extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _GuideDetailLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: const BoxDecoration(
+            color: Color(0xFFE7F3EA),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: const Color(0xFF236B4E),
+          ),
+        ),
+
+        const SizedBox(width: 10),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color:
+                  Color(0xFF7A8981),
+                  fontSize: 8,
+                ),
+              ),
+
+              const SizedBox(height: 2),
+
+              Text(
+                value,
+                style: const TextStyle(
+                  color:
+                  Color(0xFF213F34),
+                  fontSize: 10.5,
+                  fontWeight:
+                  FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// =====================================================================
+// GUIDE TAG
+// =====================================================================
+
+class _GuideTag extends StatelessWidget {
+  final String text;
+
+  const _GuideTag({
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 11,
+        vertical: 7,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE5F2E9),
+        borderRadius:
+        BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFC9DFD2),
+        ),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFF27694F),
+          fontSize: 8.5,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// ADMIN NOTE
+// =====================================================================
+
+class _AdminNoteCard extends StatelessWidget {
+  final String text;
+
+  const _AdminNoteCard({
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E4),
+        borderRadius:
+        BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFF0DFB7),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.admin_panel_settings_outlined,
+            color: Color(0xFF9B6A17),
+            size: 20,
+          ),
+
+          const SizedBox(width: 9),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Admin note',
+                  style: TextStyle(
+                    color:
+                    Color(0xFF78551F),
+                    fontSize: 10.5,
+                    fontWeight:
+                    FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 3),
+
+                Text(
+                  text,
+                  style: const TextStyle(
+                    color:
+                    Color(0xFF826D47),
+                    fontSize: 9,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// ACTION TILE
+// =====================================================================
+
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius:
+      BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius:
+          BorderRadius.circular(15),
+          border: Border.all(
+            color: const Color(0xFFDDE8E1),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 39,
+              height: 39,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE4F2E9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 19,
+                color:
+                const Color(0xFF176D4E),
+              ),
+            ),
+
+            const SizedBox(height: 9),
+
+            Text(
+              title,
+              style: const TextStyle(
+                color: Color(0xFF163E31),
+                fontSize: 10.5,
+                fontWeight:
+                FontWeight.w800,
+              ),
+            ),
+
+            const SizedBox(height: 2),
+
+            Text(
+              subtitle,
+              style: const TextStyle(
+                color: Color(0xFF798A81),
+                fontSize: 7.7,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// STATUS BADGE
+// =====================================================================
+
+class _StatusBadge extends StatelessWidget {
+  final String text;
+  final bool success;
+
+  const _StatusBadge({
+    required this.text,
+    required this.success,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final background = success
+        ? const Color(0xFF176F4E)
+        : const Color(0xFFE5A746);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 9,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius:
+        BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 6.8,
+          letterSpacing: 0.4,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// BUTTONS
+// =====================================================================
+
+class _PrimaryButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const _PrimaryButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 49,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor:
+          const Color(0xFF176D4E),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(14),
+          ),
+        ),
+        icon: Icon(
+          icon,
+          size: 18,
+        ),
+        label: Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OutlineProfileButton
+    extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const _OutlineProfileButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 49,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor:
+          const Color(0xFF176D4E),
+          backgroundColor: Colors.white,
+          side: const BorderSide(
+            color: Color(0xFFC9DFD2),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(14),
+          ),
+        ),
+        icon: Icon(
+          icon,
+          size: 18,
+        ),
+        label: Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// HISTORIA BRAND
+// =====================================================================
+
+class _HistoriaMark extends StatelessWidget {
+  final bool dark;
+
+  const _HistoriaMark({
+    this.dark = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 35,
+      height: 35,
+      decoration: BoxDecoration(
+        color: dark
+            ? Colors.white.withValues(
+          alpha: 0.13,
+        )
+            : const Color(0xFFE4F2E9),
+        borderRadius:
+        BorderRadius.circular(10),
+      ),
+      child: Icon(
+        Icons.eco_outlined,
+        color: dark
+            ? Colors.white
+            : const Color(0xFF176D4E),
+        size: 20,
+      ),
+    );
+  }
+}
+
+class _HistoriaBrand extends StatelessWidget {
+  final bool dark;
+
+  const _HistoriaBrand({
+    this.dark = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+      children: [
+        Text(
+          'HISTORIA',
+          style: TextStyle(
+            color: dark
+                ? Colors.white
+                : const Color(0xFF163E31),
+            fontSize: 13.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.25,
+          ),
+        ),
+
+        const SizedBox(height: 1),
+
+        Text(
+          'EXPLORE HISTORY · FIND YOUR GUIDE',
+          style: TextStyle(
+            color: dark
+                ? const Color(0xFFCDE2D7)
+                : const Color(0xFF74857C),
+            fontSize: 6.1,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
+    );
   }
 }

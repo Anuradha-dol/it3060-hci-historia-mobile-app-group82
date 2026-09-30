@@ -87,6 +87,24 @@ public class User implements UserDetails {
     @JsonIgnore
     private String refreshTokenHash;
 
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private GuideProfile guideProfile;
+
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private ForgotPassword forgotPassword;
+
     // account status
     @Builder.Default
     @Column(nullable = false)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/home_router.dart';
 import '../theme/app_colors.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
@@ -46,34 +47,22 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.popUntil(
-        context,
-            (route) => route.isFirst,
-      );
+      _goToHome();
       return;
     }
 
-    showAppMessage(
-      context,
-      auth.error ?? 'Login failed.',
-      error: true,
-    );
+    showAppMessage(context, auth.error ?? 'Login failed.', error: true);
   }
 
   Future<void> _googleLogin() async {
     final auth = context.read<AuthProvider>();
 
-    final success = await auth.googleLogin(
-      role: 'TOURIST',
-    );
+    final success = await auth.googleLogin();
 
     if (!mounted) return;
 
     if (success) {
-      Navigator.popUntil(
-        context,
-            (route) => route.isFirst,
-      );
+      _goToHome();
       return;
     }
 
@@ -84,19 +73,28 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _goToHome() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeRouter()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    final keyboardOpen =
-        MediaQuery.of(context).viewInsets.bottom > 0;
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF0F7F3),
+
       body: Stack(
         children: [
-          // soft mint background
+          // ============================================================
+          // BACKGROUND
+          // ============================================================
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -111,7 +109,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // subtle background decoration
+          // ============================================================
+          // SOFT BACKGROUND DECORATION
+          // ============================================================
           Positioned(
             top: 110,
             right: -80,
@@ -120,8 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 210,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFCAE6D7)
-                    .withValues(alpha: 0.25),
+                color: const Color(0xFFCAE6D7).withValues(alpha: 0.25),
               ),
             ),
           ),
@@ -134,460 +133,369 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 210,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFD8EDE2)
-                    .withValues(alpha: 0.28),
+                color: const Color(0xFFD8EDE2).withValues(alpha: 0.28),
               ),
             ),
           ),
 
+          // ============================================================
+          // MAIN PAGE
+          // ============================================================
           SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints:
-                const BoxConstraints(maxWidth: 430),
+                constraints: const BoxConstraints(maxWidth: 430),
+
                 child: Column(
                   children: [
+                    // ==================================================
+                    // HEADER
+                    // ==================================================
                     HistoriaHeader(
                       title: 'Welcome back.',
-                      subtitle:
-                      'Sign in to continue your HISTORIA journey.',
-                      eyebrow:
-                      'ONE LOGIN FOR TOURIST AND GUIDE',
+                      subtitle: 'Sign in to continue your HISTORIA journey.',
+                      eyebrow: 'ONE LOGIN FOR TOURIST AND GUIDE',
                       icon: Icons.eco_outlined,
                       actions: [
                         HistoriaIconButton(
                           icon: Icons.close,
                           tooltip: 'Close',
-                          onPressed: () =>
-                              Navigator.maybePop(context),
+                          onPressed: () {
+                            Navigator.maybePop(context);
+                          },
                         ),
                       ],
                     ),
 
+                    // ==================================================
+                    // SCROLLABLE LOGIN CONTENT
+                    // ==================================================
                     Expanded(
-                      child: LayoutBuilder(
-                        builder:
-                            (context, constraints) {
-                          return SingleChildScrollView(
-                            physics: keyboardOpen
-                                ? const ClampingScrollPhysics()
-                                : const NeverScrollableScrollPhysics(),
-                            keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior
-                                .onDrag,
-                            child: SizedBox(
-                              height: keyboardOpen
-                                  ? null
-                                  : constraints.maxHeight,
-                              child: Padding(
-                                padding:
-                                const EdgeInsets.fromLTRB(
-                                  18,
-                                  10,
-                                  18,
-                                  7,
-                                ),
-                                child: Form(
-                                  key: _formKey,
+                      child: ListView(
+                        physics: const ClampingScrollPhysics(),
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+
+                        padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
+
+                        children: [
+                          Form(
+                            key: _formKey,
+
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+
+                              children: [
+                                // =====================================
+                                // LOGIN CARD
+                                // =====================================
+                                Container(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    15,
+                                    13,
+                                    15,
+                                    12,
+                                  ),
+
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFFF4FAF6),
+                                        Color(0xFFEAF5EE),
+                                      ],
+                                    ),
+
+                                    borderRadius: BorderRadius.circular(16),
+
+                                    border: Border.all(
+                                      color: const Color(0xFFCFE3D8),
+                                    ),
+
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x0A123F30),
+                                        blurRadius: 14,
+                                        offset: Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
+
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment
-                                        .stretch,
+                                        CrossAxisAlignment.stretch,
+
                                     children: [
-                                      // form surface
-                                      Container(
-                                        padding:
-                                        const EdgeInsets
-                                            .fromLTRB(
-                                          15,
-                                          13,
-                                          15,
-                                          12,
-                                        ),
-                                        decoration:
-                                        BoxDecoration(
-                                          gradient:
-                                          const LinearGradient(
-                                            begin: Alignment
-                                                .topLeft,
-                                            end: Alignment
-                                                .bottomRight,
-                                            colors: [
-                                              Color(
-                                                0xFFF4FAF6,
-                                              ),
-                                              Color(
-                                                0xFFEAF5EE,
-                                              ),
-                                            ],
-                                          ),
-                                          borderRadius:
-                                          BorderRadius
-                                              .circular(
-                                            16,
-                                          ),
-                                          border:
-                                          Border.all(
-                                            color:
-                                            const Color(
-                                              0xFFCFE3D8,
-                                            ),
-                                          ),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              color: Color(
-                                                0x0A123F30,
-                                              ),
-                                              blurRadius:
-                                              14,
-                                              offset:
-                                              Offset(
-                                                0,
-                                                5,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment
-                                              .stretch,
-                                          children: [
-                                            HistoriaTextField(
-                                              label:
-                                              'Email, username or phone',
-                                              hintText:
-                                              'Enter your account details',
-                                              controller:
-                                              _identifier,
-                                              icon: Icons
-                                                  .email_outlined,
-                                              required:
-                                              true,
-                                              validator:
-                                                  (value) =>
-                                                  requiredText(
-                                                    value,
-                                                    'Login identifier',
-                                                  ),
-                                            ),
+                                      // =================================
+                                      // EMAIL / USERNAME / PHONE
+                                      // =================================
+                                      HistoriaTextField(
+                                        label: 'Email, username or phone',
+                                        hintText: 'Enter your account details',
+                                        controller: _identifier,
+                                        icon: Icons.email_outlined,
+                                        required: true,
 
-                                            const SizedBox(
-                                              height: 9,
-                                            ),
+                                        validator: (value) {
+                                          return requiredText(
+                                            value,
+                                            'Login identifier',
+                                          );
+                                        },
+                                      ),
 
-                                            HistoriaTextField(
-                                              label:
-                                              'Password',
-                                              hintText:
-                                              'Enter your password',
-                                              controller:
-                                              _password,
-                                              icon: Icons
-                                                  .lock_outline,
-                                              required:
-                                              true,
-                                              obscureText:
-                                              _hidePassword,
-                                              validator:
-                                                  (value) =>
-                                                  requiredText(
-                                                    value,
-                                                    'Password',
-                                                  ),
-                                              suffix:
-                                              HistoriaPasswordSuffix(
-                                                hidden:
-                                                _hidePassword,
-                                                onPressed:
-                                                    () {
-                                                  setState(
-                                                        () {
-                                                      _hidePassword =
-                                                      !_hidePassword;
-                                                    },
-                                                  );
-                                                },
-                                              ),
-                                            ),
+                                      const SizedBox(height: 9),
 
-                                            Align(
-                                              alignment:
-                                              Alignment
-                                                  .centerRight,
-                                              child:
-                                              TextButton(
-                                                style:
-                                                TextButton
-                                                    .styleFrom(
-                                                  foregroundColor:
-                                                  const Color(
-                                                    0xFF176C4B,
-                                                  ),
-                                                  minimumSize:
-                                                  Size.zero,
-                                                  tapTargetSize:
-                                                  MaterialTapTargetSize
-                                                      .shrinkWrap,
-                                                  padding:
-                                                  const EdgeInsets
-                                                      .fromLTRB(
-                                                    6,
-                                                    7,
-                                                    0,
-                                                    7,
-                                                  ),
-                                                ),
-                                                onPressed:
-                                                    () {
-                                                  Navigator
-                                                      .push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder:
-                                                          (_) =>
-                                                      const ForgotPasswordScreen(),
-                                                    ),
-                                                  );
-                                                },
-                                                child:
-                                                const Text(
-                                                  'Forgot password?',
-                                                  style:
-                                                  TextStyle(
-                                                    fontSize:
-                                                    11.5,
-                                                    fontWeight:
-                                                    FontWeight
-                                                        .w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
+                                      // =================================
+                                      // PASSWORD
+                                      // =================================
+                                      HistoriaTextField(
+                                        label: 'Password',
+                                        hintText: 'Enter your password',
+                                        controller: _password,
+                                        icon: Icons.lock_outline,
+                                        required: true,
+                                        obscureText: _hidePassword,
 
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
+                                        validator: (value) {
+                                          return requiredText(
+                                            value,
+                                            'Password',
+                                          );
+                                        },
 
-                                            HistoriaButton(
-                                              loading:
-                                              auth.loading,
-                                              onPressed:
-                                              _login,
-                                              label:
-                                              'Sign in',
-                                            ),
-
-                                            const SizedBox(
-                                              height: 8,
-                                            ),
-
-                                            _GoogleButton(
-                                              loading:
-                                              auth.loading,
-                                              onPressed:
-                                              _googleLogin,
-                                            ),
-
-                                            const SizedBox(
-                                              height: 13,
-                                            ),
-
-                                            Row(
-                                              children: [
-                                                const Expanded(
-                                                  child:
-                                                  Divider(
-                                                    color:
-                                                    Color(
-                                                      0xFFCCDCD3,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                  const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal:
-                                                    9,
-                                                  ),
-                                                  child: Text(
-                                                    'New to HISTORIA?',
-                                                    style: Theme.of(
-                                                      context,
-                                                    )
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                      color:
-                                                      const Color(
-                                                        0xFF708177,
-                                                      ),
-                                                      fontSize:
-                                                      9.8,
-                                                      fontWeight:
-                                                      FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const Expanded(
-                                                  child:
-                                                  Divider(
-                                                    color:
-                                                    Color(
-                                                      0xFFCCDCD3,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-
-                                            const SizedBox(
-                                              height: 9,
-                                            ),
-
-                                            HistoriaOutlineButton(
-                                              onPressed:
-                                                  () {
-                                                Navigator
-                                                    .push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder:
-                                                        (_) =>
-                                                    const AccountTypeScreen(),
-                                                  ),
-                                                );
-                                              },
-                                              label:
-                                              'Create an account',
-                                            ),
-
-                                            const SizedBox(
-                                              height: 3,
-                                            ),
-
-                                            Center(
-                                              child:
-                                              TextButton(
-                                                style:
-                                                TextButton
-                                                    .styleFrom(
-                                                  minimumSize:
-                                                  Size.zero,
-                                                  tapTargetSize:
-                                                  MaterialTapTargetSize
-                                                      .shrinkWrap,
-                                                  foregroundColor:
-                                                  const Color(
-                                                    0xFF176C4B,
-                                                  ),
-                                                  padding:
-                                                  const EdgeInsets
-                                                      .symmetric(
-                                                    vertical:
-                                                    6,
-                                                    horizontal:
-                                                    8,
-                                                  ),
-                                                ),
-                                                onPressed:
-                                                    () {
-                                                  Navigator
-                                                      .push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder:
-                                                          (_) =>
-                                                      const GuideResubmitScreen(),
-                                                    ),
-                                                  );
-                                                },
-                                                child:
-                                                const Text(
-                                                  'Guide needs work? Resubmit',
-                                                  style:
-                                                  TextStyle(
-                                                    fontSize:
-                                                    10.5,
-                                                    fontWeight:
-                                                    FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                        suffix: HistoriaPasswordSuffix(
+                                          hidden: _hidePassword,
+                                          onPressed: () {
+                                            setState(() {
+                                              _hidePassword = !_hidePassword;
+                                            });
+                                          },
                                         ),
                                       ),
 
-                                      const Spacer(),
+                                      // =================================
+                                      // FORGOT PASSWORD
+                                      // =================================
+                                      Align(
+                                        alignment: Alignment.centerRight,
 
-                                      // small approval note
-                                      Padding(
-                                        padding:
-                                        const EdgeInsets
-                                            .symmetric(
-                                          horizontal: 8,
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .center,
-                                          children: [
-                                            const Icon(
-                                              Icons
-                                                  .verified_user_outlined,
-                                              size: 13,
-                                              color:
-                                              Color(
-                                                0xFF56816B,
+                                        child: TextButton(
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: const Color(
+                                              0xFF176C4B,
+                                            ),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                            padding: const EdgeInsets.fromLTRB(
+                                              6,
+                                              7,
+                                              0,
+                                              7,
+                                            ),
+                                          ),
+
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ForgotPasswordScreen(),
                                               ),
+                                            );
+                                          },
+
+                                          child: const Text(
+                                            'Forgot password?',
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                            const SizedBox(
-                                              width: 5,
-                                            ),
-                                            Flexible(
-                                              child: Text(
-                                                'Guide accounts require admin approval before sign in.',
-                                                textAlign:
-                                                TextAlign
-                                                    .center,
-                                                style: Theme.of(
-                                                  context,
-                                                )
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                  color:
-                                                  const Color(
-                                                    0xFF6E8177,
-                                                  ),
-                                                  fontSize:
-                                                  9.2,
-                                                  height:
-                                                  1.15,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ),
 
-                                      const SizedBox(
-                                        height: 4,
+                                      const SizedBox(height: 2),
+
+                                      // =================================
+                                      // SIGN IN
+                                      // =================================
+                                      HistoriaButton(
+                                        loading: auth.loading,
+                                        onPressed: _login,
+                                        label: 'Sign in',
+                                      ),
+
+                                      const SizedBox(height: 8),
+
+                                      // =================================
+                                      // GOOGLE LOGIN
+                                      // =================================
+                                      _GoogleButton(
+                                        loading: auth.loading,
+                                        onPressed: _googleLogin,
+                                      ),
+
+                                      const SizedBox(height: 13),
+
+                                      // =================================
+                                      // NEW TO HISTORIA DIVIDER
+                                      // =================================
+                                      Row(
+                                        children: [
+                                          const Expanded(
+                                            child: Divider(
+                                              color: Color(0xFFCCDCD3),
+                                            ),
+                                          ),
+
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 9,
+                                            ),
+
+                                            child: Text(
+                                              'New to HISTORIA?',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: const Color(
+                                                      0xFF708177,
+                                                    ),
+                                                    fontSize: 9.8,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ),
+
+                                          const Expanded(
+                                            child: Divider(
+                                              color: Color(0xFFCCDCD3),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 9),
+
+                                      // =================================
+                                      // CREATE ACCOUNT
+                                      // =================================
+                                      HistoriaOutlineButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const AccountTypeScreen(),
+                                            ),
+                                          );
+                                        },
+                                        label: 'Create an account',
+                                      ),
+
+                                      const SizedBox(height: 3),
+
+                                      // =================================
+                                      // GUIDE RESUBMISSION
+                                      // =================================
+                                      Center(
+                                        child: TextButton(
+                                          style: TextButton.styleFrom(
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                            foregroundColor: const Color(
+                                              0xFF176C4B,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 6,
+                                              horizontal: 8,
+                                            ),
+                                          ),
+
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const GuideResubmitScreen(),
+                                              ),
+                                            );
+                                          },
+
+                                          child: const Text(
+                                            'Guide needs work? Resubmit',
+                                            style: TextStyle(
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
+
+                                // =====================================
+                                // NO SPACER HERE
+                                // =====================================
+                                const SizedBox(height: 14),
+
+                                // =====================================
+                                // GUIDE APPROVAL MESSAGE
+                                // =====================================
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+
+                                    children: [
+                                      const Icon(
+                                        Icons.verified_user_outlined,
+                                        size: 13,
+                                        color: Color(0xFF56816B),
+                                      ),
+
+                                      const SizedBox(width: 5),
+
+                                      Flexible(
+                                        child: Text(
+                                          'Guide accounts require admin approval before sign in.',
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: const Color(0xFF6E8177),
+                                                fontSize: 9.2,
+                                                height: 1.15,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4),
+                              ],
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
 
-                    if (!keyboardOpen)
-                      const _HeritageFooter(),
+                    // ==================================================
+                    // FOOTER IMAGE
+                    // Hide footer while keyboard is open
+                    // ==================================================
+                    if (!keyboardOpen) const _HeritageFooter(),
                   ],
                 ),
               ),
@@ -599,39 +507,39 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
+// =====================================================================
+// GOOGLE BUTTON
+// =====================================================================
+
 class _GoogleButton extends StatelessWidget {
   final bool loading;
   final VoidCallback onPressed;
 
-  const _GoogleButton({
-    required this.loading,
-    required this.onPressed,
-  });
+  const _GoogleButton({required this.loading, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 44,
+
       child: OutlinedButton(
-        onPressed:
-        loading ? null : onPressed,
+        onPressed: loading ? null : onPressed,
+
         style: OutlinedButton.styleFrom(
-          backgroundColor:
-          const Color(0xFFFAFDFC),
-          foregroundColor:
-          AppColors.primaryDark,
-          side: const BorderSide(
-            color: Color(0xFFCBDDD4),
-          ),
+          backgroundColor: const Color(0xFFFAFDFC),
+
+          foregroundColor: AppColors.primaryDark,
+
+          side: const BorderSide(color: Color(0xFFCBDDD4)),
+
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(9),
-          ),
+
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
         ),
+
         child: Row(
-          mainAxisAlignment:
-          MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+
           children: [
             const Text(
               'G',
@@ -641,13 +549,12 @@ class _GoogleButton extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
+
             const SizedBox(width: 9),
+
             const Text(
               'Continue with Google',
-              style: TextStyle(
-                fontSize: 11.8,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 11.8, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -655,6 +562,10 @@ class _GoogleButton extends StatelessWidget {
     );
   }
 }
+
+// =====================================================================
+// HERITAGE FOOTER
+// =====================================================================
 
 class _HeritageFooter extends StatelessWidget {
   const _HeritageFooter();
@@ -664,35 +575,48 @@ class _HeritageFooter extends StatelessWidget {
     return SizedBox(
       height: 112,
       width: double.infinity,
+
       child: Stack(
         clipBehavior: Clip.none,
+
         children: [
+          // ===========================================================
+          // IMAGE
+          // ===========================================================
           Positioned.fill(
             top: 14,
+
             child: ClipPath(
-              clipper:
-              _LoginFooterClipper(),
+              clipper: _LoginFooterClipper(),
+
               child: Image.asset(
                 'assets/images/auth_footer_4k.webp',
+
                 fit: BoxFit.cover,
-                alignment:
-                const Alignment(0, 0.15),
-                filterQuality:
-                FilterQuality.high,
+
+                alignment: const Alignment(0, 0.15),
+
+                filterQuality: FilterQuality.high,
+
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(color: const Color(0xFFE8F4ED));
+                },
               ),
             ),
           ),
 
+          // ===========================================================
+          // GREEN WAVE
+          // ===========================================================
           Positioned(
             top: 0,
             left: 0,
             right: 0,
+
             child: SizedBox(
               height: 34,
-              child: CustomPaint(
-                painter:
-                _LoginGreenWavePainter(),
-              ),
+
+              child: CustomPaint(painter: _LoginGreenWavePainter()),
             ),
           ),
         ],
@@ -701,37 +625,24 @@ class _HeritageFooter extends StatelessWidget {
   }
 }
 
-class _LoginFooterClipper
-    extends CustomClipper<Path> {
+// =====================================================================
+// IMAGE TOP SHAPE
+// =====================================================================
+
+class _LoginFooterClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
 
     path.moveTo(0, 21);
 
-    path.quadraticBezierTo(
-      size.width * 0.18,
-      2,
-      size.width * 0.43,
-      12,
-    );
+    path.quadraticBezierTo(size.width * 0.18, 2, size.width * 0.43, 12);
 
-    path.quadraticBezierTo(
-      size.width * 0.71,
-      27,
-      size.width,
-      7,
-    );
+    path.quadraticBezierTo(size.width * 0.71, 27, size.width, 7);
 
-    path.lineTo(
-      size.width,
-      size.height,
-    );
+    path.lineTo(size.width, size.height);
 
-    path.lineTo(
-      0,
-      size.height,
-    );
+    path.lineTo(0, size.height);
 
     path.close();
 
@@ -739,124 +650,71 @@ class _LoginFooterClipper
   }
 
   @override
-  bool shouldReclip(
-      covariant CustomClipper<Path>
-      oldClipper,
-      ) {
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
     return false;
   }
 }
 
-class _LoginGreenWavePainter
-    extends CustomPainter {
-  @override
-  void paint(
-      Canvas canvas,
-      Size size,
-      ) {
-    final paint1 = Paint()
-      ..color =
-      const Color(0xFFDCEFE5)
-      ..style = PaintingStyle.fill;
+// =====================================================================
+// GREEN DOUBLE WAVE
+// =====================================================================
 
-    final paint2 = Paint()
-      ..color =
-      const Color(0xFFC6E2D3)
+class _LoginGreenWavePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // ================================================================
+    // LIGHT GREEN WAVE
+    // ================================================================
+    final paint1 = Paint()
+      ..color = const Color(0xFFDCEFE5)
       ..style = PaintingStyle.fill;
 
     final path1 = Path();
 
     path1.moveTo(0, 23);
 
-    path1.quadraticBezierTo(
-      size.width * 0.20,
-      3,
-      size.width * 0.46,
-      14,
-    );
+    path1.quadraticBezierTo(size.width * 0.20, 3, size.width * 0.46, 14);
 
-    path1.quadraticBezierTo(
-      size.width * 0.74,
-      29,
-      size.width,
-      8,
-    );
+    path1.quadraticBezierTo(size.width * 0.74, 29, size.width, 8);
 
-    path1.lineTo(
-      size.width,
-      22,
-    );
+    path1.lineTo(size.width, 22);
 
-    path1.quadraticBezierTo(
-      size.width * 0.74,
-      38,
-      size.width * 0.46,
-      27,
-    );
+    path1.quadraticBezierTo(size.width * 0.74, 38, size.width * 0.46, 27);
 
-    path1.quadraticBezierTo(
-      size.width * 0.20,
-      16,
-      0,
-      33,
-    );
+    path1.quadraticBezierTo(size.width * 0.20, 16, 0, 33);
 
     path1.close();
 
-    canvas.drawPath(
-      path1,
-      paint1,
-    );
+    canvas.drawPath(path1, paint1);
+
+    // ================================================================
+    // SECOND MINT WAVE
+    // ================================================================
+    final paint2 = Paint()
+      ..color = const Color(0xFFC6E2D3)
+      ..style = PaintingStyle.fill;
 
     final path2 = Path();
 
     path2.moveTo(0, 29);
 
-    path2.quadraticBezierTo(
-      size.width * 0.23,
-      16,
-      size.width * 0.50,
-      25,
-    );
+    path2.quadraticBezierTo(size.width * 0.23, 16, size.width * 0.50, 25);
 
-    path2.quadraticBezierTo(
-      size.width * 0.78,
-      36,
-      size.width,
-      18,
-    );
+    path2.quadraticBezierTo(size.width * 0.78, 36, size.width, 18);
 
-    path2.lineTo(
-      size.width,
-      26,
-    );
+    path2.lineTo(size.width, 26);
 
-    path2.quadraticBezierTo(
-      size.width * 0.78,
-      40,
-      size.width * 0.50,
-      32,
-    );
+    path2.quadraticBezierTo(size.width * 0.78, 40, size.width * 0.50, 32);
 
-    path2.quadraticBezierTo(
-      size.width * 0.23,
-      23,
-      0,
-      35,
-    );
+    path2.quadraticBezierTo(size.width * 0.23, 23, 0, 35);
 
     path2.close();
 
-    canvas.drawPath(
-      path2,
-      paint2,
-    );
+    canvas.drawPath(path2, paint2);
   }
 
   @override
-  bool shouldRepaint(
-      covariant CustomPainter oldDelegate,
-      ) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
 }

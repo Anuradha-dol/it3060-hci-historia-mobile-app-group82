@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
         Long userId = user.getId();
 
         // Remove temporary reset data
-        forgotPasswordRepository.deleteByUser(user);
+        forgotPasswordRepository.deleteByUserId(userId);
 
         // Remove personal data
         user.setFirstName(null);

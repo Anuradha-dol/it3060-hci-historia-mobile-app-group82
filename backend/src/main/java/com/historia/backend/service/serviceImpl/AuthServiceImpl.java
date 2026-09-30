@@ -460,27 +460,25 @@ public class AuthServiceImpl implements AuthService {
 
         if (user == null) {
 
-            if (request.role() == null) {
-                throw new UserException(
-                        "Please select an account type"
-                );
-            }
+            Role requestedRole = request.role() == null
+                    ? Role.TOURIST
+                    : request.role();
 
-            if (request.role() == Role.ADMIN) {
+            if (requestedRole == Role.ADMIN) {
                 throw new UserException(
                         "Admin registration is not allowed"
                 );
             }
 
             // Guide needs the full guide registration form
-            if (request.role() == Role.GUIDE) {
+            if (requestedRole == Role.GUIDE) {
                 throw new UserException(
                         "Please complete the guide registration form to create a guide account"
                 );
             }
 
             // New Google accounts are tourists
-            if (request.role() != Role.TOURIST) {
+            if (requestedRole != Role.TOURIST) {
                 throw new UserException(
                         "Invalid account type"
                 );
@@ -526,13 +524,6 @@ public class AuthServiceImpl implements AuthService {
                 );
             }
 
-            if (request.role() != null &&
-                    request.role() != user.getRole()) {
-                throw new UserException(
-                        "Selected account type does not match this account"
-                );
-            }
-
             if (user.getProvider() == null ||
                     user.getProvider() == AuthProvider.LOCAL) {
 
@@ -567,6 +558,12 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if (!user.isEnabled()) {
+                if (user.getRole() == Role.GUIDE) {
+                    throw new UserException(
+                            "Guide account is not approved yet"
+                    );
+                }
+
                 throw new UserException(
                         "Account is not active"
                 );

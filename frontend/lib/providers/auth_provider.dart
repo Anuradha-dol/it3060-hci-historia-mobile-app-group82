@@ -80,7 +80,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> googleLogin({required String role}) async {
+  Future<bool> googleLogin({String? role}) async {
     _setLoading(true);
 
     try {

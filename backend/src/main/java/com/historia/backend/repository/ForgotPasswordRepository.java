@@ -12,4 +12,6 @@ public interface ForgotPasswordRepository
     Optional<ForgotPassword> findByUser(User user);
 
     void deleteByUser(User user);
+
+    void deleteByUserId(Long userId);
 }
