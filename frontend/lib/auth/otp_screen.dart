@@ -31,19 +31,11 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
-  // ================================================================
-  // VERIFY OTP
-  // ================================================================
-
   Future<void> _verify() async {
     final code = _code.text.trim();
 
     if (code.isEmpty) {
-      showAppMessage(
-        context,
-        'Enter the OTP code.',
-        error: true,
-      );
+      showAppMessage(context, 'Enter the OTP code.', error: true);
       return;
     }
 
@@ -68,24 +60,16 @@ class _OtpScreenState extends State<OtpScreen> {
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
 
       if (widget.guideRegistration) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (_) => const GuidePendingScreen(),
-          ),
-              (route) => false,
+          MaterialPageRoute(builder: (_) => const GuidePendingScreen()),
+          (route) => false,
         );
       } else {
-        Navigator.popUntil(
-          context,
-              (route) => route.isFirst,
-        );
+        Navigator.popUntil(context, (route) => route.isFirst);
       }
     } catch (e) {
       if (!mounted) return;
@@ -104,24 +88,15 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
-  // ================================================================
-  // RESEND OTP
-  // ================================================================
-
   Future<void> _resend() async {
     if (_loading) return;
 
     try {
-      final result = await AuthService().resendOtp(
-        email: widget.email,
-      );
+      final result = await AuthService().resendOtp(email: widget.email);
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
     } catch (e) {
       if (!mounted) return;
 
@@ -135,8 +110,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardOpen =
-        MediaQuery.of(context).viewInsets.bottom > 0;
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -144,10 +118,6 @@ class _OtpScreenState extends State<OtpScreen> {
 
       body: Stack(
         children: [
-          // =========================================================
-          // BACKGROUND
-          // =========================================================
-
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -162,10 +132,6 @@ class _OtpScreenState extends State<OtpScreen> {
             ),
           ),
 
-          // =========================================================
-          // BACKGROUND DECORATION
-          // =========================================================
-
           Positioned(
             top: 115,
             right: -75,
@@ -174,8 +140,7 @@ class _OtpScreenState extends State<OtpScreen> {
               height: 185,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFD3EBDD)
-                    .withValues(alpha: 0.28),
+                color: const Color(0xFFD3EBDD).withValues(alpha: 0.28),
               ),
             ),
           ),
@@ -188,33 +153,22 @@ class _OtpScreenState extends State<OtpScreen> {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFDDEFE5)
-                    .withValues(alpha: 0.24),
+                color: const Color(0xFFDDEFE5).withValues(alpha: 0.24),
               ),
             ),
           ),
 
-          // =========================================================
-          // MAIN PAGE
-          // =========================================================
-
           SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 430,
-                ),
+                constraints: const BoxConstraints(maxWidth: 430),
 
                 child: Column(
                   children: [
-                    // =================================================
-                    // HEADER
-                    // =================================================
-
                     HistoriaHeader(
                       title: 'Verify your email.',
                       subtitle:
-                      'Enter the verification code sent to ${widget.email}.',
+                          'Enter the verification code sent to ${widget.email}.',
                       eyebrow: widget.guideRegistration
                           ? 'GUIDE APPLICATION'
                           : 'ACCOUNT VERIFICATION',
@@ -230,31 +184,16 @@ class _OtpScreenState extends State<OtpScreen> {
                       ],
                     ),
 
-                    // =================================================
-                    // CONTENT
-                    // =================================================
-
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          17,
-                          8,
-                          17,
-                          5,
-                        ),
+                        padding: const EdgeInsets.fromLTRB(17, 8, 17, 5),
 
                         child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.stretch,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
 
                           children: [
-                            // ===========================================
-                            // OTP CARD
-                            // ===========================================
-
                             Container(
-                              padding:
-                              const EdgeInsets.fromLTRB(
+                              padding: const EdgeInsets.fromLTRB(
                                 14,
                                 12,
                                 14,
@@ -262,8 +201,7 @@ class _OtpScreenState extends State<OtpScreen> {
                               ),
 
                               decoration: BoxDecoration(
-                                gradient:
-                                const LinearGradient(
+                                gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
@@ -272,12 +210,10 @@ class _OtpScreenState extends State<OtpScreen> {
                                   ],
                                 ),
 
-                                borderRadius:
-                                BorderRadius.circular(15),
+                                borderRadius: BorderRadius.circular(15),
 
                                 border: Border.all(
-                                  color:
-                                  const Color(0xFFCFE3D8),
+                                  color: const Color(0xFFCFE3D8),
                                 ),
 
                                 boxShadow: const [
@@ -290,14 +226,9 @@ class _OtpScreenState extends State<OtpScreen> {
                               ),
 
                               child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.stretch,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
 
                                 children: [
-                                  // =====================================
-                                  // INFO BOX
-                                  // =====================================
-
                                   HistoriaInfoBox(
                                     title: 'Your inbox',
                                     message: widget.guideRegistration
@@ -305,31 +236,17 @@ class _OtpScreenState extends State<OtpScreen> {
                                         : 'Your tourist account activates after this code is confirmed.',
                                   ),
 
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-
-                                  // =====================================
-                                  // OTP FIELD
-                                  // =====================================
+                                  const SizedBox(height: 12),
 
                                   HistoriaTextField(
                                     label: 'Verification code',
-                                    hintText:
-                                    'Enter 6 digit code',
+                                    hintText: 'Enter 6 digit code',
                                     controller: _code,
                                     icon: Icons.pin_outlined,
-                                    keyboardType:
-                                    TextInputType.number,
+                                    keyboardType: TextInputType.number,
                                   ),
 
-                                  const SizedBox(
-                                    height: 7,
-                                  ),
-
-                                  // =====================================
-                                  // VERIFY
-                                  // =====================================
+                                  const SizedBox(height: 7),
 
                                   HistoriaButton(
                                     loading: _loading,
@@ -337,38 +254,24 @@ class _OtpScreenState extends State<OtpScreen> {
                                     label: 'Verify account',
                                   ),
 
-                                  const SizedBox(
-                                    height: 1,
-                                  ),
-
-                                  // =====================================
-                                  // RESEND
-                                  // =====================================
+                                  const SizedBox(height: 1),
 
                                   Center(
                                     child: TextButton.icon(
-                                      style:
-                                      TextButton.styleFrom(
-                                        foregroundColor:
-                                        const Color(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: const Color(
                                           0xFF176C4B,
                                         ),
                                         minimumSize: Size.zero,
                                         tapTargetSize:
-                                        MaterialTapTargetSize
-                                            .shrinkWrap,
-                                        padding:
-                                        const EdgeInsets
-                                            .symmetric(
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        padding: const EdgeInsets.symmetric(
                                           horizontal: 8,
                                           vertical: 6,
                                         ),
                                       ),
 
-                                      onPressed:
-                                      _loading
-                                          ? null
-                                          : _resend,
+                                      onPressed: _loading ? null : _resend,
 
                                       icon: const Icon(
                                         Icons.refresh_rounded,
@@ -379,8 +282,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                         'Resend code',
                                         style: TextStyle(
                                           fontSize: 10.5,
-                                          fontWeight:
-                                          FontWeight.w700,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                     ),
@@ -389,82 +291,54 @@ class _OtpScreenState extends State<OtpScreen> {
                               ),
                             ),
 
-                            // ===========================================
-                            // NOTE - CARD EKATA LANGIN
-                            // ===========================================
-
-                            const SizedBox(
-                              height: 18,
-                            ),
+                            const SizedBox(height: 18),
 
                             Padding(
-                              padding:
-                              const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                               ),
 
                               child: Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
 
                                 children: [
                                   const Icon(
-                                    Icons
-                                        .verified_user_outlined,
+                                    Icons.verified_user_outlined,
                                     size: 12,
-                                    color:
-                                    Color(0xFF56816B),
+                                    color: Color(0xFF56816B),
                                   ),
 
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
+                                  const SizedBox(width: 5),
 
                                   Flexible(
                                     child: Text(
                                       widget.guideRegistration
                                           ? 'Your guide application continues after email verification.'
                                           : 'Your HISTORIA account activates after verification.',
-                                      textAlign:
-                                      TextAlign.center,
+                                      textAlign: TextAlign.center,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall
                                           ?.copyWith(
-                                        color:
-                                        const Color(
-                                          0xFF6E8177,
-                                        ),
-                                        fontSize: 8.5,
-                                        height: 1.2,
-                                      ),
+                                            color: const Color(0xFF6E8177),
+                                            fontSize: 8.5,
+                                            height: 1.2,
+                                          ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
 
-                            // ===========================================
-                            // REMAINING BALANCED SPACE
-                            // ===========================================
-
                             const Spacer(),
 
-                            // Small gap before footer
-                            const SizedBox(
-                              height: 5,
-                            ),
+                            const SizedBox(height: 5),
                           ],
                         ),
                       ),
                     ),
 
-                    // =================================================
-                    // BOTTOM IMAGE
-                    // =================================================
-
-                    if (!keyboardOpen)
-                      const _OtpFooterImage(),
+                    if (!keyboardOpen) const _OtpFooterImage(),
                   ],
                 ),
               ),
@@ -475,10 +349,6 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 }
-
-// =====================================================================
-// OTP HERITAGE FOOTER
-// =====================================================================
 
 class _OtpFooterImage extends StatelessWidget {
   const _OtpFooterImage();
@@ -493,10 +363,6 @@ class _OtpFooterImage extends StatelessWidget {
         clipBehavior: Clip.none,
 
         children: [
-          // ===========================================================
-          // IMAGE
-          // ===========================================================
-
           Positioned.fill(
             top: 10,
 
@@ -511,35 +377,16 @@ class _OtpFooterImage extends StatelessWidget {
 
                 fit: BoxFit.cover,
 
-                // Landscape strip eka thawa visible wenna
-                alignment:
-                const Alignment(
-                  0,
-                  0.35,
-                ),
+                alignment: const Alignment(0, 0.35),
 
-                filterQuality:
-                FilterQuality.high,
+                filterQuality: FilterQuality.high,
 
-                errorBuilder: (
-                    context,
-                    error,
-                    stackTrace,
-                    ) {
-                  return Container(
-                    color:
-                    const Color(
-                      0xFFEAF5EE,
-                    ),
-                  );
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(color: const Color(0xFFEAF5EE));
                 },
               ),
             ),
           ),
-
-          // ===========================================================
-          // TOP GREEN WAVE
-          // ===========================================================
 
           Positioned(
             top: 0,
@@ -549,10 +396,7 @@ class _OtpFooterImage extends StatelessWidget {
             child: SizedBox(
               height: 30,
 
-              child: CustomPaint(
-                painter:
-                _OtpGreenWavePainter(),
-              ),
+              child: CustomPaint(painter: _OtpGreenWavePainter()),
             ),
           ),
         ],
@@ -561,46 +405,20 @@ class _OtpFooterImage extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// FOOTER IMAGE CLIP
-// =====================================================================
-
-class _OtpFooterClipper
-    extends CustomClipper<Path> {
+class _OtpFooterClipper extends CustomClipper<Path> {
   @override
-  Path getClip(
-      Size size,
-      ) {
+  Path getClip(Size size) {
     final path = Path();
 
-    path.moveTo(
-      0,
-      19,
-    );
+    path.moveTo(0, 19);
 
-    path.quadraticBezierTo(
-      size.width * 0.18,
-      5,
-      size.width * 0.43,
-      12,
-    );
+    path.quadraticBezierTo(size.width * 0.18, 5, size.width * 0.43, 12);
 
-    path.quadraticBezierTo(
-      size.width * 0.70,
-      25,
-      size.width,
-      8,
-    );
+    path.quadraticBezierTo(size.width * 0.70, 25, size.width, 8);
 
-    path.lineTo(
-      size.width,
-      size.height,
-    );
+    path.lineTo(size.width, size.height);
 
-    path.lineTo(
-      0,
-      size.height,
-    );
+    path.lineTo(0, size.height);
 
     path.close();
 
@@ -608,143 +426,61 @@ class _OtpFooterClipper
   }
 
   @override
-  bool shouldReclip(
-      covariant CustomClipper<Path> oldClipper,
-      ) {
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
     return false;
   }
 }
 
-// =====================================================================
-// TOP GREEN WAVE
-// =====================================================================
-
-class _OtpGreenWavePainter
-    extends CustomPainter {
+class _OtpGreenWavePainter extends CustomPainter {
   @override
-  void paint(
-      Canvas canvas,
-      Size size,
-      ) {
+  void paint(Canvas canvas, Size size) {
     final firstPaint = Paint()
-      ..color =
-      const Color(0xFFDCEFE5)
-      ..style =
-          PaintingStyle.fill;
+      ..color = const Color(0xFFDCEFE5)
+      ..style = PaintingStyle.fill;
 
     final secondPaint = Paint()
-      ..color =
-      const Color(0xFFC6E2D3)
-      ..style =
-          PaintingStyle.fill;
-
-    // ================================================================
-    // LIGHT WAVE
-    // ================================================================
+      ..color = const Color(0xFFC6E2D3)
+      ..style = PaintingStyle.fill;
 
     final firstPath = Path();
 
-    firstPath.moveTo(
-      0,
-      20,
-    );
+    firstPath.moveTo(0, 20);
 
-    firstPath.quadraticBezierTo(
-      size.width * 0.20,
-      5,
-      size.width * 0.46,
-      13,
-    );
+    firstPath.quadraticBezierTo(size.width * 0.20, 5, size.width * 0.46, 13);
 
-    firstPath.quadraticBezierTo(
-      size.width * 0.74,
-      27,
-      size.width,
-      9,
-    );
+    firstPath.quadraticBezierTo(size.width * 0.74, 27, size.width, 9);
 
-    firstPath.lineTo(
-      size.width,
-      19,
-    );
+    firstPath.lineTo(size.width, 19);
 
-    firstPath.quadraticBezierTo(
-      size.width * 0.74,
-      33,
-      size.width * 0.46,
-      25,
-    );
+    firstPath.quadraticBezierTo(size.width * 0.74, 33, size.width * 0.46, 25);
 
-    firstPath.quadraticBezierTo(
-      size.width * 0.20,
-      16,
-      0,
-      30,
-    );
+    firstPath.quadraticBezierTo(size.width * 0.20, 16, 0, 30);
 
     firstPath.close();
 
-    canvas.drawPath(
-      firstPath,
-      firstPaint,
-    );
-
-    // ================================================================
-    // DARKER SMALL WAVE
-    // ================================================================
+    canvas.drawPath(firstPath, firstPaint);
 
     final secondPath = Path();
 
-    secondPath.moveTo(
-      0,
-      26,
-    );
+    secondPath.moveTo(0, 26);
 
-    secondPath.quadraticBezierTo(
-      size.width * 0.23,
-      17,
-      size.width * 0.51,
-      24,
-    );
+    secondPath.quadraticBezierTo(size.width * 0.23, 17, size.width * 0.51, 24);
 
-    secondPath.quadraticBezierTo(
-      size.width * 0.78,
-      34,
-      size.width,
-      18,
-    );
+    secondPath.quadraticBezierTo(size.width * 0.78, 34, size.width, 18);
 
-    secondPath.lineTo(
-      size.width,
-      25,
-    );
+    secondPath.lineTo(size.width, 25);
 
-    secondPath.quadraticBezierTo(
-      size.width * 0.78,
-      37,
-      size.width * 0.51,
-      31,
-    );
+    secondPath.quadraticBezierTo(size.width * 0.78, 37, size.width * 0.51, 31);
 
-    secondPath.quadraticBezierTo(
-      size.width * 0.23,
-      23,
-      0,
-      34,
-    );
+    secondPath.quadraticBezierTo(size.width * 0.23, 23, 0, 34);
 
     secondPath.close();
 
-    canvas.drawPath(
-      secondPath,
-      secondPaint,
-    );
+    canvas.drawPath(secondPath, secondPaint);
   }
 
   @override
-  bool shouldRepaint(
-      covariant CustomPainter oldDelegate,
-      ) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
 }

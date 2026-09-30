@@ -14,10 +14,7 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _stepKeys = List.generate(
-    3,
-        (_) => GlobalKey<FormState>(),
-  );
+  final _stepKeys = List.generate(3, (_) => GlobalKey<FormState>());
 
   final _username = TextEditingController();
   final _email = TextEditingController();
@@ -79,18 +76,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      showAppMessage(
-        context,
-        result.message,
-      );
+      showAppMessage(context, result.message);
 
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => OtpScreen(
-            email: _email.text.trim(),
-          ),
-        ),
+        MaterialPageRoute(builder: (_) => OtpScreen(email: _email.text.trim())),
       );
     } catch (e) {
       if (!mounted) return;
@@ -153,11 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     if (_password.text != _confirmPassword.text) {
-      showAppMessage(
-        context,
-        'Password fields must match.',
-        error: true,
-      );
+      showAppMessage(context, 'Password fields must match.', error: true);
 
       setState(() {
         _step = 1;
@@ -169,14 +155,8 @@ class _SignupScreenState extends State<SignupScreen> {
     return true;
   }
 
-  String? _required(
-      String? value,
-      String label,
-      ) {
-    return requiredText(
-      value,
-      label,
-    );
+  String? _required(String? value, String label) {
+    return requiredText(value, label);
   }
 
   String? _passwordValidator(String? value) {
@@ -234,8 +214,7 @@ class _SignupScreenState extends State<SignupScreen> {
       'Only your account details are required.',
     ];
 
-    final keyboardOpen =
-        MediaQuery.of(context).viewInsets.bottom > 0;
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return PopScope(
       canPop: _step == 0,
@@ -246,11 +225,6 @@ class _SignupScreenState extends State<SignupScreen> {
       },
 
       child: Scaffold(
-        // =========================================================
-        // IMPORTANT
-        // Keyboard eka open unama page eka shrink karala
-        // overflow wenna denne naha.
-        // =========================================================
         resizeToAvoidBottomInset: false,
 
         backgroundColor: const Color(0xFFFCFDF8),
@@ -258,114 +232,63 @@ class _SignupScreenState extends State<SignupScreen> {
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 430,
-              ),
+              constraints: const BoxConstraints(maxWidth: 430),
 
-              // ===================================================
-              // NO SCROLL LAYOUT
-              // ===================================================
               child: Column(
                 children: [
-                  // =================================================
-                  // HEADER
-                  // =================================================
                   HistoriaHeader(
                     title: titles[_step],
                     subtitle: subtitles[_step],
                     eyebrow:
-                    'TOURIST · STEP ${(_step + 1).toString().padLeft(2, '0')} OF 03',
+                        'TOURIST / STEP ${(_step + 1).toString().padLeft(2, '0')} OF 03',
                     icon: Icons.eco_outlined,
                     actions: [
                       HistoriaIconButton(
-                        icon: _step == 0
-                            ? Icons.close
-                            : Icons.arrow_back,
-                        tooltip: _step == 0
-                            ? 'Close'
-                            : 'Back',
+                        icon: _step == 0 ? Icons.close : Icons.arrow_back,
+                        tooltip: _step == 0 ? 'Close' : 'Back',
                         onPressed: _back,
                       ),
                     ],
                   ),
 
-                  // =================================================
-                  // CONTENT
-                  // =================================================
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        18,
-                        6,
-                        18,
-                        4,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(18, 6, 18, 4),
 
                       child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
 
                         children: [
-                          // ===========================================
-                          // STEPPER
-                          // ===========================================
                           HistoriaProgressStepper(
                             currentStep: _step,
-                            labels: const [
-                              'Account',
-                              'Security',
-                              'Profile',
-                            ],
+                            labels: const ['Account', 'Security', 'Profile'],
                           ),
 
-                          const SizedBox(
-                            height: 5,
-                          ),
+                          const SizedBox(height: 5),
 
-                          // ===========================================
-                          // FORM AREA
-                          //
-                          // NO ListView
-                          // NO SingleChildScrollView
-                          //
-                          // FittedBox only scales DOWN if the current
-                          // step is too tall for the available screen.
-                          // ===========================================
                           Expanded(
                             child: LayoutBuilder(
-                              builder: (
-                                  context,
-                                  constraints,
-                                  ) {
+                              builder: (context, constraints) {
                                 return FittedBox(
                                   fit: BoxFit.scaleDown,
-                                  alignment:
-                                  Alignment.topCenter,
+                                  alignment: Alignment.topCenter,
 
                                   child: SizedBox(
-                                    width:
-                                    constraints.maxWidth,
+                                    width: constraints.maxWidth,
 
                                     child: Form(
-                                      key:
-                                      _stepKeys[_step],
+                                      key: _stepKeys[_step],
 
-                                      child:
-                                      AnimatedSwitcher(
-                                        duration:
-                                        const Duration(
+                                      child: AnimatedSwitcher(
+                                        duration: const Duration(
                                           milliseconds: 180,
                                         ),
-                                        switchInCurve:
-                                        Curves.easeOut,
-                                        switchOutCurve:
-                                        Curves.easeIn,
+                                        switchInCurve: Curves.easeOut,
+                                        switchOutCurve: Curves.easeIn,
 
                                         child: KeyedSubtree(
-                                          key:
-                                          ValueKey(_step),
-                                          child:
-                                          _stepContent(),
+                                          key: ValueKey(_step),
+                                          child: _stepContent(),
                                         ),
                                       ),
                                     ),
@@ -379,15 +302,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
 
-                  // =================================================
-                  // BOTTOM IMAGE
-                  //
-                  // Keyboard open nam image eka hide karanawa.
-                  // Eken form eka keyboard ekata yata wela
-                  // compressed wenne naha.
-                  // =================================================
-                  if (!keyboardOpen)
-                    const _SignupFooterImage(),
+                  if (!keyboardOpen) const _SignupFooterImage(),
                 ],
               ),
             ),
@@ -411,14 +326,9 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  // ===================================================================
-  // STEP 01 - ACCOUNT
-  // ===================================================================
-
   Widget _accountStep() {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
 
       children: [
         HistoriaTextField(
@@ -428,10 +338,7 @@ class _SignupScreenState extends State<SignupScreen> {
           icon: Icons.person_outline,
           required: true,
           validator: (value) {
-            return _required(
-              value,
-              'Username',
-            );
+            return _required(value, 'Username');
           },
         ),
 
@@ -440,14 +347,10 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: 'name@example.com',
           controller: _email,
           icon: Icons.email_outlined,
-          keyboardType:
-          TextInputType.emailAddress,
+          keyboardType: TextInputType.emailAddress,
           required: true,
           validator: (value) {
-            return _required(
-              value,
-              'Email address',
-            );
+            return _required(value, 'Email address');
           },
         ),
 
@@ -456,23 +359,17 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: '+94 7X XXX XXXX',
           controller: _phone,
           icon: Icons.phone_outlined,
-          keyboardType:
-          TextInputType.phone,
+          keyboardType: TextInputType.phone,
         ),
 
-        const SizedBox(
-          height: 6,
-        ),
+        const SizedBox(height: 6),
 
         const HistoriaInfoBox(
           title: 'Email verification',
-          message:
-          'We will send an activation code to your email.',
+          message: 'We will send an activation code to your email.',
         ),
 
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
 
         HistoriaButton(
           loading: _loading,
@@ -481,45 +378,31 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
 
         TextButton(
-          onPressed:
-          _loading ? null : _back,
-          child: const Text(
-            'Back to account type',
-          ),
+          onPressed: _loading ? null : _back,
+          child: const Text('Back to account type'),
         ),
       ],
     );
   }
 
-  // ===================================================================
-  // STEP 02 - SECURITY
-  // ===================================================================
-
   Widget _securityStep() {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
 
       children: [
         HistoriaTextField(
           label: 'Password',
-          hintText:
-          'Use 8 or more characters',
+          hintText: 'Use 8 or more characters',
           controller: _password,
           icon: Icons.lock_outline,
           required: true,
-          obscureText:
-          _hidePassword,
-          validator:
-          _passwordValidator,
-          suffix:
-          HistoriaPasswordSuffix(
-            hidden:
-            _hidePassword,
+          obscureText: _hidePassword,
+          validator: _passwordValidator,
+          suffix: HistoriaPasswordSuffix(
+            hidden: _hidePassword,
             onPressed: () {
               setState(() {
-                _hidePassword =
-                !_hidePassword;
+                _hidePassword = !_hidePassword;
               });
             },
           ),
@@ -527,136 +410,90 @@ class _SignupScreenState extends State<SignupScreen> {
 
         HistoriaTextField(
           label: 'Confirm password',
-          hintText:
-          'Repeat your password',
-          controller:
-          _confirmPassword,
-          icon:
-          Icons.lock_outline,
+          hintText: 'Repeat your password',
+          controller: _confirmPassword,
+          icon: Icons.lock_outline,
           required: true,
-          obscureText:
-          _hideConfirmPassword,
-          validator:
-          _confirmPasswordValidator,
-          suffix:
-          HistoriaPasswordSuffix(
-            hidden:
-            _hideConfirmPassword,
+          obscureText: _hideConfirmPassword,
+          validator: _confirmPasswordValidator,
+          suffix: HistoriaPasswordSuffix(
+            hidden: _hideConfirmPassword,
             onPressed: () {
               setState(() {
-                _hideConfirmPassword =
-                !_hideConfirmPassword;
+                _hideConfirmPassword = !_hideConfirmPassword;
               });
             },
           ),
         ),
 
-        const SizedBox(
-          height: 6,
-        ),
+        const SizedBox(height: 6),
 
         const HistoriaInfoBox(
-          title:
-          'Password guidance',
+          title: 'Password guidance',
           message:
-          'Use 8 or more characters. The two password fields must match.',
+              'Use 8 or more characters. The two password fields must match.',
         ),
 
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
 
         HistoriaButton(
           loading: _loading,
-          onPressed:
-          _continue,
-          label:
-          'Continue',
+          onPressed: _continue,
+          label: 'Continue',
         ),
 
         TextButton(
-          onPressed:
-          _loading
-              ? null
-              : _back,
-          child:
-          const Text(
-            'Back to account details',
-          ),
+          onPressed: _loading ? null : _back,
+          child: const Text('Back to account details'),
         ),
       ],
     );
   }
 
-  // ===================================================================
-  // STEP 03 - PROFILE
-  // ===================================================================
-
   Widget _profileStep() {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
 
       children: [
         LayoutBuilder(
-          builder: (
-              context,
-              constraints,
-              ) {
+          builder: (context, constraints) {
             if (constraints.maxWidth < 340) {
               return Column(
                 children: [
                   HistoriaTextField(
-                    label:
-                    'First name (optional)',
-                    hintText:
-                    'First name',
-                    controller:
-                    _firstName,
+                    label: 'First name (optional)',
+                    hintText: 'First name',
+                    controller: _firstName,
                   ),
 
                   HistoriaTextField(
-                    label:
-                    'Last name (optional)',
-                    hintText:
-                    'Last name',
-                    controller:
-                    _lastName,
+                    label: 'Last name (optional)',
+                    hintText: 'Last name',
+                    controller: _lastName,
                   ),
                 ],
               );
             }
 
             return Row(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Expanded(
-                  child:
-                  HistoriaTextField(
-                    label:
-                    'First name (optional)',
-                    hintText:
-                    'First name',
-                    controller:
-                    _firstName,
+                  child: HistoriaTextField(
+                    label: 'First name (optional)',
+                    hintText: 'First name',
+                    controller: _firstName,
                   ),
                 ),
 
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
 
                 Expanded(
-                  child:
-                  HistoriaTextField(
-                    label:
-                    'Last name (optional)',
-                    hintText:
-                    'Last name',
-                    controller:
-                    _lastName,
+                  child: HistoriaTextField(
+                    label: 'Last name (optional)',
+                    hintText: 'Last name',
+                    controller: _lastName,
                   ),
                 ),
               ],
@@ -665,74 +502,46 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
 
         HistoriaTextField(
-          label:
-          'City (optional)',
-          hintText:
-          'City or town',
-          controller:
-          _city,
+          label: 'City (optional)',
+          hintText: 'City or town',
+          controller: _city,
         ),
 
         HistoriaTextField(
-          label:
-          'Address (optional)',
-          hintText:
-          'Street or area',
-          controller:
-          _address,
+          label: 'Address (optional)',
+          hintText: 'Street or area',
+          controller: _address,
         ),
 
-        const SizedBox(
-          height: 6,
-        ),
+        const SizedBox(height: 6),
 
         const HistoriaInfoBox(
-          title:
-          'Tourist account',
-          message:
-          'You can complete or update your profile later.',
+          title: 'Tourist account',
+          message: 'You can complete or update your profile later.',
         ),
 
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
 
         HistoriaButton(
-          loading:
-          _loading,
-          onPressed:
-          _continue,
-          label:
-          'Create tourist account',
+          loading: _loading,
+          onPressed: _continue,
+          label: 'Create tourist account',
         ),
 
         TextButton(
-          onPressed:
-          _loading
-              ? null
-              : _register,
-          child:
-          const Text(
-            'Skip optional details',
-          ),
+          onPressed: _loading ? null : _register,
+          child: const Text('Skip optional details'),
         ),
       ],
     );
   }
 }
 
-// =====================================================================
-// SIGNUP FOOTER
-// =====================================================================
-
-class _SignupFooterImage
-    extends StatelessWidget {
+class _SignupFooterImage extends StatelessWidget {
   const _SignupFooterImage();
 
   @override
-  Widget build(
-      BuildContext context,
-      ) {
+  Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 112,
@@ -745,23 +554,15 @@ class _SignupFooterImage
 
         fit: BoxFit.cover,
 
-        alignment:
-        Alignment.bottomCenter,
+        alignment: Alignment.bottomCenter,
 
-        filterQuality:
-        FilterQuality.high,
+        filterQuality: FilterQuality.high,
 
-        errorBuilder: (
-            context,
-            error,
-            stackTrace,
-            ) {
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             width: double.infinity,
             height: 112,
-            color: const Color(
-              0xFFFCFDF8,
-            ),
+            color: const Color(0xFFFCFDF8),
           );
         },
       ),
