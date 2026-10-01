@@ -3,12 +3,14 @@ package com.historia.backend.controller;
 import com.historia.backend.entity.HistoricalPlace;
 import com.historia.backend.service.HistoricalPlaceService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/places")
+
 public class HistoricalPlaceController {
 
     private final HistoricalPlaceService historicalPlaceService;
@@ -44,7 +46,9 @@ public class HistoricalPlaceController {
         );
     }
 
+
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HistoricalPlace> createPlace(
             @RequestBody HistoricalPlace historicalPlace) {
 

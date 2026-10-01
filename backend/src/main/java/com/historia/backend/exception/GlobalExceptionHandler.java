@@ -110,11 +110,19 @@ public class GlobalExceptionHandler {
             Exception exception
     ) {
 
+        exception.printStackTrace();
+
+        String message = exception.getMessage();
+
+        if (message == null || message.isBlank()) {
+            message = exception.getClass().getSimpleName();
+        }
+
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new UserDto.MessageResponse(
                         false,
-                        "Something went wrong"
+                        message
                 ));
     }
 }
