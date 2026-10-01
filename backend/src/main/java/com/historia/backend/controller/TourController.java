@@ -13,21 +13,29 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tours")
+@PreAuthorize("hasRole('TOURIST')")
 public class TourController {
 
     private final TourService tourService;
 
-    public TourController(TourService tourService) {
+    public TourController(
+            TourService tourService
+    ) {
         this.tourService = tourService;
     }
+
+    // =========================================================
+    // CREATE TOUR
+    // =========================================================
+
     @PostMapping
-    @PreAuthorize("hasRole('TOURIST')")
     public ResponseEntity<TourDto> createTour(
             @RequestBody TourCreateRequest request,
             Authentication authentication
     ) {
 
-        User loggedInUser = (User) authentication.getPrincipal();
+        User loggedInUser =
+                (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
                 tourService.createTour(
@@ -37,59 +45,114 @@ public class TourController {
         );
     }
 
+    // =========================================================
+    // GET TOUR BY ID
+    // =========================================================
+
     @GetMapping("/{id}")
     public ResponseEntity<TourDto> getTourById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                tourService.getTourById(id)
+                tourService.getTourById(
+                        id,
+                        loggedInUser.getId()
+                )
         );
     }
+
+    // =========================================================
+    // GET USER TOURS
+    // =========================================================
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TourDto>> getToursByUserId(
-            @PathVariable Long userId
+            @PathVariable Long userId,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                tourService.getToursByUserId(userId)
+                tourService.getToursByUserId(
+                        userId,
+                        loggedInUser.getId()
+                )
         );
     }
+
+    // =========================================================
+    // MARK PLACE COMPLETED
+    // =========================================================
 
     @PutMapping(
             "/{tourId}/places/{historicalPlaceId}/complete"
     )
     public ResponseEntity<TourDto> markPlaceCompleted(
             @PathVariable Long tourId,
-            @PathVariable Long historicalPlaceId
+            @PathVariable Long historicalPlaceId,
+            Authentication authentication
     ) {
+
+        User loggedInUser =
+                (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
                 tourService.markPlaceCompleted(
                         tourId,
-                        historicalPlaceId
+                        historicalPlaceId,
+                        loggedInUser.getId()
                 )
         );
     }
 
+    // =========================================================
+    // COMPLETE TOUR
+    // =========================================================
+
     @PutMapping("/{tourId}/complete")
     public ResponseEntity<TourDto> completeTour(
-            @PathVariable Long tourId
+            @PathVariable Long tourId,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                tourService.completeTour(tourId)
+                tourService.completeTour(
+                        tourId,
+                        loggedInUser.getId()
+                )
         );
     }
 
+    // =========================================================
+    // DELETE TOUR
+    // =========================================================
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTour(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
-        tourService.deleteTour(id);
+        User loggedInUser =
+                (User) authentication.getPrincipal();
 
-        return ResponseEntity.noContent().build();
+        tourService.deleteTour(
+                id,
+                loggedInUser.getId()
+        );
+
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

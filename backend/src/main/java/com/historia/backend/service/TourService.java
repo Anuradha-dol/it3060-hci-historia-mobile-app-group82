@@ -12,16 +12,29 @@ public interface TourService {
             Long loggedInUserId
     );
 
-    TourDto getTourById(Long id);
+    TourDto getTourById(
+            Long id,
+            Long loggedInUserId
+    );
 
-    List<TourDto> getToursByUserId(Long userId);
+    List<TourDto> getToursByUserId(
+            Long userId,
+            Long loggedInUserId
+    );
 
     TourDto markPlaceCompleted(
             Long tourId,
-            Long historicalPlaceId
+            Long historicalPlaceId,
+            Long loggedInUserId
     );
 
-    TourDto completeTour(Long tourId);
+    TourDto completeTour(
+            Long tourId,
+            Long loggedInUserId
+    );
 
-    void deleteTour(Long id);
+    void deleteTour(
+            Long id,
+            Long loggedInUserId
+    );
 }

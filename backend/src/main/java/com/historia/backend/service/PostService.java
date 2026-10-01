@@ -11,9 +11,15 @@ public interface PostService {
 
     PostDto getPostById(Long id);
 
-    PostDto createPost(PostCreateRequest request);
+    PostDto createPost(
+            PostCreateRequest request,
+            Long loggedInUserId
+    );
 
     PostDto likePost(Long id);
 
-    void deletePost(Long id);
+    void deletePost(
+            Long id,
+            Long loggedInUserId
+    );
 }

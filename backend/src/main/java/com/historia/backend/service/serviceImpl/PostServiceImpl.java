@@ -25,7 +25,8 @@ public class PostServiceImpl implements PostService {
     public PostServiceImpl(
             PostRepository postRepository,
             UserRepository userRepository,
-            HistoricalPlaceRepository historicalPlaceRepository) {
+            HistoricalPlaceRepository historicalPlaceRepository
+    ) {
 
         this.postRepository = postRepository;
         this.userRepository = userRepository;
@@ -47,42 +48,66 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostDto getPostById(Long id) {
 
-        Post post = postRepository.findById(id)
+        Post post = postRepository
+                .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Post not found"));
+                        new RuntimeException("Post not found")
+                );
 
         return convertToDto(post);
     }
 
     @Override
     @Transactional
-    public PostDto createPost(PostCreateRequest request) {
+    public PostDto createPost(
+            PostCreateRequest request,
+            Long loggedInUserId
+    ) {
 
-        User user = userRepository.findById(request.getUserId())
+        // Logged-in user can only create a post
+        // using their own user ID
+        if (!loggedInUserId.equals(request.getUserId())) {
+
+            throw new RuntimeException(
+                    "You can only create posts for your own account"
+            );
+        }
+
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new RuntimeException(
+                                "Logged in user not found"
+                        )
+                );
 
         HistoricalPlace historicalPlace =
                 historicalPlaceRepository
-                        .findById(request.getHistoricalPlaceId())
+                        .findById(
+                                request.getHistoricalPlaceId()
+                        )
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Historical place not found"
-                                ));
+                                )
+                        );
 
         Post post = Post.builder()
-                .user(user)
+                .user(loggedInUser)
                 .historicalPlace(historicalPlace)
                 .caption(request.getCaption())
                 .imageUrls(
                         request.getImageUrls() != null
-                                ? new ArrayList<>(request.getImageUrls())
+                                ? new ArrayList<>(
+                                request.getImageUrls()
+                        )
                                 : new ArrayList<>()
                 )
                 .likeCount(0)
                 .build();
 
-        Post savedPost = postRepository.save(post);
+        Post savedPost =
+                postRepository.save(post);
 
         return convertToDto(savedPost);
     }
@@ -91,29 +116,45 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto likePost(Long id) {
 
-        Post post = postRepository.findById(id)
+        Post post = postRepository
+                .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Post not found"));
+                        new RuntimeException("Post not found")
+                );
 
         int currentLikeCount =
                 post.getLikeCount() == null
                         ? 0
                         : post.getLikeCount();
 
-        post.setLikeCount(currentLikeCount + 1);
+        post.setLikeCount(
+                currentLikeCount + 1
+        );
 
-        Post updatedPost = postRepository.save(post);
+        Post updatedPost =
+                postRepository.save(post);
 
         return convertToDto(updatedPost);
     }
 
     @Override
     @Transactional
-    public void deletePost(Long id) {
+    public void deletePost(
+            Long id,
+            Long loggedInUserId
+    ) {
 
-        Post post = postRepository.findById(id)
+        // Only owner can delete their post
+        Post post = postRepository
+                .findByIdAndUser_Id(
+                        id,
+                        loggedInUserId
+                )
                 .orElseThrow(() ->
-                        new RuntimeException("Post not found"));
+                        new RuntimeException(
+                                "Post not found or you are not allowed to delete it"
+                        )
+                );
 
         postRepository.delete(post);
     }
@@ -121,7 +162,9 @@ public class PostServiceImpl implements PostService {
     private PostDto convertToDto(Post post) {
 
         return PostDto.builder()
-                .id(post.getId())
+                .id(
+                        post.getId()
+                )
                 .userId(
                         post.getUser().getId()
                 )
@@ -139,7 +182,9 @@ public class PostServiceImpl implements PostService {
                 )
                 .imageUrls(
                         post.getImageUrls() != null
-                                ? new ArrayList<>(post.getImageUrls())
+                                ? new ArrayList<>(
+                                post.getImageUrls()
+                        )
                                 : new ArrayList<>()
                 )
                 .likeCount(
