@@ -7,7 +7,10 @@ import java.util.List;
 
 public interface TourService {
 
-    TourDto createTour(TourCreateRequest request);
+    TourDto createTour(
+            TourCreateRequest request,
+            Long loggedInUserId
+    );
 
     TourDto getTourById(Long id);
 

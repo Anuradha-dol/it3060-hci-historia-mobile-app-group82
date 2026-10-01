@@ -4,12 +4,14 @@ import com.historia.backend.dto.PostCreateRequest;
 import com.historia.backend.dto.PostDto;
 import com.historia.backend.service.PostService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
+@PreAuthorize("hasRole('TOURIST')")
 public class PostController {
 
     private final PostService postService;
