@@ -19,7 +19,6 @@ public class ForgotPasswordController {
     }
 
 
-    // Forgot password
     @PostMapping("/forgot")
     public ResponseEntity<UserDto.MessageResponse> forgotPassword(
             @Valid @RequestBody UserDto.ForgotPasswordRequest request
@@ -31,7 +30,6 @@ public class ForgotPasswordController {
     }
 
 
-    // Verify reset OTP
     @PostMapping("/verify")
     public ResponseEntity<UserDto.MessageResponse> verifyOtp(
             @Valid @RequestBody UserDto.ForgotPasswordVerifyRequest request
@@ -43,7 +41,6 @@ public class ForgotPasswordController {
     }
 
 
-    // Resend reset OTP
     @PostMapping("/resend")
     public ResponseEntity<UserDto.MessageResponse> resendOtp(
             @Valid @RequestBody UserDto.ForgotPasswordResendRequest request
@@ -55,7 +52,6 @@ public class ForgotPasswordController {
     }
 
 
-    // Reset password
     @PostMapping("/reset")
     public ResponseEntity<UserDto.MessageResponse> resetPassword(
             @Valid @RequestBody UserDto.ResetPasswordRequest request

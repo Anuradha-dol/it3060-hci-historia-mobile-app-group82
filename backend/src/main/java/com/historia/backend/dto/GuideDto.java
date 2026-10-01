@@ -9,7 +9,6 @@ import java.util.Set;
 public class GuideDto {
 
 
-    // Guide registration
     public record GuideRegisterRequest(
 
             @NotBlank(message = "Username is required")
@@ -39,7 +38,6 @@ public class GuideDto {
             String address,
 
 
-            // Guide details
             @NotBlank(message = "Display name is required")
             @Size(max = 100)
             String displayName,
@@ -76,7 +74,6 @@ public class GuideDto {
     }
 
 
-    // Update guide profile
     public record UpdateGuideProfileRequest(
 
             @Size(max = 100)
@@ -111,7 +108,6 @@ public class GuideDto {
     }
 
 
-    // Pre-approval resubmit after admin requests changes
     public record GuideResubmitRequest(
 
             @NotBlank(message = "Email is required")
@@ -153,7 +149,6 @@ public class GuideDto {
     }
 
 
-    // Admin review
     public record GuideReviewRequest(
 
             @NotNull(message = "Guide status is required")
@@ -166,7 +161,6 @@ public class GuideDto {
     }
 
 
-    // Guide profile response
     public record GuideProfileResponse(
 
             Long id,
