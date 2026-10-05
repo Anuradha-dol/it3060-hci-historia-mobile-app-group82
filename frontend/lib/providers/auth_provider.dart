@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../config/google_auth_config.dart';
 import '../models/auth_response.dart';
@@ -11,18 +12,52 @@ import '../services/storage_service.dart';
 import '../services/user_service.dart';
 
 class AuthProvider extends ChangeNotifier {
+  // ============================================================
+  // SERVICES
+  // ============================================================
+
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
   final StorageService _storageService = StorageService();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: const ['email', 'profile'],
+
+  // ============================================================
+  // GOOGLE SIGN-IN
+  // ============================================================
+  //
+  // IMPORTANT:
+  // serverClientId is NOT supported by google_sign_in_web.
+  //
+  // Therefore:
+  // Web     -> serverClientId = null
+  // Android -> serverClientId = GoogleAuthConfig.serverClientId
+  //
+  // This prevents:
+  //
+  // "serverClientId is not supported on Web."
+  //
+  // ============================================================
+
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: const [
+      'email',
+      'profile',
+    ],
     clientId: GoogleAuthConfig.clientId,
-    serverClientId: GoogleAuthConfig.serverClientId,
+    serverClientId:
+        kIsWeb ? null : GoogleAuthConfig.serverClientId,
   );
+
+  // ============================================================
+  // STATE
+  // ============================================================
 
   UserModel? _user;
   bool _loading = false;
   String? _error;
+
+  // ============================================================
+  // GETTERS
+  // ============================================================
 
   UserModel? get user => _user;
 
@@ -34,24 +69,48 @@ class AuthProvider extends ChangeNotifier {
 
   String? get role => _user?.role;
 
+  // ============================================================
+  // INITIALIZE AUTH SESSION
+  // ============================================================
+
   Future<void> initialize() async {
-    final refreshToken = await _storageService.getRefreshToken();
+    try {
+      final refreshToken =
+          await _storageService.getRefreshToken();
 
-    if (refreshToken != null && refreshToken.isNotEmpty) {
-      try {
-        final response = await _authService.refresh(refreshToken: refreshToken);
+      if (refreshToken != null &&
+          refreshToken.isNotEmpty) {
+        try {
+          final response = await _authService.refresh(
+            refreshToken: refreshToken,
+          );
 
-        await _saveSession(response);
-        notifyListeners();
-        return;
-      } catch (_) {
-        await _storageService.clearAuthData();
+          await _saveSession(response);
+
+          notifyListeners();
+          return;
+        } catch (_) {
+          await _storageService.clearAuthData();
+        }
       }
-    }
 
-    _user = await _storageService.getUser();
-    notifyListeners();
+      _user = await _storageService.getUser();
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint(
+        'Auth initialization error: $e',
+      );
+
+      _user = null;
+
+      notifyListeners();
+    }
   }
+
+  // ============================================================
+  // NORMAL LOGIN
+  // ============================================================
 
   Future<bool> login({
     required String identifier,
@@ -66,13 +125,15 @@ class AuthProvider extends ChangeNotifier {
       );
 
       await _saveSession(response);
+
       _error = null;
 
       notifyListeners();
 
       return true;
     } catch (e) {
-      _error = ApiService.instance.getErrorMessage(e);
+      _error =
+          ApiService.instance.getErrorMessage(e);
 
       return false;
     } finally {
@@ -80,78 +141,148 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> googleLogin({String? role}) async {
+  // ============================================================
+  // GOOGLE LOGIN
+  // ============================================================
+
+  Future<bool> googleLogin({
+    String? role,
+  }) async {
     _setLoading(true);
 
     try {
-      await _googleSignIn.signOut();
+      // Clear any previous Google session first.
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {
+        // Ignore sign-out errors before login.
+      }
 
-      final account = await _googleSignIn.signIn();
+      // Open Google account selector.
+      final GoogleSignInAccount? account =
+          await _googleSignIn.signIn();
 
+      // User closed/cancelled Google Sign-In.
       if (account == null) {
-        _error = 'Google Sign-In was cancelled.';
+        _error =
+            'Google Sign-In was cancelled.';
+
         return false;
       }
 
-      final authentication = await account.authentication;
-      final idToken = authentication.idToken;
+      // Get Google authentication information.
+      final GoogleSignInAuthentication authentication =
+          await account.authentication;
 
-      if (idToken == null || idToken.isEmpty) {
-        _error = 'Google ID token was not received.';
+      final String? idToken =
+          authentication.idToken;
+
+      // Backend requires the Google ID token.
+      if (idToken == null ||
+          idToken.isEmpty) {
+        _error =
+            'Google ID token was not received.';
+
         return false;
       }
 
-      final response = await _authService.googleLogin(
+      // Send Google ID token to Spring Boot backend.
+      final response =
+          await _authService.googleLogin(
         idToken: idToken,
         role: role,
       );
 
+      // Save access token, refresh token and user.
       await _saveSession(response);
+
       _error = null;
+
       notifyListeners();
 
       return true;
     } on PlatformException catch (e) {
       debugPrint(
-        'Google Sign-In failed: code=${e.code}; '
-        'message=${e.message}; details=${e.details}; '
-        'androidPackage=${GoogleAuthConfig.androidPackageName}; '
-        'serverClientId=${GoogleAuthConfig.serverClientId}',
+        'Google Sign-In failed: '
+        'code=${e.code}; '
+        'message=${e.message}; '
+        'details=${e.details}; '
+        'androidPackage='
+        '${GoogleAuthConfig.androidPackageName}; '
+        'serverClientId='
+        '${GoogleAuthConfig.serverClientId}',
       );
-      _error = _googleSignInMessage(e);
+
+      _error =
+          _googleSignInMessage(e);
+
       return false;
     } catch (e) {
-      _error = ApiService.instance.getErrorMessage(e);
-      if (_error == 'Something went wrong.') {
+      debugPrint(
+        'Google Sign-In unexpected error: $e',
+      );
+
+      _error =
+          ApiService.instance.getErrorMessage(e);
+
+      if (_error ==
+          'Something went wrong.') {
         _error = e.toString();
       }
+
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
+  // ============================================================
+  // REFRESH USER PROFILE
+  // ============================================================
+
   Future<void> refreshProfile() async {
     try {
-      final updatedUser = await _userService.getMyProfile();
+      final updatedUser =
+          await _userService.getMyProfile();
 
       _user = updatedUser;
 
-      await _storageService.saveUser(updatedUser);
+      await _storageService.saveUser(
+        updatedUser,
+      );
 
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint(
+        'Profile refresh failed: $e',
+      );
+    }
   }
+
+  // ============================================================
+  // LOGOUT
+  // ============================================================
 
   Future<void> logout() async {
     try {
       await _userService.logout();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint(
+        'Backend logout failed: $e',
+      );
+    }
 
+    // Remove locally stored authentication information.
     await _storageService.clearAuthData();
+
+    // Sign out from Google as well.
     try {
       await _googleSignIn.signOut();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint(
+        'Google Sign-Out failed: $e',
+      );
+    }
 
     _user = null;
     _error = null;
@@ -159,49 +290,114 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ============================================================
+  // CLEAR ERROR
+  // ============================================================
+
   void clearError() {
     _error = null;
+
     notifyListeners();
   }
+
+  // ============================================================
+  // LOADING STATE
+  // ============================================================
 
   void _setLoading(bool value) {
     _loading = value;
+
     notifyListeners();
   }
 
-  String _googleSignInMessage(PlatformException exception) {
+  // ============================================================
+  // GOOGLE SIGN-IN ERROR MESSAGE
+  // ============================================================
+
+  String _googleSignInMessage(
+    PlatformException exception,
+  ) {
     switch (exception.code) {
       case GoogleSignIn.kSignInCanceledError:
-        if (_isAccountReauthFailure(exception.message)) {
-          return 'Google account re-authentication failed. Check the emulator Google account, Android package/SHA-1, and Web client ID.';
+        if (_isAccountReauthFailure(
+          exception.message,
+        )) {
+          return 'Google account re-authentication failed. '
+              'Check the emulator Google account, '
+              'Android package/SHA-1, and Web client ID.';
         }
+
         return 'Google Sign-In was cancelled.';
+
       default:
-        if (_isDeveloperConfigurationError(exception)) {
-          return 'Google Sign-In developer config error. Add this Android package and SHA-1 in Google Cloud, then use the matching Web client ID.';
+        if (_isDeveloperConfigurationError(
+          exception,
+        )) {
+          return 'Google Sign-In developer config error. '
+              'Add this Android package and SHA-1 '
+              'in Google Cloud, then use the '
+              'matching Web client ID.';
         }
-        if (_isAccountReauthFailure(exception.message)) {
-          return 'Google account re-authentication failed. Check the emulator Google account, Android package/SHA-1, and Web client ID.';
+
+        if (_isAccountReauthFailure(
+          exception.message,
+        )) {
+          return 'Google account re-authentication failed. '
+              'Check the emulator Google account, '
+              'Android package/SHA-1, and Web client ID.';
         }
-        return exception.message ?? 'Google Sign-In failed.';
+
+        return exception.message ??
+            'Google Sign-In failed.';
     }
   }
 
-  bool _isDeveloperConfigurationError(PlatformException exception) {
-    return exception.code == 'sign_in_failed' &&
-        (exception.message?.contains('ApiException: 10') ?? false);
+  // ============================================================
+  // CHECK GOOGLE DEVELOPER CONFIG ERROR
+  // ============================================================
+
+  bool _isDeveloperConfigurationError(
+    PlatformException exception,
+  ) {
+    return exception.code ==
+            'sign_in_failed' &&
+        (exception.message?.contains(
+              'ApiException: 10',
+            ) ??
+            false);
   }
 
-  bool _isAccountReauthFailure(String? message) {
-    return message?.contains('Account reauth failed') ?? false;
+  // ============================================================
+  // CHECK ACCOUNT RE-AUTH ERROR
+  // ============================================================
+
+  bool _isAccountReauthFailure(
+    String? message,
+  ) {
+    return message?.contains(
+          'Account reauth failed',
+        ) ??
+        false;
   }
 
-  Future<void> _saveSession(AuthResponse response) async {
-    await _storageService.saveAccessToken(response.accessToken);
+  // ============================================================
+  // SAVE LOGIN SESSION
+  // ============================================================
 
-    await _storageService.saveRefreshToken(response.refreshToken);
+  Future<void> _saveSession(
+    AuthResponse response,
+  ) async {
+    await _storageService.saveAccessToken(
+      response.accessToken,
+    );
 
-    await _storageService.saveUser(response.user);
+    await _storageService.saveRefreshToken(
+      response.refreshToken,
+    );
+
+    await _storageService.saveUser(
+      response.user,
+    );
 
     _user = response.user;
   }
