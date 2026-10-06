@@ -70,7 +70,7 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(50),
+          minimumSize: const Size(64, 50),
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.border,
@@ -81,7 +81,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(50),
+          minimumSize: const Size(64, 50),
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.borderStrong),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

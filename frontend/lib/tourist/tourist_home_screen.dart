@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../models/historical_place_model.dart';
 import '../profile/profile_screen.dart';
+import '../services/api_service.dart';
+import '../services/historical_place_service.dart';
 import '../services/post_service.dart';
+import '../widgets/community_feed.dart';
 import '../widgets/historia_components.dart';
 import 'create_post_screen.dart';
 import 'historical_search_screen.dart';
 import 'notifications_screen.dart';
+import 'tour_planner_screen.dart';
 
 // ============================================================================
 // TOURIST HOME SCREEN
@@ -59,9 +64,7 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
   void _openNotifications() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const NotificationsScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
     );
   }
 
@@ -72,9 +75,7 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
   void _openSearch() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const HistoricalSearchScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const HistoricalSearchScreen()),
     );
   }
 
@@ -85,9 +86,7 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
   Future<void> _openCreatePost() async {
     final created = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const CreatePostScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const CreatePostScreen()),
     );
 
     if (!mounted) {
@@ -114,6 +113,13 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
     }
   }
 
+  void _openTourPlanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TourPlannerScreen()),
+    );
+  }
+
   // --------------------------------------------------------------------------
   // BOTTOM NAVIGATION
   // --------------------------------------------------------------------------
@@ -125,7 +131,7 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
         break;
 
       case 1:
-        // Tour screen will be connected later.
+        _openTourPlanner();
         break;
 
       case 2:
@@ -229,191 +235,114 @@ class _TouristDashboardState extends State<_TouristDashboard> {
   static const Color primaryGreen = Color(0xFF176B45);
   static const Color darkGreen = Color(0xFF123D2D);
 
-  final PostService _postService = PostService();
+  final HistoricalPlaceService _placeService = HistoricalPlaceService();
 
-  List<Map<String, dynamic>> _posts = [];
+  List<HistoricalPlaceModel> _topTourPlaces = [];
 
-  bool _loadingPosts = true;
-
-  String? _postsError;
-
-  // --------------------------------------------------------------------------
-  // INITIALIZE
-  // --------------------------------------------------------------------------
+  int _feedKey = 0;
+  bool _loadingTopPlaces = true;
+  String? _topPlacesError;
 
   @override
   void initState() {
     super.initState();
-
-    _loadPosts();
+    _loadTopTourPlaces();
   }
 
-  // --------------------------------------------------------------------------
-  // LOAD POSTS FROM BACKEND
-  // --------------------------------------------------------------------------
-
-  Future<void> _loadPosts() async {
+  Future<void> _loadTopTourPlaces() async {
     if (mounted) {
       setState(() {
-        _loadingPosts = true;
-        _postsError = null;
+        _loadingTopPlaces = true;
+        _topPlacesError = null;
       });
     }
 
     try {
-      final posts = await _postService.getAllPosts();
+      final places = await _placeService.getTopTourPlaces(limit: 5);
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
-        _posts = posts;
-        _loadingPosts = false;
-        _postsError = null;
+        _topTourPlaces = places.take(5).toList();
+        _loadingTopPlaces = false;
       });
     } catch (e) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
-        _loadingPosts = false;
-        _postsError = 'Unable to load community posts.';
+        _topTourPlaces = [];
+        _loadingTopPlaces = false;
+        _topPlacesError = ApiService.instance.getErrorMessage(e);
       });
     }
   }
 
-  // --------------------------------------------------------------------------
-  // FORMAT POST TIME
-  // --------------------------------------------------------------------------
+  Future<void> _refreshDashboard() async {
+    setState(() {
+      _feedKey++;
+    });
 
-  String _formatPostTime(dynamic value) {
-    if (value == null) {
-      return '';
-    }
-
-    final date = DateTime.tryParse(value.toString());
-
-    if (date == null) {
-      return '';
-    }
-
-    final difference = DateTime.now().difference(date);
-
-    if (difference.isNegative) {
-      return 'Just now';
-    }
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    }
-
-    if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    }
-
-    if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    }
-
-    if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    }
-
-    return '${date.day}/${date.month}/${date.year}';
+    await _loadTopTourPlaces();
   }
 
-  // --------------------------------------------------------------------------
-  // GET USER NAME
-  // --------------------------------------------------------------------------
-
-  String _getUserName(Map<String, dynamic> post) {
-    final username = post['username']?.toString();
-
-    if (username != null && username.trim().isNotEmpty) {
-      return username;
-    }
-
-    final userName = post['userName']?.toString();
-
-    if (userName != null && userName.trim().isNotEmpty) {
-      return userName;
-    }
-
-    return 'Historia User';
+  void _openTourWithPlace(HistoricalPlaceModel place) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => TourPlannerScreen(initialPlace: place)),
+    );
   }
 
-  // --------------------------------------------------------------------------
-  // GET HISTORICAL PLACE NAME
-  // --------------------------------------------------------------------------
-
-  String _getPlaceName(Map<String, dynamic> post) {
-    final placeName = post['historicalPlaceName']?.toString();
-
-    if (placeName != null && placeName.trim().isNotEmpty) {
-      return placeName;
+  Widget _buildTopTourPlaces() {
+    if (_loadingTopPlaces) {
+      return const SizedBox(
+        height: 145,
+        child: Center(child: CircularProgressIndicator(color: primaryGreen)),
+      );
     }
 
-    final location = post['location']?.toString();
-
-    if (location != null && location.trim().isNotEmpty) {
-      return location;
+    if (_topPlacesError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: _TopPlacesMessage(
+          icon: Icons.cloud_off_outlined,
+          message: _topPlacesError!,
+          onRetry: _loadTopTourPlaces,
+        ),
+      );
     }
 
-    return 'Historical Place';
-  }
-
-  // --------------------------------------------------------------------------
-  // GET FIRST IMAGE URL
-  // --------------------------------------------------------------------------
-
-  String _getPostImage(Map<String, dynamic> post) {
-    final imageUrls = post['imageUrls'];
-
-    if (imageUrls is List && imageUrls.isNotEmpty) {
-      return imageUrls.first.toString();
+    if (_topTourPlaces.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18),
+        child: _TopPlacesMessage(
+          icon: Icons.route_outlined,
+          message: 'No trending places yet.',
+        ),
+      );
     }
 
-    final imageUrl = post['imageUrl']?.toString();
+    return SizedBox(
+      height: 145,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        scrollDirection: Axis.horizontal,
+        physics: const ClampingScrollPhysics(),
+        itemCount: _topTourPlaces.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final place = _topTourPlaces[index];
 
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      return imageUrl;
-    }
-
-    return '';
-  }
-
-  // --------------------------------------------------------------------------
-  // GET LIKE COUNT
-  // --------------------------------------------------------------------------
-
-  String _getLikeCount(Map<String, dynamic> post) {
-    if (post['likeCount'] != null) {
-      return post['likeCount'].toString();
-    }
-
-    if (post['likes'] != null) {
-      return post['likes'].toString();
-    }
-
-    return '0';
-  }
-
-  // --------------------------------------------------------------------------
-  // GET COMMENT COUNT
-  // --------------------------------------------------------------------------
-
-  String _getCommentCount(Map<String, dynamic> post) {
-    if (post['commentCount'] != null) {
-      return post['commentCount'].toString();
-    }
-
-    if (post['comments'] is num) {
-      return post['comments'].toString();
-    }
-
-    return '0';
+          return _TrendingPlaceCard(
+            image: place.mainImageUrl ?? '',
+            name: place.name,
+            countText: place.tourCount == 1
+                ? '1 tour'
+                : '${place.tourCount} tours',
+            onTap: () => _openTourWithPlace(place),
+          );
+        },
+      ),
+    );
   }
 
   // --------------------------------------------------------------------------
@@ -424,16 +353,15 @@ class _TouristDashboardState extends State<_TouristDashboard> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       color: primaryGreen,
-      onRefresh: _loadPosts,
+      onRefresh: _refreshDashboard,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
+          parent: ClampingScrollPhysics(),
         ),
         slivers: [
           // ------------------------------------------------------------------
           // HOME BANNER
           // ------------------------------------------------------------------
-
           SliverToBoxAdapter(
             child: _HomeBanner(
               onNotifications: widget.onNotifications,
@@ -444,29 +372,22 @@ class _TouristDashboardState extends State<_TouristDashboard> {
           // ------------------------------------------------------------------
           // SEARCH
           // ------------------------------------------------------------------
-
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-              child: _SearchBar(
-                onTap: widget.onSearch,
-              ),
+              child: _SearchBar(onTap: widget.onSearch),
             ),
           ),
 
           // ------------------------------------------------------------------
           // TRENDING PLACES TITLE
           // ------------------------------------------------------------------
-
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
               child: Row(
                 children: [
-                  const Text(
-                    '🔥',
-                    style: TextStyle(fontSize: 19),
-                  ),
+                  const Text('🔥', style: TextStyle(fontSize: 19)),
 
                   const SizedBox(width: 6),
 
@@ -485,10 +406,7 @@ class _TouristDashboardState extends State<_TouristDashboard> {
                     onTap: widget.onSearch,
                     borderRadius: BorderRadius.circular(12),
                     child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 5,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 5),
                       child: Row(
                         children: [
                           Text(
@@ -519,66 +437,17 @@ class _TouristDashboardState extends State<_TouristDashboard> {
           // ------------------------------------------------------------------
           // TRENDING PLACES
           // ------------------------------------------------------------------
-
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 145,
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  _TrendingPlaceCard(
-                    image: 'assets/images/sigiriya.jpg',
-                    name: 'Sigiriya',
-                    likes: '1.2K',
-                    onTap: widget.onSearch,
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  const _TrendingPlaceCard(
-                    image: 'assets/images/ruwanwelisaya.jpg',
-                    name: 'Ruwanwelisaya',
-                    likes: '890',
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  const _TrendingPlaceCard(
-                    image: 'assets/images/sri_maha_bodhi.jpg',
-                    name: 'Sri Maha Bodhi',
-                    likes: '756',
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  const _TrendingPlaceCard(
-                    image: 'assets/images/galle_fort.jpg',
-                    name: 'Galle Fort',
-                    likes: '642',
-                  ),
-
-                  const SizedBox(width: 18),
-                ],
-              ),
-            ),
-          ),
+          SliverToBoxAdapter(child: _buildTopTourPlaces()),
 
           // ------------------------------------------------------------------
           // COMMUNITY STORIES TITLE
           // ------------------------------------------------------------------
-
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(18, 14, 18, 12),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.auto_awesome,
-                    color: primaryGreen,
-                    size: 20,
-                  ),
+                  Icon(Icons.auto_awesome, color: primaryGreen, size: 20),
 
                   SizedBox(width: 7),
 
@@ -595,183 +464,13 @@ class _TouristDashboardState extends State<_TouristDashboard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // LOADING POSTS
-          // ------------------------------------------------------------------
-
-          if (_loadingPosts)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 25, 20, 40),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: primaryGreen,
-                  ),
-                ),
-              ),
-            )
-
-          // ------------------------------------------------------------------
-          // ERROR LOADING POSTS
-          // ------------------------------------------------------------------
-
-          else if (_postsError != null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 10, 18, 30),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFE1E7E3),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.cloud_off_outlined,
-                        size: 36,
-                        color: Color(0xFF69736E),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      Text(
-                        _postsError!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFF69736E),
-                          fontSize: 13,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      TextButton.icon(
-                        onPressed: _loadPosts,
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: primaryGreen,
-                        ),
-                        label: const Text(
-                          'Try Again',
-                          style: TextStyle(
-                            color: primaryGreen,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-
-          // ------------------------------------------------------------------
-          // NO POSTS
-          // ------------------------------------------------------------------
-
-          else if (_posts.isEmpty)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(18, 10, 18, 40),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.photo_library_outlined,
-                        size: 38,
-                        color: Color(0xFF69736E),
-                      ),
-
-                      SizedBox(height: 10),
-
-                      Text(
-                        'No community posts yet.',
-                        style: TextStyle(
-                          color: Color(0xFF69736E),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-
-                      SizedBox(height: 4),
-
-                      Text(
-                        'Be the first to share an experience!',
-                        style: TextStyle(
-                          color: Color(0xFF929B96),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-
-          // ------------------------------------------------------------------
-          // POSTS FROM BACKEND
-          // ------------------------------------------------------------------
-
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final post = _posts[index];
-
-                  final userName = _getUserName(post);
-
-                  final placeName = _getPlaceName(post);
-
-                  final imageUrl = _getPostImage(post);
-
-                  final caption = post['caption']?.toString() ?? '';
-
-                  final time = _formatPostTime(
-                    post['createdAt'],
-                  );
-
-                  final likes = _getLikeCount(post);
-
-                  final comments = _getCommentCount(post);
-
-                  return Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      14,
-                      index == 0 ? 0 : 7,
-                      14,
-                      index == _posts.length - 1 ? 25 : 7,
-                    ),
-                    child: _CommunityPostCard(
-                      postId: int.tryParse(
-                        post['id']?.toString() ?? '',
-                      ),
-                      userName: userName,
-                      location: 'Visited $placeName',
-                      time: time,
-                      image: imageUrl,
-                      likes: likes,
-                      comments: comments,
-                      caption: caption,
-                      onDeleted: () {
-                        setState(() {
-                          _posts.removeWhere(
-                            (item) =>
-                                item['id']?.toString() ==
-                                post['id']?.toString(),
-                          );
-                        });
-                      },
-                    ),
-                  );
-                },
-                childCount: _posts.length,
-              ),
+          SliverToBoxAdapter(
+            child: CommunityFeed(
+              key: ValueKey(_feedKey),
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 25),
+              showHeader: false,
             ),
+          ),
         ],
       ),
     );
@@ -789,10 +488,7 @@ class _HomeBanner extends StatelessWidget {
   final VoidCallback onNotifications;
   final VoidCallback onProfile;
 
-  const _HomeBanner({
-    required this.onNotifications,
-    required this.onProfile,
-  });
+  const _HomeBanner({required this.onNotifications, required this.onProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -805,7 +501,6 @@ class _HomeBanner extends StatelessWidget {
           // ------------------------------------------------------------------
           // BANNER IMAGE
           // ------------------------------------------------------------------
-
           Image.asset(
             'assets/images/home_banner.jpg',
             fit: BoxFit.cover,
@@ -815,7 +510,6 @@ class _HomeBanner extends StatelessWidget {
           // ------------------------------------------------------------------
           // SOFT OVERLAY
           // ------------------------------------------------------------------
-
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -826,11 +520,7 @@ class _HomeBanner extends StatelessWidget {
                   Colors.white.withValues(alpha: 0.72),
                   Colors.white.withValues(alpha: 0.10),
                 ],
-                stops: const [
-                  0.0,
-                  0.45,
-                  1.0,
-                ],
+                stops: const [0.0, 0.45, 1.0],
               ),
             ),
           ),
@@ -838,7 +528,6 @@ class _HomeBanner extends StatelessWidget {
           // ------------------------------------------------------------------
           // HEADER
           // ------------------------------------------------------------------
-
           Positioned(
             top: 14,
             left: 18,
@@ -916,11 +605,8 @@ class _HomeBanner extends StatelessWidget {
                       child: Image.asset(
                         'assets/images/profile_2.jpg',
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) {
-                          return const Icon(
-                            Icons.person,
-                            color: primaryGreen,
-                          );
+                        errorBuilder: (_, _, _) {
+                          return const Icon(Icons.person, color: primaryGreen);
                         },
                       ),
                     ),
@@ -933,7 +619,6 @@ class _HomeBanner extends StatelessWidget {
           // ------------------------------------------------------------------
           // MAIN BANNER TITLE
           // ------------------------------------------------------------------
-
           const Positioned(
             left: 20,
             bottom: 22,
@@ -1018,13 +703,7 @@ class _HeaderCircleButton extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Center(
-              child: Icon(
-                icon,
-                color: const Color(0xFF174D37),
-                size: 22,
-              ),
-            ),
+            Center(child: Icon(icon, color: const Color(0xFF174D37), size: 22)),
 
             if (showDot)
               Positioned(
@@ -1055,9 +734,7 @@ class _SearchBar extends StatelessWidget {
 
   final VoidCallback onTap;
 
-  const _SearchBar({
-    required this.onTap,
-  });
+  const _SearchBar({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1069,22 +746,14 @@ class _SearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         child: Container(
           height: 55,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 17,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 17),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: const Color(0xFFD6DDD8),
-            ),
+            border: Border.all(color: const Color(0xFFD6DDD8)),
           ),
           child: const Row(
             children: [
-              Icon(
-                Icons.search_rounded,
-                size: 25,
-                color: Color(0xFF26372F),
-              ),
+              Icon(Icons.search_rounded, size: 25, color: Color(0xFF26372F)),
 
               SizedBox(width: 12),
 
@@ -1099,14 +768,54 @@ class _SearchBar extends StatelessWidget {
                 ),
               ),
 
-              Icon(
-                Icons.tune_rounded,
-                color: primaryGreen,
-                size: 22,
-              ),
+              Icon(Icons.tune_rounded, color: primaryGreen, size: 22),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TopPlacesMessage extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final VoidCallback? onRetry;
+
+  const _TopPlacesMessage({
+    required this.icon,
+    required this.message,
+    this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 118,
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE1E7E3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFF176B45), size: 30),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF69736E),
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
       ),
     );
   }
@@ -1119,15 +828,18 @@ class _SearchBar extends StatelessWidget {
 class _TrendingPlaceCard extends StatelessWidget {
   final String image;
   final String name;
-  final String likes;
+  final String countText;
   final VoidCallback? onTap;
 
   const _TrendingPlaceCard({
     required this.image,
     required this.name,
-    required this.likes,
+    required this.countText,
     this.onTap,
   });
+
+  bool get _isNetworkImage =>
+      image.startsWith('http://') || image.startsWith('https://');
 
   @override
   Widget build(BuildContext context) {
@@ -1142,59 +854,7 @@ class _TrendingPlaceCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    image,
-                    width: 105,
-                    height: 108,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
-                      return Container(
-                        width: 105,
-                        height: 108,
-                        color: const Color(0xFFE7EEE9),
-                        child: const Icon(
-                          Icons.account_balance_outlined,
-                          color: Color(0xFF176B45),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                Positioned(
-                  top: 7,
-                  left: 7,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF523C),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.local_fire_department,
-                          color: Colors.white,
-                          size: 10,
-                        ),
-
-                        SizedBox(width: 2),
-
-                        Text(
-                          'Trending',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 7,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: _buildImage(),
                 ),
 
                 Positioned(
@@ -1212,7 +872,7 @@ class _TrendingPlaceCard extends StatelessWidget {
                     child: Row(
                       children: [
                         const Icon(
-                          Icons.favorite,
+                          Icons.route_outlined,
                           size: 9,
                           color: Colors.white,
                         ),
@@ -1220,7 +880,7 @@ class _TrendingPlaceCard extends StatelessWidget {
                         const SizedBox(width: 3),
 
                         Text(
-                          likes,
+                          countText,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 8,
@@ -1248,6 +908,42 @@ class _TrendingPlaceCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (image.trim().isEmpty) {
+      return _placeholderImage();
+    }
+
+    if (_isNetworkImage) {
+      return Image.network(
+        image,
+        width: 105,
+        height: 108,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _placeholderImage(),
+      );
+    }
+
+    return Image.asset(
+      image,
+      width: 105,
+      height: 108,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => _placeholderImage(),
+    );
+  }
+
+  Widget _placeholderImage() {
+    return Container(
+      width: 105,
+      height: 108,
+      color: const Color(0xFFE7EEE9),
+      child: const Icon(
+        Icons.account_balance_outlined,
+        color: Color(0xFF176B45),
       ),
     );
   }
@@ -1281,8 +977,7 @@ class _CommunityPostCard extends StatefulWidget {
   });
 
   @override
-  State<_CommunityPostCard> createState() =>
-      _CommunityPostCardState();
+  State<_CommunityPostCard> createState() => _CommunityPostCardState();
 }
 
 class _CommunityPostCardState extends State<_CommunityPostCard> {
@@ -1304,9 +999,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text(
-              'Unable to identify this post.',
-            ),
+            content: Text('Unable to identify this post.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1318,31 +1011,19 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text(
-            'Delete Post',
-          ),
-          content: const Text(
-            'Are you sure you want to delete this post?',
-          ),
+          title: const Text('Delete Post'),
+          content: const Text('Are you sure you want to delete this post?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  false,
-                );
+                Navigator.pop(dialogContext, false);
               },
-              child: const Text(
-                'Cancel',
-              ),
+              child: const Text('Cancel'),
             ),
 
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  true,
-                );
+                Navigator.pop(dialogContext, true);
               },
               child: const Text(
                 'Delete',
@@ -1367,9 +1048,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       });
 
       // DELETE /api/posts/{id}
-      await _postService.deletePost(
-        postId,
-      );
+      await _postService.deletePost(postId);
 
       if (!mounted) {
         return;
@@ -1382,9 +1061,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text(
-              'Post deleted successfully.',
-            ),
+            content: Text('Post deleted successfully.'),
             backgroundColor: Color(0xFF176B45),
           ),
         );
@@ -1401,9 +1078,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text(
-              'Unable to delete post.',
-            ),
+            content: Text('Unable to delete post.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1427,7 +1102,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (_, _, _) {
           return _imagePlaceholder();
         },
       );
@@ -1439,7 +1114,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       width: double.infinity,
       height: double.infinity,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) {
+      errorBuilder: (_, _, _) {
         return _imagePlaceholder();
       },
     );
@@ -1455,11 +1130,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       height: double.infinity,
       color: const Color(0xFFE6EEE9),
       child: const Center(
-        child: Icon(
-          Icons.image_outlined,
-          size: 40,
-          color: Color(0xFF176B45),
-        ),
+        child: Icon(Icons.image_outlined, size: 40, color: Color(0xFF176B45)),
       ),
     );
   }
@@ -1475,14 +1146,10 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFE1E7E3),
-        ),
+        border: Border.all(color: const Color(0xFFE1E7E3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(
-              alpha: 0.035,
-            ),
+            color: Colors.black.withValues(alpha: 0.035),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1494,65 +1161,44 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
           // ------------------------------------------------------------------
           // USER INFORMATION
           // ------------------------------------------------------------------
-
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
                 const CircleAvatar(
                   radius: 21,
-                  backgroundColor: Color(
-                    0xFFE7EEE9,
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    color: Color(
-                      0xFF176B45,
-                    ),
-                  ),
+                  backgroundColor: Color(0xFFE7EEE9),
+                  child: Icon(Icons.person, color: Color(0xFF176B45)),
                 ),
 
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.userName,
                         maxLines: 1,
-                        overflow:
-                            TextOverflow.ellipsis,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Color(
-                            0xFF173D2E,
-                          ),
+                          color: Color(0xFF173D2E),
                           fontSize: 13,
-                          fontWeight:
-                              FontWeight.w700,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
 
-                      const SizedBox(
-                        height: 3,
-                      ),
+                      const SizedBox(height: 3),
 
                       Row(
                         children: [
                           const Icon(
                             Icons.location_on,
-                            color: Color(
-                              0xFFE5534B,
-                            ),
+                            color: Color(0xFFE5534B),
                             size: 11,
                           ),
 
-                          const SizedBox(
-                            width: 2,
-                          ),
+                          const SizedBox(width: 2),
 
                           Flexible(
                             child: Text(
@@ -1560,14 +1206,9 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                                   ? widget.location
                                   : '${widget.location} • ${widget.time}',
                               maxLines: 1,
-                              overflow:
-                                  TextOverflow
-                                      .ellipsis,
-                              style:
-                                  const TextStyle(
-                                color: Color(
-                                  0xFF7B8580,
-                                ),
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF7B8580),
                                 fontSize: 9,
                               ),
                             ),
@@ -1581,22 +1222,15 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                 // ------------------------------------------------------------
                 // THREE DOT MENU
                 // ------------------------------------------------------------
-
                 deleting
                     ? const Padding(
-                        padding:
-                            EdgeInsets.all(
-                          10,
-                        ),
+                        padding: EdgeInsets.all(10),
                         child: SizedBox(
                           width: 18,
                           height: 18,
-                          child:
-                              CircularProgressIndicator(
+                          child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Color(
-                              0xFF176B45,
-                            ),
+                            color: Color(0xFF176B45),
                           ),
                         ),
                       )
@@ -1604,42 +1238,29 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                         icon: const Icon(
                           Icons.more_horiz,
                           size: 20,
-                          color: Color(
-                            0xFF53645B,
-                          ),
+                          color: Color(0xFF53645B),
                         ),
                         onSelected: (value) {
-                          if (value ==
-                              'delete') {
+                          if (value == 'delete') {
                             _deletePost();
                           }
                         },
-                        itemBuilder:
-                            (context) => [
-                          const PopupMenuItem<
-                              String>(
+                        itemBuilder: (context) => [
+                          const PopupMenuItem<String>(
                             value: 'delete',
                             child: Row(
                               children: [
                                 Icon(
-                                  Icons
-                                      .delete_outline,
-                                  color:
-                                      Colors.red,
+                                  Icons.delete_outline,
+                                  color: Colors.red,
                                   size: 20,
                                 ),
-                                SizedBox(
-                                  width: 10,
-                                ),
+                                SizedBox(width: 10),
                                 Text(
                                   'Delete Post',
-                                  style:
-                                      TextStyle(
-                                    color:
-                                        Colors.red,
-                                    fontWeight:
-                                        FontWeight
-                                            .w600,
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
@@ -1654,7 +1275,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
           // ------------------------------------------------------------------
           // POST IMAGE
           // ------------------------------------------------------------------
-
           AspectRatio(
             aspectRatio: 1.55,
             child: Stack(
@@ -1666,27 +1286,20 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                   top: 10,
                   right: 10,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(
-                        alpha: 0.55,
-                      ),
-                      borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Text(
                       '1/1',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 9,
-                        fontWeight:
-                            FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -1698,15 +1311,8 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
           // ------------------------------------------------------------------
           // ACTIONS
           // ------------------------------------------------------------------
-
           Padding(
-            padding:
-                const EdgeInsets.fromLTRB(
-              11,
-              8,
-              11,
-              2,
-            ),
+            padding: const EdgeInsets.fromLTRB(11, 8, 11, 2),
             child: Row(
               children: [
                 InkWell(
@@ -1715,74 +1321,46 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                       liked = !liked;
                     });
                   },
-                  borderRadius:
-                      BorderRadius.circular(
-                    20,
-                  ),
+                  borderRadius: BorderRadius.circular(20),
                   child: Padding(
-                    padding:
-                        const EdgeInsets.all(
-                      4,
-                    ),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
-                      liked
-                          ? Icons.favorite
-                          : Icons
-                              .favorite_border,
+                      liked ? Icons.favorite : Icons.favorite_border,
                       color: liked
-                          ? const Color(
-                              0xFFE94747,
-                            )
-                          : const Color(
-                              0xFF25362E,
-                            ),
+                          ? const Color(0xFFE94747)
+                          : const Color(0xFF25362E),
                       size: 24,
                     ),
                   ),
                 ),
 
-                const SizedBox(
-                  width: 2,
-                ),
+                const SizedBox(width: 2),
 
                 Text(
                   widget.likes,
                   style: const TextStyle(
                     fontSize: 11,
-                    fontWeight:
-                        FontWeight.w600,
-                    color: Color(
-                      0xFF25362E,
-                    ),
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF25362E),
                   ),
                 ),
 
-                const SizedBox(
-                  width: 15,
-                ),
+                const SizedBox(width: 15),
 
                 const Icon(
-                  Icons
-                      .chat_bubble_outline_rounded,
+                  Icons.chat_bubble_outline_rounded,
                   size: 20,
-                  color: Color(
-                    0xFF25362E,
-                  ),
+                  color: Color(0xFF25362E),
                 ),
 
-                const SizedBox(
-                  width: 5,
-                ),
+                const SizedBox(width: 5),
 
                 Text(
                   widget.comments,
                   style: const TextStyle(
                     fontSize: 11,
-                    fontWeight:
-                        FontWeight.w600,
-                    color: Color(
-                      0xFF25362E,
-                    ),
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF25362E),
                   ),
                 ),
 
@@ -1794,24 +1372,13 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                       saved = !saved;
                     });
                   },
-                  borderRadius:
-                      BorderRadius.circular(
-                    20,
-                  ),
+                  borderRadius: BorderRadius.circular(20),
                   child: Padding(
-                    padding:
-                        const EdgeInsets.all(
-                      4,
-                    ),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
-                      saved
-                          ? Icons.bookmark
-                          : Icons
-                              .bookmark_border,
+                      saved ? Icons.bookmark : Icons.bookmark_border,
                       size: 23,
-                      color: const Color(
-                        0xFF176B45,
-                      ),
+                      color: const Color(0xFF176B45),
                     ),
                   ),
                 ),
@@ -1822,33 +1389,20 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
           // ------------------------------------------------------------------
           // CAPTION
           // ------------------------------------------------------------------
-
-          if (widget.caption
-              .trim()
-              .isNotEmpty)
+          if (widget.caption.trim().isNotEmpty)
             Padding(
-              padding:
-                  const EdgeInsets.fromLTRB(
-                15,
-                3,
-                15,
-                15,
-              ),
+              padding: const EdgeInsets.fromLTRB(15, 3, 15, 15),
               child: Text(
                 widget.caption,
                 style: const TextStyle(
-                  color: Color(
-                    0xFF4C5751,
-                  ),
+                  color: Color(0xFF4C5751),
                   fontSize: 10.5,
                   height: 1.4,
                 ),
               ),
             )
           else
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
         ],
       ),
     );

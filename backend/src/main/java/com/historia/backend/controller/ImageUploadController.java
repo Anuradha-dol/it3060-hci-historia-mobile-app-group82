@@ -1,6 +1,7 @@
 package com.historia.backend.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -17,14 +18,26 @@ import java.util.UUID;
 @RequestMapping("/api/uploads")
 public class ImageUploadController {
 
-    private static final Path UPLOAD_DIRECTORY =
-            Paths.get("uploads", "posts")
-                    .toAbsolutePath()
-                    .normalize();
-
     @PostMapping("/post-image")
     public ResponseEntity<Map<String, String>> uploadPostImage(
             @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        return uploadImage(file, "posts");
+    }
+
+    @PostMapping("/place-image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> uploadPlaceImage(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        return uploadImage(file, "places");
+    }
+
+    private ResponseEntity<Map<String, String>> uploadImage(
+            MultipartFile file,
+            String folder
     ) throws IOException {
 
         if (file.isEmpty()) {
@@ -49,7 +62,15 @@ public class ImageUploadController {
                     ));
         }
 
-        Files.createDirectories(UPLOAD_DIRECTORY);
+        Path uploadRoot =
+                resolveUploadRoot();
+
+        Path uploadDirectory =
+                uploadRoot
+                        .resolve(folder)
+                        .normalize();
+
+        Files.createDirectories(uploadDirectory);
 
         String originalFilename =
                 file.getOriginalFilename();
@@ -68,7 +89,7 @@ public class ImageUploadController {
                 UUID.randomUUID() + extension;
 
         Path destination =
-                UPLOAD_DIRECTORY.resolve(fileName);
+                uploadDirectory.resolve(fileName);
 
         Files.copy(
                 file.getInputStream(),
@@ -76,18 +97,53 @@ public class ImageUploadController {
                 StandardCopyOption.REPLACE_EXISTING
         );
 
-        String imageUrl =
+        String imagePath =
+                "/uploads/" + folder + "/" + fileName;
+
+        String absoluteImageUrl =
                 ServletUriComponentsBuilder
                         .fromCurrentContextPath()
-                        .path("/uploads/posts/")
-                        .path(fileName)
+                        .path(imagePath)
                         .toUriString();
 
         return ResponseEntity.ok(
                 Map.of(
                         "imageUrl",
-                        imageUrl
+                        imagePath,
+                        "absoluteImageUrl",
+                        absoluteImageUrl
                 )
         );
+    }
+
+    private Path resolveUploadRoot() {
+
+        Path currentDirectory =
+                Paths.get("")
+                        .toAbsolutePath()
+                        .normalize();
+
+        Path currentUploads =
+                currentDirectory
+                        .resolve("uploads")
+                        .normalize();
+
+        Path parentUploads =
+                currentDirectory
+                        .resolve("..")
+                        .resolve("uploads")
+                        .normalize();
+
+        Path directoryName =
+                currentDirectory.getFileName();
+
+        if (directoryName != null
+                && "backend".equalsIgnoreCase(directoryName.toString())
+                && Files.exists(parentUploads)) {
+
+            return parentUploads;
+        }
+
+        return currentUploads;
     }
 }

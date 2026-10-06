@@ -13,6 +13,8 @@ public class PostCreateRequest {
 
     private Long historicalPlaceId;
 
+    private String customPlaceName;
+
     private String caption;
 
     private List<String> imageUrls;

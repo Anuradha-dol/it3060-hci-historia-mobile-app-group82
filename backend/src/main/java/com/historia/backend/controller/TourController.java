@@ -2,6 +2,7 @@ package com.historia.backend.controller;
 
 import com.historia.backend.dto.TourCreateRequest;
 import com.historia.backend.dto.TourDto;
+import com.historia.backend.dto.TourPlaceStatusRequest;
 import com.historia.backend.entity.User;
 import com.historia.backend.service.TourService;
 import org.springframework.http.ResponseEntity;
@@ -107,6 +108,29 @@ public class TourController {
                 tourService.markPlaceCompleted(
                         tourId,
                         historicalPlaceId,
+                        loggedInUser.getId()
+                )
+        );
+    }
+
+    @PutMapping(
+            "/{tourId}/places/{historicalPlaceId}/status"
+    )
+    public ResponseEntity<TourDto> markPlaceStatus(
+            @PathVariable Long tourId,
+            @PathVariable Long historicalPlaceId,
+            @RequestBody TourPlaceStatusRequest request,
+            Authentication authentication
+    ) {
+
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
+        return ResponseEntity.ok(
+                tourService.markPlaceStatus(
+                        tourId,
+                        historicalPlaceId,
+                        request.isCompleted(),
                         loggedInUser.getId()
                 )
         );

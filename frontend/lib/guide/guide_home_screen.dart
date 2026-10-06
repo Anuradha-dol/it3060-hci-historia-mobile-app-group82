@@ -6,7 +6,9 @@ import '../profile/profile_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../services/guide_service.dart';
+import '../tourist/create_post_screen.dart';
 import '../tourist/notifications_screen.dart';
+import '../widgets/community_feed.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
 
@@ -30,6 +32,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
   GuideModel? _guide;
 
   int _index = 0;
+  int _feedKey = 0;
 
   bool _loading = true;
   bool _saving = false;
@@ -208,6 +211,19 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     });
   }
 
+  Future<void> _openCreatePost() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+    );
+
+    if (created == true && mounted) {
+      setState(() {
+        _feedKey++;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -226,7 +242,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8F5),
+      backgroundColor: const Color(0xFFF8FAF7),
 
       body: SafeArea(
         child: IndexedStack(index: _index, children: pages),
@@ -337,6 +353,30 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
                         _guideEditSection(guide),
                       ],
                     ],
+
+                    const SizedBox(height: 22),
+
+                    const _GuideSectionTitle(
+                      eyebrow: 'COMMUNITY',
+                      title: 'Guide feed',
+                      subtitle: 'Read and share historical discovery posts.',
+                    ),
+
+                    const SizedBox(height: 11),
+
+                    _GuidePrimaryButton(
+                      icon: Icons.add_circle_outline,
+                      label: 'Create Post',
+                      onPressed: _openCreatePost,
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    CommunityFeed(
+                      key: ValueKey(_feedKey),
+                      showHeader: false,
+                      onCreatePost: _openCreatePost,
+                    ),
                   ],
                 ),
         ),
@@ -795,7 +835,7 @@ class _GuideHomeHero extends StatelessWidget {
 
           end: Alignment.bottomRight,
 
-          colors: [Color(0xFF123B2D), Color(0xFF176247), Color(0xFF55916D)],
+          colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
         ),
       ),
 
@@ -812,7 +852,7 @@ class _GuideHomeHero extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
 
-                color: Colors.white.withValues(alpha: 0.055),
+                color: const Color(0xFF176A4C).withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -826,7 +866,7 @@ class _GuideHomeHero extends StatelessWidget {
 
               size: 135,
 
-              color: Colors.white.withValues(alpha: 0.07),
+              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
             ),
           ),
 
@@ -839,7 +879,7 @@ class _GuideHomeHero extends StatelessWidget {
 
               size: 120,
 
-              color: Colors.white.withValues(alpha: 0.055),
+              color: const Color(0xFF176A4C).withValues(alpha: 0.07),
             ),
           ),
 
@@ -852,11 +892,11 @@ class _GuideHomeHero extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const HistoriaLogoMark(dark: true, size: 36),
+                    const HistoriaLogoMark(size: 36),
 
                     const SizedBox(width: 9),
 
-                    const Expanded(child: HistoriaBrandText(dark: true)),
+                    const Expanded(child: HistoriaBrandText()),
 
                     IconButton(
                       tooltip: 'Notifications',
@@ -866,12 +906,15 @@ class _GuideHomeHero extends StatelessWidget {
                       icon: const Icon(
                         Icons.notifications_none_rounded,
 
-                        color: Colors.white,
+                        color: Color(0xFF176A4C),
                       ),
                     ),
 
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      icon: const Icon(
+                        Icons.more_vert,
+                        color: Color(0xFF176A4C),
+                      ),
 
                       onSelected: (value) {
                         switch (value) {
@@ -934,20 +977,18 @@ class _GuideHomeHero extends StatelessWidget {
                   ),
 
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.13),
+                    color: Colors.white.withValues(alpha: 0.70),
 
                     borderRadius: BorderRadius.circular(20),
 
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
+                    border: Border.all(color: const Color(0xFFD2E5D9)),
                   ),
 
                   child: const Text(
                     'GUIDE WORKSPACE',
 
                     style: TextStyle(
-                      color: Color(0xFFE2F2E9),
+                      color: Color(0xFF4D806A),
 
                       fontSize: 7,
 
@@ -968,7 +1009,7 @@ class _GuideHomeHero extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
 
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF133C2E),
 
                     fontSize: 25,
 
@@ -984,7 +1025,7 @@ class _GuideHomeHero extends StatelessWidget {
                   'Manage your HISTORIA guide profile and application.',
 
                   style: TextStyle(
-                    color: Color(0xFFCFE2D8),
+                    color: Color(0xFF596B62),
 
                     fontSize: 10,
 

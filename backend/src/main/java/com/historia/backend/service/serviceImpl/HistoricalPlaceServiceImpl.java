@@ -1,8 +1,10 @@
 package com.historia.backend.service.serviceImpl;
 
 import com.historia.backend.entity.HistoricalPlace;
+import com.historia.backend.enums.Role;
 import com.historia.backend.repository.HistoricalPlaceRepository;
 import com.historia.backend.service.HistoricalPlaceService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +22,49 @@ public class HistoricalPlaceServiceImpl implements HistoricalPlaceService {
     @Override
     public List<HistoricalPlace> getAllPlaces() {
         return historicalPlaceRepository.findAll();
+    }
+
+    @Override
+    public List<HistoricalPlace> getTopPlacesByTourCount(int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 5));
+
+        try {
+            List<HistoricalPlace> topPlaces =
+                    historicalPlaceRepository
+                            .findTopPlacesByTourCount(
+                                    Role.TOURIST,
+                                    PageRequest.of(0, safeLimit)
+                            )
+                            .stream()
+                            .map(row -> {
+                                HistoricalPlace place =
+                                        (HistoricalPlace) row[0];
+
+                                Number tourCount =
+                                        (Number) row[1];
+
+                                place.setTourCount(
+                                        tourCount.longValue()
+                                );
+
+                                return place;
+                            })
+                            .toList();
+
+            if (!topPlaces.isEmpty()) {
+                return topPlaces;
+            }
+        } catch (RuntimeException exception) {
+            // Fall back to image-backed places so the mobile home screen
+            // still has useful content if the aggregate query cannot run.
+        }
+
+        return historicalPlaceRepository
+                .findAll()
+                .stream()
+                .peek(place -> place.setTourCount(0L))
+                .limit(safeLimit)
+                .toList();
     }
 
     @Override
@@ -55,14 +100,17 @@ public class HistoricalPlaceServiceImpl implements HistoricalPlaceService {
                                 ));
 
         existingPlace.setName(updatedPlace.getName());
+        existingPlace.setSubtitle(updatedPlace.getSubtitle());
         existingPlace.setLocation(updatedPlace.getLocation());
         existingPlace.setDescription(updatedPlace.getDescription());
         existingPlace.setRating(updatedPlace.getRating());
+        existingPlace.setReviewCount(updatedPlace.getReviewCount());
         existingPlace.setEntranceFee(updatedPlace.getEntranceFee());
         existingPlace.setOpeningHours(updatedPlace.getOpeningHours());
         existingPlace.setLatitude(updatedPlace.getLatitude());
         existingPlace.setLongitude(updatedPlace.getLongitude());
         existingPlace.setMainImageUrl(updatedPlace.getMainImageUrl());
+        existingPlace.setGalleryImages(updatedPlace.getGalleryImages());
 
         return historicalPlaceRepository.save(existingPlace);
     }

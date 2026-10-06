@@ -1,6 +1,8 @@
 package com.historia.backend.controller;
 
 import com.historia.backend.dto.PostCreateRequest;
+import com.historia.backend.dto.PostCommentCreateRequest;
+import com.historia.backend.dto.PostCommentDto;
 import com.historia.backend.dto.PostDto;
 import com.historia.backend.entity.User;
 import com.historia.backend.service.PostService;
@@ -13,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
-@PreAuthorize("hasRole('TOURIST')")
+@PreAuthorize("hasAnyRole('TOURIST','GUIDE','ADMIN')")
 public class PostController {
 
     private final PostService postService;
@@ -66,6 +68,49 @@ public class PostController {
 
         return ResponseEntity.ok(
                 postService.likePost(id)
+        );
+    }
+
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<PostCommentDto>> getComments(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                postService.getComments(id)
+        );
+    }
+
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<PostCommentDto> addComment(
+            @PathVariable Long id,
+            @RequestBody PostCommentCreateRequest request,
+            Authentication authentication
+    ) {
+
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
+        return ResponseEntity.ok(
+                postService.addComment(
+                        id,
+                        request,
+                        loggedInUser.getId()
+                )
+        );
+    }
+
+    @PutMapping("/{postId}/comments/{commentId}/like")
+    public ResponseEntity<PostCommentDto> likeComment(
+            @PathVariable Long postId,
+            @PathVariable Long commentId
+    ) {
+
+        return ResponseEntity.ok(
+                postService.likeComment(
+                        postId,
+                        commentId
+                )
         );
     }
 

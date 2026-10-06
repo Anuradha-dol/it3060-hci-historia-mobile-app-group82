@@ -54,3 +54,10 @@ backend/src/main/resources/application-secret.yaml
 ### OS files ###
 .DS_Store
 Thumbs.db
+
+### Local runtime and verification artifacts ###
+uploads/
+frontend/*.png
+frontend/*.out
+frontend/*.err
+frontend/lib/ima/

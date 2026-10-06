@@ -12,8 +12,7 @@ class HistoricalSearchScreen extends StatefulWidget {
   const HistoricalSearchScreen({super.key});
 
   @override
-  State<HistoricalSearchScreen> createState() =>
-      _HistoricalSearchScreenState();
+  State<HistoricalSearchScreen> createState() => _HistoricalSearchScreenState();
 }
 
 class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
@@ -135,12 +134,9 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
     _debounce?.cancel();
 
-    _debounce = Timer(
-      const Duration(milliseconds: 450),
-      () {
-        _searchPlaces(value);
-      },
-    );
+    _debounce = Timer(const Duration(milliseconds: 450), () {
+      _searchPlaces(value);
+    });
   }
 
   void _clearSearch() {
@@ -210,9 +206,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => HistoricalPlaceDetailsScreen(
-            place: latestPlace,
-          ),
+          builder: (_) => HistoricalPlaceDetailsScreen(place: latestPlace),
         ),
       );
     } catch (error) {
@@ -248,7 +242,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                 onRefresh: _refresh,
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
+                    parent: ClampingScrollPhysics(),
                   ),
                   padding: const EdgeInsets.only(bottom: 32),
                   children: [
@@ -258,22 +252,19 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
                     const SizedBox(height: 24),
 
-                    if (selectedTab == 'All' ||
-                        selectedTab == 'Places')
+                    if (selectedTab == 'All' || selectedTab == 'Places')
                       _buildPlacesSection(),
 
                     if (!_loading &&
                         _error == null &&
                         _places.isNotEmpty &&
-                        (selectedTab == 'All' ||
-                            selectedTab == 'Posts'))
+                        (selectedTab == 'All' || selectedTab == 'Posts'))
                       _buildPosts(),
 
                     if (!_loading &&
                         _error == null &&
                         _places.isNotEmpty &&
-                        (selectedTab == 'All' ||
-                            selectedTab == 'People'))
+                        (selectedTab == 'All' || selectedTab == 'People'))
                       _buildPeople(),
                   ],
                 ),
@@ -292,12 +283,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   Widget _buildHeader() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(
-        14,
-        14,
-        20,
-        10,
-      ),
+      padding: const EdgeInsets.fromLTRB(14, 14, 20, 10),
       child: Row(
         children: [
           InkWell(
@@ -337,12 +323,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   Widget _buildSearchBar() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        14,
-        20,
-        16,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
       child: TextField(
         controller: _searchController,
         autofocus: false,
@@ -358,10 +339,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
         decoration: InputDecoration(
           hintText: 'Search historical places',
 
-          hintStyle: const TextStyle(
-            color: Color(0xFF7D8580),
-            fontSize: 15,
-          ),
+          hintStyle: const TextStyle(color: Color(0xFF7D8580), fontSize: 15),
 
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -376,11 +354,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                   icon: const CircleAvatar(
                     radius: 12,
                     backgroundColor: Color(0xFFC5CBC7),
-                    child: Icon(
-                      Icons.close,
-                      size: 15,
-                      color: Colors.white,
-                    ),
+                    child: Icon(Icons.close, size: 15, color: Colors.white),
                   ),
                 )
               : null,
@@ -395,17 +369,12 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFC8DDD0),
-            ),
+            borderSide: const BorderSide(color: Color(0xFFC8DDD0)),
           ),
 
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: primaryGreen,
-              width: 1.5,
-            ),
+            borderSide: const BorderSide(color: primaryGreen, width: 1.5),
           ),
         ),
       ),
@@ -417,22 +386,13 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   // ============================================================
 
   Widget _buildTabs() {
-    const tabs = [
-      'All',
-      'Places',
-      'Posts',
-      'People',
-    ];
+    const tabs = ['All', 'Places', 'Posts', 'People'];
 
     return Container(
-             decoration: const BoxDecoration(
-               color: Colors.white,
-               border: Border(
-                 bottom: BorderSide(
-                   color: Color(0xFFE5EAE6),
-                 ),
-               ),
-             ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE5EAE6))),
+      ),
 
       child: Row(
         children: tabs.map((tab) {
@@ -446,16 +406,11 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 15,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 15),
                 decoration: BoxDecoration(
                   border: selected
                       ? const Border(
-                          bottom: BorderSide(
-                            color: primaryGreen,
-                            width: 3,
-                          ),
+                          bottom: BorderSide(color: primaryGreen, width: 3),
                         )
                       : null,
                 ),
@@ -464,12 +419,8 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: selected
-                        ? FontWeight.w800
-                        : FontWeight.w500,
-                    color: selected
-                        ? primaryGreen
-                        : const Color(0xFF7A817D),
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                    color: selected ? primaryGreen : const Color(0xFF7A817D),
                   ),
                 ),
               ),
@@ -486,9 +437,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
   Widget _buildPlacesSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -505,9 +454,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                 ),
               ),
 
-              if (!_loading &&
-                  _error == null &&
-                  _places.isNotEmpty)
+              if (!_loading && _error == null && _places.isNotEmpty)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -540,9 +487,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
           else
             ..._places.map(
               (place) => Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 13,
-                ),
+                padding: const EdgeInsets.only(bottom: 13),
                 child: _buildPlaceCard(place),
               ),
             ),
@@ -555,9 +500,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   // PLACE CARD
   // ============================================================
 
-  Widget _buildPlaceCard(
-    HistoricalPlaceModel place,
-  ) {
+  Widget _buildPlaceCard(HistoricalPlaceModel place) {
     return Material(
       color: const Color(0xFFF5FBF7),
       borderRadius: BorderRadius.circular(18),
@@ -570,25 +513,17 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: const Color(0xFFAAD8BD),
-            ),
+            border: Border.all(color: const Color(0xFFAAD8BD)),
           ),
           child: Row(
             children: [
-              _buildPlaceImage(
-                place,
-                width: 112,
-                height: 112,
-                radius: 13,
-              ),
+              _buildPlaceImage(place, width: 112, height: 112, radius: 13),
 
               const SizedBox(width: 14),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       place.name,
@@ -604,8 +539,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                     const SizedBox(height: 7),
 
                     Row(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.location_on_rounded,
@@ -712,24 +646,18 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     required double height,
     required double radius,
   }) {
-    final String imagePath =
-        place.mainImageUrl?.trim() ?? '';
+    final String imagePath = place.mainImageUrl?.trim() ?? '';
 
     Widget image;
 
-    if (imagePath.startsWith('http://') ||
-        imagePath.startsWith('https://')) {
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       image = Image.network(
         imagePath,
         width: width,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _buildFallbackImage(
-            place,
-            width,
-            height,
-          );
+        errorBuilder: (_, _, _) {
+          return _buildFallbackImage(place, width, height);
         },
       );
     } else if (imagePath.startsWith('assets/')) {
@@ -737,8 +665,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
       if (imagePath.startsWith('assets/') &&
           !imagePath.startsWith('assets/images/')) {
-        correctedPath =
-            imagePath.replaceFirst('assets/', 'assets/images/');
+        correctedPath = imagePath.replaceFirst('assets/', 'assets/images/');
       }
 
       image = Image.asset(
@@ -746,26 +673,15 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
         width: width,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _buildFallbackImage(
-            place,
-            width,
-            height,
-          );
+        errorBuilder: (_, _, _) {
+          return _buildFallbackImage(place, width, height);
         },
       );
     } else {
-      image = _buildFallbackImage(
-        place,
-        width,
-        height,
-      );
+      image = _buildFallbackImage(place, width, height);
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: image,
-    );
+    return ClipRRect(borderRadius: BorderRadius.circular(radius), child: image);
   }
 
   Widget _buildFallbackImage(
@@ -773,8 +689,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     double width,
     double height,
   ) {
-    final fallbackAsset =
-        _localImageForPlace(place.name);
+    final fallbackAsset = _localImageForPlace(place.name);
 
     if (fallbackAsset != null) {
       return Image.asset(
@@ -782,25 +697,16 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
         width: width,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _buildImagePlaceholder(
-            width,
-            height,
-          );
+        errorBuilder: (_, _, _) {
+          return _buildImagePlaceholder(width, height);
         },
       );
     }
 
-    return _buildImagePlaceholder(
-      width,
-      height,
-    );
+    return _buildImagePlaceholder(width, height);
   }
 
-  Widget _buildImagePlaceholder(
-    double width,
-    double height,
-  ) {
+  Widget _buildImagePlaceholder(double width, double height) {
     return Container(
       width: width,
       height: height,
@@ -848,9 +754,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   Widget _buildLoadingState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        vertical: 50,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 50),
       child: const Column(
         children: [
           SizedBox(
@@ -866,10 +770,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
           Text(
             'Loading historical places...',
-            style: TextStyle(
-              color: Color(0xFF6F7C75),
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Color(0xFF6F7C75), fontSize: 13),
           ),
         ],
       ),
@@ -883,16 +784,11 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   Widget _buildErrorState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 22,
-        vertical: 38,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 38),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFAF8),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFF0DDD5),
-        ),
+        border: Border.all(color: const Color(0xFFF0DDD5)),
       ),
       child: Column(
         children: [
@@ -917,8 +813,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
           const SizedBox(height: 7),
 
           Text(
-            _error ??
-                'Something went wrong.',
+            _error ?? 'Something went wrong.',
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF817772),
@@ -931,19 +826,13 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
           ElevatedButton.icon(
             onPressed: _refresh,
-            icon: const Icon(
-              Icons.refresh_rounded,
-              size: 19,
-            ),
+            icon: const Icon(Icons.refresh_rounded, size: 19),
             label: const Text('Try Again'),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryGreen,
               foregroundColor: Colors.white,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 11,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(25),
               ),
@@ -959,15 +848,11 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
   // ============================================================
 
   Widget _buildEmptyState() {
-    final bool searching =
-        searchQuery.trim().isNotEmpty;
+    final bool searching = searchQuery.trim().isNotEmpty;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        vertical: 48,
-        horizontal: 20,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
       child: Column(
         children: [
           const Icon(
@@ -1009,16 +894,9 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
             TextButton.icon(
               onPressed: _clearSearch,
-              icon: const Icon(
-                Icons.close_rounded,
-                size: 18,
-              ),
-              label: const Text(
-                'Clear Search',
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: primaryGreen,
-              ),
+              icon: const Icon(Icons.close_rounded, size: 18),
+              label: const Text('Clear Search'),
+              style: TextButton.styleFrom(foregroundColor: primaryGreen),
             ),
           ],
         ],
@@ -1037,12 +915,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     final HistoricalPlaceModel place = _places.first;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        23,
-        20,
-        0,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 23, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1067,10 +940,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                 },
                 child: const Text(
                   'See all',
-                  style: TextStyle(
-                    color: Color(0xFF747E78),
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: Color(0xFF747E78), fontSize: 11),
                 ),
               ),
             ],
@@ -1121,25 +991,17 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
           padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFFE0E5E1),
-            ),
+            border: Border.all(color: const Color(0xFFE0E5E1)),
           ),
           child: Row(
             children: [
-              _buildPlaceImage(
-                place,
-                width: 86,
-                height: 78,
-                radius: 11,
-              ),
+              _buildPlaceImage(place, width: 86, height: 78, radius: 11),
 
               const SizedBox(width: 12),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
@@ -1171,8 +1033,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                       children: [
                         CircleAvatar(
                           radius: 7,
-                          backgroundColor:
-                              Color(0xFFE5EEE8),
+                          backgroundColor: Color(0xFFE5EEE8),
                           child: Icon(
                             Icons.person,
                             size: 9,
@@ -1186,8 +1047,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                           child: Text(
                             '@travelwithsara • 2 days ago',
                             maxLines: 1,
-                            overflow:
-                                TextOverflow.ellipsis,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: Color(0xFF9AA09C),
                               fontSize: 8.5,
@@ -1200,10 +1060,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                 ),
               ),
 
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Color(0xFFA7B0AA),
-              ),
+              const Icon(Icons.chevron_right_rounded, color: Color(0xFFA7B0AA)),
             ],
           ),
         ),
@@ -1220,12 +1077,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
   Widget _buildPeople() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        24,
-        20,
-        20,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1250,10 +1102,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                 },
                 child: const Text(
                   'See all',
-                  style: TextStyle(
-                    color: Color(0xFF747E78),
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: Color(0xFF747E78), fontSize: 11),
                 ),
               ),
             ],
@@ -1266,9 +1115,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFE0E5E1),
-              ),
+              border: Border.all(color: const Color(0xFFE0E5E1)),
             ),
             child: Row(
               children: [
@@ -1278,15 +1125,12 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
                     width: 54,
                     height: 54,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
+                    errorBuilder: (_, _, _) {
                       return Container(
                         width: 54,
                         height: 54,
                         color: const Color(0xFFE5EEE8),
-                        child: const Icon(
-                          Icons.person,
-                          color: primaryGreen,
-                        ),
+                        child: const Icon(Icons.person, color: primaryGreen),
                       );
                     },
                   ),
@@ -1296,8 +1140,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
                 const Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Heritage Explorer',
@@ -1349,8 +1192,7 @@ class _FollowButton extends StatefulWidget {
   const _FollowButton();
 
   @override
-  State<_FollowButton> createState() =>
-      _FollowButtonState();
+  State<_FollowButton> createState() => _FollowButtonState();
 }
 
 class _FollowButtonState extends State<_FollowButton> {
@@ -1366,28 +1208,17 @@ class _FollowButtonState extends State<_FollowButton> {
         });
       },
       child: AnimatedContainer(
-        duration: const Duration(
-          milliseconds: 180,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 15,
-          vertical: 8,
-        ),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
         decoration: BoxDecoration(
-          color: _following
-              ? const Color(0xFF19784E)
-              : const Color(0xFFEAF5EE),
+          color: _following ? const Color(0xFF19784E) : const Color(0xFFEAF5EE),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: const Color(0xFFAAD8BD),
-          ),
+          border: Border.all(color: const Color(0xFFAAD8BD)),
         ),
         child: Text(
           _following ? 'Following' : 'Follow',
           style: TextStyle(
-            color: _following
-                ? Colors.white
-                : const Color(0xFF19784E),
+            color: _following ? Colors.white : const Color(0xFF19784E),
             fontSize: 10,
             fontWeight: FontWeight.w800,
           ),

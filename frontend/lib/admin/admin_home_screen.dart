@@ -6,9 +6,12 @@ import '../profile/profile_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/admin_guide_service.dart';
 import '../services/api_service.dart';
+import '../tourist/create_post_screen.dart';
 import '../tourist/notifications_screen.dart';
+import '../widgets/community_feed.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
+import 'admin_place_manager_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -21,6 +24,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   static const _statuses = ['PENDING', 'NEEDS_WORK', 'APPROVED', 'REJECTED'];
 
   final _service = AdminGuideService();
+  final _dashboardScrollController = ScrollController(keepScrollOffset: false);
 
   final Map<String, List<GuideModel>> _guidesByStatus = {
     for (final status in _statuses) status: <GuideModel>[],
@@ -29,6 +33,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   String _selectedStatus = 'PENDING';
 
   int _index = 0;
+  int _feedKey = 0;
 
   bool _loading = true;
 
@@ -36,6 +41,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   void initState() {
     super.initState();
     _loadAll();
+    _resetDashboardScroll();
+  }
+
+  @override
+  void dispose() {
+    _dashboardScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAll() async {
@@ -72,6 +84,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         setState(() {
           _loading = false;
         });
+
+        if (_index == 0) {
+          _resetDashboardScroll();
+        }
       }
     }
   }
@@ -223,40 +239,55 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     setState(() {
       _index = index;
     });
+
+    if (index == 0) {
+      _resetDashboardScroll();
+    }
+  }
+
+  void _resetDashboardScroll() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_dashboardScrollController.hasClients) {
+        return;
+      }
+
+      _dashboardScrollController.jumpTo(0);
+    });
   }
 
   void _openApplications({String status = 'PENDING'}) {
     setState(() {
       _selectedStatus = status;
-      _index = 1;
+      _index = 2;
     });
+  }
+
+  Future<void> _openCreatePost() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+    );
+
+    if (created == true && mounted) {
+      setState(() {
+        _feedKey++;
+      });
+    }
+  }
+
+  void _openPlaceManager() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminPlaceManagerScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      _dashboard(),
-      _applications(),
-      _guidesDirectory(),
-
-      const NotificationsContent(roleLabel: 'ADMIN ACCOUNT'),
-
-      RoleProfileContent(
-        onAdminApplications: () {
-          _openApplications();
-        },
-        onNotifications: () {
-          _setIndex(3);
-        },
-      ),
-    ];
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8F5),
+      backgroundColor: const Color(0xFFF8FAF7),
 
-      body: SafeArea(
-        child: IndexedStack(index: _index, children: pages),
-      ),
+      body: SafeArea(child: _currentPage()),
 
       bottomNavigationBar: HistoriaBottomNavigation(
         currentIndex: _index,
@@ -268,9 +299,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             label: 'Dashboard',
           ),
           HistoriaNavItem(
-            icon: Icons.fact_check_outlined,
-            activeIcon: Icons.fact_check_rounded,
-            label: 'Apps',
+            icon: Icons.dynamic_feed_outlined,
+            activeIcon: Icons.dynamic_feed_rounded,
+            label: 'Feed',
           ),
           HistoriaNavItem(
             icon: Icons.badge_outlined,
@@ -292,6 +323,33 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
+  Widget _currentPage() {
+    switch (_index) {
+      case 1:
+        return _feedPage();
+
+      case 2:
+        return _guidesManagement();
+
+      case 3:
+        return const NotificationsContent(roleLabel: 'ADMIN ACCOUNT');
+
+      case 4:
+        return RoleProfileContent(
+          onAdminApplications: () {
+            _openApplications();
+          },
+          onNotifications: () {
+            _setIndex(3);
+          },
+        );
+
+      case 0:
+      default:
+        return _dashboard();
+    }
+  }
+
   Widget _dashboard() {
     final user = context.watch<AuthProvider>().user;
 
@@ -306,7 +364,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     final total =
         pending.length + needsWork.length + approved.length + rejected.length;
 
+    final reviewQueue = <GuideModel>[...pending, ...needsWork];
+
     return ListView(
+      key: const PageStorageKey('admin-dashboard'),
+      controller: _dashboardScrollController,
       physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
@@ -375,11 +437,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   const Expanded(
                     child: _AdminSectionTitle(
                       eyebrow: 'REVIEW QUEUE',
-                      title: 'Pending applications',
-                      subtitle: 'Applications waiting for an admin decision.',
+                      title: 'Review summary',
+                      subtitle:
+                          'Pending and needs-work applications that need attention.',
                     ),
                   ),
-                  if (pending.isNotEmpty)
+                  if (reviewQueue.isNotEmpty)
                     TextButton(
                       onPressed: () {
                         _openApplications(status: 'PENDING');
@@ -397,15 +460,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               const SizedBox(height: 11),
 
-              if (pending.isEmpty)
+              if (reviewQueue.isEmpty)
                 const _AdminEmptyState(
                   icon: Icons.task_alt_rounded,
                   title: 'Review queue is clear',
-                  message: 'There are no pending guide applications right now.',
+                  message:
+                      'There are no pending or needs-work applications right now.',
                 )
               else
-                ...pending
-                    .take(3)
+                ...reviewQueue
+                    .take(4)
                     .map(
                       (guide) => _CompactGuideCard(
                         guide: guide,
@@ -421,7 +485,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 eyebrow: 'MANAGEMENT',
                 title: 'Admin tools',
                 subtitle:
-                    'Access the guide review functions available in this build.',
+                    'Quick access to admin workspaces and review actions.',
               ),
 
               const SizedBox(height: 11),
@@ -431,8 +495,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   Expanded(
                     child: _AdminShortcutCard(
                       icon: Icons.fact_check_outlined,
-                      title: 'Applications',
-                      subtitle: 'Review guide status',
+                      title: 'Guides',
+                      subtitle: 'Review applications',
                       onTap: () {
                         _openApplications();
                       },
@@ -441,11 +505,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _AdminShortcutCard(
-                      icon: Icons.badge_outlined,
-                      title: 'Directory',
-                      subtitle: 'Browse guide records',
+                      icon: Icons.dynamic_feed_outlined,
+                      title: 'Feed',
+                      subtitle: 'Manage posts',
                       onTap: () {
-                        _setIndex(2);
+                        _setIndex(1);
                       },
                     ),
                   ),
@@ -459,8 +523,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   Expanded(
                     child: _AdminShortcutCard(
                       icon: Icons.notifications_none_rounded,
-                      title: 'Notifications',
-                      subtitle: 'Account alerts',
+                      title: 'Alerts',
+                      subtitle: 'Admin messages',
                       onTap: () {
                         _setIndex(3);
                       },
@@ -469,12 +533,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _AdminShortcutCard(
-                      icon: Icons.person_outline,
-                      title: 'Profile',
-                      subtitle: 'Admin account',
-                      onTap: () {
-                        _setIndex(4);
-                      },
+                      icon: Icons.account_balance_outlined,
+                      title: 'Places',
+                      subtitle: 'Add historical places',
+                      onTap: _openPlaceManager,
                     ),
                   ),
                 ],
@@ -486,18 +548,68 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _applications() {
-    final guides = _guidesByStatus[_selectedStatus] ?? [];
-
+  Widget _feedPage() {
     return ListView(
+      key: const PageStorageKey('admin-feed'),
       physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
         _AdminSubpageHeader(
-          eyebrow: 'ADMIN / REVIEWS',
-          title: 'Guide applications',
-          subtitle: 'Review applications by their current status.',
-          icon: Icons.fact_check_outlined,
+          eyebrow: 'ADMIN / FEED',
+          title: 'Feed',
+          subtitle: 'Review community posts and publish official updates.',
+          icon: Icons.dynamic_feed_outlined,
+          onRefresh: () {
+            setState(() {
+              _feedKey++;
+            });
+          },
+        ),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _FeedActionCard(onCreatePost: _openCreatePost),
+
+              const SizedBox(height: 16),
+
+              CommunityFeed(
+                key: ValueKey(_feedKey),
+                onCreatePost: _openCreatePost,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _guidesManagement() {
+    final guides = _guidesByStatus[_selectedStatus] ?? [];
+
+    final pending = _guidesByStatus['PENDING'] ?? [];
+
+    final approved = _guidesByStatus['APPROVED'] ?? [];
+
+    final needsWork = _guidesByStatus['NEEDS_WORK'] ?? [];
+
+    final rejected = _guidesByStatus['REJECTED'] ?? [];
+
+    final total =
+        pending.length + needsWork.length + approved.length + rejected.length;
+
+    return ListView(
+      key: const PageStorageKey('admin-guides-management'),
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.zero,
+      children: [
+        _AdminSubpageHeader(
+          eyebrow: 'ADMIN / GUIDES',
+          title: 'Guide management',
+          subtitle: 'Review applications and maintain the approved directory.',
+          icon: Icons.badge_outlined,
           onRefresh: _loadAll,
         ),
 
@@ -506,6 +618,53 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (_loading) ...[
+                const LinearProgressIndicator(
+                  minHeight: 3,
+                  color: Color(0xFF176D4E),
+                  backgroundColor: Color(0xFFDDE9E2),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              const _AdminSectionTitle(
+                eyebrow: 'SUMMARY',
+                title: 'Application overview',
+                subtitle: 'Counts across the active guide review pipeline.',
+              ),
+
+              const SizedBox(height: 12),
+
+              _AdminStatsGrid(
+                pending: pending.length,
+                approved: approved.length,
+                needsWork: needsWork.length,
+                rejected: rejected.length,
+                total: total,
+                onPending: () {
+                  setState(() {
+                    _selectedStatus = 'PENDING';
+                  });
+                },
+                onApproved: () {
+                  setState(() {
+                    _selectedStatus = 'APPROVED';
+                  });
+                },
+                onNeedsWork: () {
+                  setState(() {
+                    _selectedStatus = 'NEEDS_WORK';
+                  });
+                },
+                onRejected: () {
+                  setState(() {
+                    _selectedStatus = 'REJECTED';
+                  });
+                },
+              ),
+
+              const SizedBox(height: 22),
+
               const _AdminSectionTitle(
                 eyebrow: 'FILTER',
                 title: 'Application status',
@@ -534,15 +693,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
 
               const SizedBox(height: 20),
-
-              if (_loading) ...[
-                const LinearProgressIndicator(
-                  minHeight: 3,
-                  color: Color(0xFF176D4E),
-                  backgroundColor: Color(0xFFDDE9E2),
-                ),
-                const SizedBox(height: 16),
-              ],
 
               Row(
                 children: [
@@ -573,45 +723,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 )
               else
                 ...guides.map(_reviewGuideCard),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _guidesDirectory() {
-    final approved = _guidesByStatus['APPROVED'] ?? [];
-
-    final needsWork = _guidesByStatus['NEEDS_WORK'] ?? [];
-
-    final rejected = _guidesByStatus['REJECTED'] ?? [];
-
-    return ListView(
-      physics: const ClampingScrollPhysics(),
-      padding: EdgeInsets.zero,
-      children: [
-        _AdminSubpageHeader(
-          eyebrow: 'ADMIN / GUIDES',
-          title: 'Guide directory',
-          subtitle: 'Browse guide applications grouped by review state.',
-          icon: Icons.badge_outlined,
-          onRefresh: _loadAll,
-        ),
-
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_loading) ...[
-                const LinearProgressIndicator(
-                  minHeight: 3,
-                  color: Color(0xFF176D4E),
-                  backgroundColor: Color(0xFFDDE9E2),
-                ),
-                const SizedBox(height: 16),
-              ],
+              const SizedBox(height: 24),
 
               _DirectoryHeading(
                 status: 'APPROVED',
@@ -633,59 +746,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     guide: guide,
                     onTap: () {
                       _openApplications(status: 'APPROVED');
-                    },
-                  ),
-                ),
-
-              const SizedBox(height: 22),
-
-              _DirectoryHeading(
-                status: 'NEEDS_WORK',
-                title: 'Needs work',
-                count: needsWork.length,
-              ),
-
-              const SizedBox(height: 10),
-
-              if (needsWork.isEmpty)
-                const _AdminEmptyState(
-                  icon: Icons.edit_note_outlined,
-                  title: 'No applications need changes',
-                  message:
-                      'Guide applications requiring updates will appear here.',
-                )
-              else
-                ...needsWork.map(
-                  (guide) => _CompactGuideCard(
-                    guide: guide,
-                    onTap: () {
-                      _openApplications(status: 'NEEDS_WORK');
-                    },
-                  ),
-                ),
-
-              const SizedBox(height: 22),
-
-              _DirectoryHeading(
-                status: 'REJECTED',
-                title: 'Rejected',
-                count: rejected.length,
-              ),
-
-              const SizedBox(height: 10),
-
-              if (rejected.isEmpty)
-                const _AdminEmptyState(
-                  icon: Icons.cancel_outlined,
-                  title: 'No rejected applications',
-                  message: 'Rejected guide applications will appear here.',
-                )
-              else
-                ...rejected.map(
-                  (guide) => _CompactGuideCard(
-                    guide: guide,
-                    onTap: () {
-                      _openApplications(status: 'REJECTED');
                     },
                   ),
                 ),
@@ -964,7 +1024,7 @@ class _AdminHero extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF102F27), Color(0xFF174F3C), Color(0xFF276B50)],
+          colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
         ),
       ),
       child: Stack(
@@ -977,7 +1037,7 @@ class _AdminHero extends StatelessWidget {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.045),
+                color: const Color(0xFF176A4C).withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -988,7 +1048,7 @@ class _AdminHero extends StatelessWidget {
             child: Icon(
               Icons.admin_panel_settings_outlined,
               size: 140,
-              color: Colors.white.withValues(alpha: 0.055),
+              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
             ),
           ),
 
@@ -999,13 +1059,12 @@ class _AdminHero extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const HistoriaLogoMark(dark: true, size: 36),
+                    const HistoriaLogoMark(size: 36),
 
                     const SizedBox(width: 9),
 
                     const Expanded(
                       child: HistoriaBrandText(
-                        dark: true,
                         subtitle: 'ADMINISTRATION / GUIDE REVIEW',
                       ),
                     ),
@@ -1015,12 +1074,15 @@ class _AdminHero extends StatelessWidget {
                       onPressed: onApplications,
                       icon: const Icon(
                         Icons.fact_check_outlined,
-                        color: Colors.white,
+                        color: Color(0xFF176A4C),
                       ),
                     ),
 
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      icon: const Icon(
+                        Icons.more_vert,
+                        color: Color(0xFF176A4C),
+                      ),
                       onSelected: (value) {
                         switch (value) {
                           case 'refresh':
@@ -1078,16 +1140,14 @@ class _AdminHero extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: Colors.white.withValues(alpha: 0.70),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.13),
-                    ),
+                    border: Border.all(color: const Color(0xFFD2E5D9)),
                   ),
                   child: const Text(
                     'ADMIN DASHBOARD',
                     style: TextStyle(
-                      color: Color(0xFFE1F0E8),
+                      color: Color(0xFF4D806A),
                       fontSize: 7,
                       letterSpacing: 1,
                       fontWeight: FontWeight.w800,
@@ -1102,7 +1162,7 @@ class _AdminHero extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF133C2E),
                     fontSize: 25,
                     height: 1,
                     fontWeight: FontWeight.w900,
@@ -1114,7 +1174,7 @@ class _AdminHero extends StatelessWidget {
                 const Text(
                   'Review guide applications and manage their approval status.',
                   style: TextStyle(
-                    color: Color(0xFFCEE2D8),
+                    color: Color(0xFF596B62),
                     fontSize: 10,
                     height: 1.35,
                   ),
@@ -1561,6 +1621,87 @@ class _AdminShortcutCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _FeedActionCard extends StatelessWidget {
+  final VoidCallback onCreatePost;
+
+  const _FeedActionCard({required this.onCreatePost});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF173F32),
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12083A29),
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.edit_square, color: Colors.white, size: 21),
+          ),
+
+          const SizedBox(width: 12),
+
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Admin publishing',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Create official updates for the community feed.',
+                  style: TextStyle(
+                    color: Color(0xFFD5E9DF),
+                    fontSize: 8.6,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          FilledButton.icon(
+            onPressed: onCreatePost,
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF173F32),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              textStyle: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 17),
+            label: const Text('Create Post'),
+          ),
+        ],
       ),
     );
   }

@@ -37,6 +37,9 @@ public class HistoricalPlace {
 
     private String mainImageUrl;
 
+    @Transient
+    private Long tourCount = 0L;
+
     // Load gallery images together with the historical place.
     // This prevents LazyInitializationException during JSON serialization.
     @ElementCollection(fetch = FetchType.EAGER)
@@ -144,6 +147,16 @@ public class HistoricalPlace {
 
     public void setMainImageUrl(String mainImageUrl) {
         this.mainImageUrl = mainImageUrl;
+    }
+
+    public Long getTourCount() {
+        return tourCount;
+    }
+
+    public void setTourCount(Long tourCount) {
+        this.tourCount = tourCount != null
+                ? tourCount
+                : 0L;
     }
 
     public List<String> getGalleryImages() {

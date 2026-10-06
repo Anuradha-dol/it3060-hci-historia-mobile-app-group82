@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../models/historical_place_model.dart';
+import 'create_post_screen.dart';
+import 'tour_planner_screen.dart';
 
 class HistoricalPlaceDetailsScreen extends StatefulWidget {
   final HistoricalPlaceModel place;
 
-  const HistoricalPlaceDetailsScreen({
-    super.key,
-    required this.place,
-  });
+  const HistoricalPlaceDetailsScreen({super.key, required this.place});
 
   @override
   State<HistoricalPlaceDetailsScreen> createState() =>
@@ -40,7 +39,7 @@ class _HistoricalPlaceDetailsScreenState
           children: [
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -85,11 +84,7 @@ class _HistoricalPlaceDetailsScreenState
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                stops: [
-                  0.0,
-                  0.45,
-                  1.0,
-                ],
+                stops: [0.0, 0.45, 1.0],
                 colors: [
                   Color(0x15000000),
                   Color(0x10000000),
@@ -119,9 +114,7 @@ class _HistoricalPlaceDetailsScreenState
               icon: _isFavorite
                   ? Icons.favorite_rounded
                   : Icons.favorite_border_rounded,
-              iconColor: _isFavorite
-                  ? Colors.redAccent
-                  : darkGreen,
+              iconColor: _isFavorite ? Colors.redAccent : darkGreen,
               onTap: () {
                 setState(() {
                   _isFavorite = !_isFavorite;
@@ -129,9 +122,7 @@ class _HistoricalPlaceDetailsScreenState
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    duration: const Duration(
-                      milliseconds: 1000,
-                    ),
+                    duration: const Duration(milliseconds: 1000),
                     behavior: SnackBarBehavior.floating,
                     content: Text(
                       _isFavorite
@@ -151,9 +142,7 @@ class _HistoricalPlaceDetailsScreenState
             child: _roundButton(
               icon: Icons.share_outlined,
               onTap: () {
-                _showFeatureMessage(
-                  'Sharing will be available soon.',
-                );
+                _showFeatureMessage('Sharing will be available soon.');
               },
             ),
           ),
@@ -175,12 +164,7 @@ class _HistoricalPlaceDetailsScreenState
                     fontSize: 32,
                     height: 1.05,
                     fontWeight: FontWeight.w800,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 8,
-                        color: Colors.black38,
-                      ),
-                    ],
+                    shadows: [Shadow(blurRadius: 8, color: Colors.black38)],
                   ),
                 ),
 
@@ -234,15 +218,8 @@ class _HistoricalPlaceDetailsScreenState
 
                     if (place.openingHours.isNotEmpty) ...[
                       const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                        ),
-                        child: Text(
-                          '•',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text('•', style: TextStyle(color: Colors.white)),
                       ),
 
                       const Icon(
@@ -280,17 +257,14 @@ class _HistoricalPlaceDetailsScreenState
   // ============================================================
 
   Widget _buildMainImage() {
-    final String imagePath =
-        place.mainImageUrl?.trim() ?? '';
+    final String imagePath = place.mainImageUrl?.trim() ?? '';
 
     if (_isNetworkImage(imagePath)) {
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _buildLocalOrFallbackImage(
-            place.name,
-          );
+        errorBuilder: (_, _, _) {
+          return _buildLocalOrFallbackImage(place.name);
         },
       );
     }
@@ -299,31 +273,23 @@ class _HistoricalPlaceDetailsScreenState
       return Image.asset(
         imagePath,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _buildLocalOrFallbackImage(
-            place.name,
-          );
+        errorBuilder: (_, _, _) {
+          return _buildLocalOrFallbackImage(place.name);
         },
       );
     }
 
-    return _buildLocalOrFallbackImage(
-      place.name,
-    );
+    return _buildLocalOrFallbackImage(place.name);
   }
 
-  Widget _buildLocalOrFallbackImage(
-    String placeName,
-  ) {
-    final localAsset = _localImageForPlace(
-      placeName,
-    );
+  Widget _buildLocalOrFallbackImage(String placeName) {
+    final localAsset = _localImageForPlace(placeName);
 
     if (localAsset != null) {
       return Image.asset(
         localAsset,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (_, _, _) {
           return _imagePlaceholder();
         },
       );
@@ -339,20 +305,13 @@ class _HistoricalPlaceDetailsScreenState
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.account_balance_outlined,
-            size: 64,
-            color: primaryGreen,
-          ),
+          Icon(Icons.account_balance_outlined, size: 64, color: primaryGreen),
 
           SizedBox(height: 10),
 
           Text(
             'Historical Place',
-            style: TextStyle(
-              color: darkGreen,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(color: darkGreen, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -369,9 +328,7 @@ class _HistoricalPlaceDetailsScreenState
     Color iconColor = darkGreen,
   }) {
     return Material(
-      color: Colors.white.withValues(
-        alpha: 0.93,
-      ),
+      color: Colors.white.withValues(alpha: 0.93),
       shape: const CircleBorder(),
       elevation: 2,
       child: InkWell(
@@ -379,11 +336,7 @@ class _HistoricalPlaceDetailsScreenState
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 22,
-          ),
+          child: Icon(icon, color: iconColor, size: 22),
         ),
       ),
     );
@@ -397,12 +350,7 @@ class _HistoricalPlaceDetailsScreenState
     final description = place.description.trim();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        24,
-        20,
-        8,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -428,13 +376,10 @@ class _HistoricalPlaceDetailsScreenState
             )
           else
             AnimatedSize(
-              duration: const Duration(
-                milliseconds: 200,
-              ),
+              duration: const Duration(milliseconds: 200),
               child: Text(
                 description,
-                maxLines:
-                    _showFullDescription ? null : 4,
+                maxLines: _showFullDescription ? null : 4,
                 overflow: _showFullDescription
                     ? TextOverflow.visible
                     : TextOverflow.ellipsis,
@@ -453,21 +398,16 @@ class _HistoricalPlaceDetailsScreenState
               borderRadius: BorderRadius.circular(8),
               onTap: () {
                 setState(() {
-                  _showFullDescription =
-                      !_showFullDescription;
+                  _showFullDescription = !_showFullDescription;
                 });
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 5),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _showFullDescription
-                          ? 'Show Less'
-                          : 'Read More',
+                      _showFullDescription ? 'Show Less' : 'Read More',
                       style: const TextStyle(
                         color: Color(0xFF287C43),
                         fontWeight: FontWeight.w700,
@@ -481,9 +421,7 @@ class _HistoricalPlaceDetailsScreenState
                       _showFullDescription
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
-                      color: const Color(
-                        0xFF287C43,
-                      ),
+                      color: const Color(0xFF287C43),
                       size: 21,
                     ),
                   ],
@@ -502,12 +440,7 @@ class _HistoricalPlaceDetailsScreenState
 
   Widget _buildInformation() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        18,
-        15,
-        18,
-        20,
-      ),
+      padding: const EdgeInsets.fromLTRB(18, 15, 18, 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -525,9 +458,7 @@ class _HistoricalPlaceDetailsScreenState
             child: _infoCard(
               Icons.schedule_outlined,
               'Opening Hours',
-              place.openingHours.isEmpty
-                  ? 'Not available'
-                  : place.openingHours,
+              place.openingHours.isEmpty ? 'Not available' : place.openingHours,
             ),
           ),
 
@@ -545,22 +476,14 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  Widget _infoCard(
-    IconData icon,
-    String title,
-    String value,
-  ) {
+  Widget _infoCard(IconData icon, String title, String value) {
     return Container(
-      constraints: const BoxConstraints(
-        minHeight: 128,
-      ),
+      constraints: const BoxConstraints(minHeight: 128),
       padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
         color: lightGreen,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFE1EEE5),
-        ),
+        border: Border.all(color: const Color(0xFFE1EEE5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,16 +493,10 @@ class _HistoricalPlaceDetailsScreenState
             height: 36,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(
-                10,
-              ),
+              borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Icon(
-              icon,
-              color: primaryGreen,
-              size: 22,
-            ),
+            child: Icon(icon, color: primaryGreen, size: 22),
           ),
 
           const SizedBox(height: 9),
@@ -617,21 +534,14 @@ class _HistoricalPlaceDetailsScreenState
 
   Widget _buildLocationSection() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        0,
-        20,
-        22,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: const Color(0xFFF8FBF9),
           borderRadius: BorderRadius.circular(17),
-          border: Border.all(
-            color: const Color(0xFFDDEAE2),
-          ),
+          border: Border.all(color: const Color(0xFFDDEAE2)),
         ),
         child: Row(
           children: [
@@ -640,9 +550,7 @@ class _HistoricalPlaceDetailsScreenState
               height: 47,
               decoration: BoxDecoration(
                 color: const Color(0xFFE7F4EB),
-                borderRadius: BorderRadius.circular(
-                  13,
-                ),
+                borderRadius: BorderRadius.circular(13),
               ),
               alignment: Alignment.center,
               child: const Icon(
@@ -656,8 +564,7 @@ class _HistoricalPlaceDetailsScreenState
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Location',
@@ -706,9 +613,7 @@ class _HistoricalPlaceDetailsScreenState
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: primaryGreen,
-                  borderRadius: BorderRadius.circular(
-                    12,
-                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.directions_rounded,
@@ -734,9 +639,7 @@ class _HistoricalPlaceDetailsScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
               const Text(
@@ -758,10 +661,7 @@ class _HistoricalPlaceDetailsScreenState
                 },
                 child: const Text(
                   'See all',
-                  style: TextStyle(
-                    color: Color(0xFF68746D),
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Color(0xFF68746D), fontSize: 12),
                 ),
               ),
             ],
@@ -773,17 +673,12 @@ class _HistoricalPlaceDetailsScreenState
         SizedBox(
           height: 115,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 18,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             scrollDirection: Axis.horizontal,
             itemCount: gallery.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              return _buildGalleryImage(
-                gallery[index],
-              );
+              return _buildGalleryImage(gallery[index]);
             },
           ),
         ),
@@ -800,7 +695,7 @@ class _HistoricalPlaceDetailsScreenState
         width: 125,
         height: 110,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (_, _, _) {
           return _galleryPlaceholder();
         },
       );
@@ -810,16 +705,13 @@ class _HistoricalPlaceDetailsScreenState
         width: 125,
         height: 110,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (_, _, _) {
           return _galleryPlaceholder();
         },
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(11),
-      child: image,
-    );
+    return ClipRRect(borderRadius: BorderRadius.circular(11), child: image);
   }
 
   Widget _galleryPlaceholder() {
@@ -828,11 +720,7 @@ class _HistoricalPlaceDetailsScreenState
       height: 110,
       color: const Color(0xFFE7EFEA),
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.image_outlined,
-        color: primaryGreen,
-        size: 30,
-      ),
+      child: const Icon(Icons.image_outlined, color: primaryGreen, size: 30),
     );
   }
 
@@ -844,24 +732,13 @@ class _HistoricalPlaceDetailsScreenState
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          18,
-          11,
-          18,
-          13,
-        ),
+        padding: const EdgeInsets.fromLTRB(18, 11, 18, 13),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(
-              color: Colors.grey.shade200,
-            ),
-          ),
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(
-                alpha: 0.04,
-              ),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -872,25 +749,14 @@ class _HistoricalPlaceDetailsScreenState
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: _onAddToTourPressed,
-                icon: const Icon(
-                  Icons.map_outlined,
-                  size: 20,
-                ),
-                label: const Text(
-                  'Add to Tour',
-                ),
+                icon: const Icon(Icons.map_outlined, size: 20),
+                label: const Text('Add to Tour'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: primaryGreen,
-                  side: const BorderSide(
-                    color: primaryGreen,
-                    width: 1.2,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                  ),
+                  side: const BorderSide(color: primaryGreen, width: 1.2),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(28),
                   ),
                   textStyle: const TextStyle(
                     fontSize: 12,
@@ -905,24 +771,15 @@ class _HistoricalPlaceDetailsScreenState
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: _onCreatePostPressed,
-                icon: const Icon(
-                  Icons.add_rounded,
-                  size: 21,
-                ),
-                label: const Text(
-                  'Create Post',
-                ),
+                icon: const Icon(Icons.add_rounded, size: 21),
+                label: const Text('Create Post'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      const Color(0xFF08733E),
+                  backgroundColor: const Color(0xFF08733E),
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(28),
                   ),
                   textStyle: const TextStyle(
                     fontSize: 12,
@@ -960,14 +817,16 @@ class _HistoricalPlaceDetailsScreenState
   }
 
   void _onAddToTourPressed() {
-    _showFeatureMessage(
-      '${place.name} can be added to the Tour Planner in the next integration step.',
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => TourPlannerScreen(initialPlace: place)),
     );
   }
 
   void _onCreatePostPressed() {
-    _showFeatureMessage(
-      'Create Post will open with ${place.name} selected when we connect the post flow.',
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => CreatePostScreen(initialPlace: place)),
     );
   }
 
@@ -982,9 +841,7 @@ class _HistoricalPlaceDetailsScreenState
         SnackBar(
           content: Text(message),
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(
-            seconds: 2,
-          ),
+          duration: const Duration(seconds: 2),
         ),
       );
   }
@@ -1026,8 +883,7 @@ class _HistoricalPlaceDetailsScreenState
   }
 
   bool _isNetworkImage(String value) {
-    return value.startsWith('http://') ||
-        value.startsWith('https://');
+    return value.startsWith('http://') || value.startsWith('https://');
   }
 
   // ============================================================
@@ -1038,9 +894,7 @@ class _HistoricalPlaceDetailsScreenState
   // already included in your Flutter project.
   // ============================================================
 
-  String? _localImageForPlace(
-    String placeName,
-  ) {
+  String? _localImageForPlace(String placeName) {
     switch (placeName.toLowerCase().trim()) {
       case 'sigiriya':
         return 'assets/images/sigiriya.jpg';
@@ -1068,8 +922,11 @@ class _HistoricalPlaceDetailsScreenState
   }
 
   List<String> get _galleryImages {
-    final String normalized =
-        place.name.toLowerCase().trim();
+    if (place.galleryImages.isNotEmpty) {
+      return place.galleryImages;
+    }
+
+    final String normalized = place.name.toLowerCase().trim();
 
     if (normalized == 'sigiriya') {
       return const [
@@ -1079,29 +936,21 @@ class _HistoricalPlaceDetailsScreenState
       ];
     }
 
-    final localMainImage =
-        _localImageForPlace(place.name);
+    final localMainImage = _localImageForPlace(place.name);
 
-    final backendMainImage =
-        place.mainImageUrl?.trim() ?? '';
+    final backendMainImage = place.mainImageUrl?.trim() ?? '';
 
     if (backendMainImage.isNotEmpty) {
-      return [
-        backendMainImage,
-      ];
+      return [backendMainImage];
     }
 
     if (localMainImage != null) {
-      return [
-        localMainImage,
-      ];
+      return [localMainImage];
     }
 
     // This intentionally returns an invalid asset name.
     // _buildGalleryImage catches it and displays the
     // clean image placeholder.
-    return const [
-      'assets/images/historical_place_placeholder.jpg',
-    ];
+    return const ['assets/images/historical_place_placeholder.jpg'];
   }
 }

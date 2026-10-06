@@ -1,11 +1,16 @@
 package com.historia.backend.service.serviceImpl;
 
 import com.historia.backend.dto.PostCreateRequest;
+import com.historia.backend.dto.PostCommentCreateRequest;
+import com.historia.backend.dto.PostCommentDto;
 import com.historia.backend.dto.PostDto;
 import com.historia.backend.entity.HistoricalPlace;
 import com.historia.backend.entity.Post;
+import com.historia.backend.entity.PostComment;
 import com.historia.backend.entity.User;
+import com.historia.backend.enums.Role;
 import com.historia.backend.repository.HistoricalPlaceRepository;
+import com.historia.backend.repository.PostCommentRepository;
 import com.historia.backend.repository.PostRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.PostService;
@@ -19,16 +24,19 @@ import java.util.List;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final PostCommentRepository postCommentRepository;
     private final UserRepository userRepository;
     private final HistoricalPlaceRepository historicalPlaceRepository;
 
     public PostServiceImpl(
             PostRepository postRepository,
+            PostCommentRepository postCommentRepository,
             UserRepository userRepository,
             HistoricalPlaceRepository historicalPlaceRepository
     ) {
 
         this.postRepository = postRepository;
+        this.postCommentRepository = postCommentRepository;
         this.userRepository = userRepository;
         this.historicalPlaceRepository = historicalPlaceRepository;
     }
@@ -81,20 +89,34 @@ public class PostServiceImpl implements PostService {
                         )
                 );
 
-        HistoricalPlace historicalPlace =
-                historicalPlaceRepository
-                        .findById(
-                                request.getHistoricalPlaceId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Historical place not found"
-                                )
-                        );
+        HistoricalPlace historicalPlace = null;
+        String customPlaceName = cleanText(
+                request.getCustomPlaceName()
+        );
+
+        if (request.getHistoricalPlaceId() != null) {
+            historicalPlace =
+                    historicalPlaceRepository
+                            .findById(
+                                    request.getHistoricalPlaceId()
+                            )
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Historical place not found"
+                                    )
+                            );
+        }
+
+        if (historicalPlace == null && customPlaceName == null) {
+            throw new RuntimeException(
+                    "Please select or type a historical place"
+            );
+        }
 
         Post post = Post.builder()
                 .user(loggedInUser)
                 .historicalPlace(historicalPlace)
+                .customPlaceName(customPlaceName)
                 .caption(request.getCaption())
                 .imageUrls(
                         request.getImageUrls() != null
@@ -104,6 +126,7 @@ public class PostServiceImpl implements PostService {
                                 : new ArrayList<>()
                 )
                 .likeCount(0)
+                .commentCount(0)
                 .build();
 
         Post savedPost =
@@ -138,23 +161,138 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<PostCommentDto> getComments(Long postId) {
+
+        if (!postRepository.existsById(postId)) {
+            throw new RuntimeException("Post not found");
+        }
+
+        return postCommentRepository
+                .findByPost_IdOrderByCreatedAtAsc(postId)
+                .stream()
+                .map(this::convertCommentToDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public PostCommentDto addComment(
+            Long postId,
+            PostCommentCreateRequest request,
+            Long loggedInUserId
+    ) {
+
+        String commentText = cleanText(
+                request.getCommentText()
+        );
+
+        if (commentText == null) {
+            throw new RuntimeException(
+                    "Comment text is required"
+            );
+        }
+
+        Post post = postRepository
+                .findById(postId)
+                .orElseThrow(() ->
+                        new RuntimeException("Post not found")
+                );
+
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged in user not found"
+                        )
+                );
+
+        PostComment comment = PostComment.builder()
+                .post(post)
+                .user(loggedInUser)
+                .commentText(commentText)
+                .likeCount(0)
+                .build();
+
+        int currentCommentCount =
+                post.getCommentCount() == null
+                        ? 0
+                        : post.getCommentCount();
+
+        post.setCommentCount(
+                currentCommentCount + 1
+        );
+
+        postRepository.save(post);
+
+        PostComment savedComment =
+                postCommentRepository.save(comment);
+
+        return convertCommentToDto(savedComment);
+    }
+
+    @Override
+    @Transactional
+    public PostCommentDto likeComment(
+            Long postId,
+            Long commentId
+    ) {
+
+        PostComment comment = postCommentRepository
+                .findByIdAndPost_Id(commentId, postId)
+                .orElseThrow(() ->
+                        new RuntimeException("Comment not found")
+                );
+
+        int currentLikeCount =
+                comment.getLikeCount() == null
+                        ? 0
+                        : comment.getLikeCount();
+
+        comment.setLikeCount(
+                currentLikeCount + 1
+        );
+
+        PostComment updatedComment =
+                postCommentRepository.save(comment);
+
+        return convertCommentToDto(updatedComment);
+    }
+
+    @Override
     @Transactional
     public void deletePost(
             Long id,
             Long loggedInUserId
     ) {
 
-        // Only owner can delete their post
-        Post post = postRepository
-                .findByIdAndUser_Id(
-                        id,
-                        loggedInUserId
-                )
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
                 .orElseThrow(() ->
                         new RuntimeException(
-                                "Post not found or you are not allowed to delete it"
+                                "Logged in user not found"
                         )
                 );
+
+        Post post = postRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Post not found")
+                );
+
+        boolean owner =
+                post.getUser()
+                        .getId()
+                        .equals(loggedInUserId);
+
+        boolean admin =
+                loggedInUser.getRole() == Role.ADMIN;
+
+        if (!owner && !admin) {
+            throw new RuntimeException(
+                    "You are not allowed to delete this post"
+            );
+        }
 
         postRepository.delete(post);
     }
@@ -171,11 +309,25 @@ public class PostServiceImpl implements PostService {
                 .username(
                         post.getUser().getUsername()
                 )
+                .userRole(
+                        post.getUser()
+                                .getRole()
+                                .name()
+                )
                 .historicalPlaceId(
-                        post.getHistoricalPlace().getId()
+                        post.getHistoricalPlace() != null
+                                ? post.getHistoricalPlace()
+                                .getId()
+                                : null
                 )
                 .historicalPlaceName(
-                        post.getHistoricalPlace().getName()
+                        post.getHistoricalPlace() != null
+                                ? post.getHistoricalPlace()
+                                .getName()
+                                : post.getCustomPlaceName()
+                )
+                .customPlaceName(
+                        post.getCustomPlaceName()
                 )
                 .caption(
                         post.getCaption()
@@ -190,9 +342,41 @@ public class PostServiceImpl implements PostService {
                 .likeCount(
                         post.getLikeCount()
                 )
+                .commentCount(
+                        post.getCommentCount()
+                )
                 .createdAt(
                         post.getCreatedAt()
                 )
                 .build();
+    }
+
+    private PostCommentDto convertCommentToDto(
+            PostComment comment
+    ) {
+
+        return PostCommentDto.builder()
+                .id(comment.getId())
+                .postId(comment.getPost().getId())
+                .userId(comment.getUser().getId())
+                .username(comment.getUser().getUsername())
+                .userRole(comment.getUser().getRole().name())
+                .commentText(comment.getCommentText())
+                .likeCount(comment.getLikeCount())
+                .createdAt(comment.getCreatedAt())
+                .build();
+    }
+
+    private String cleanText(String value) {
+
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+
+        return trimmed.isEmpty()
+                ? null
+                : trimmed;
     }
 }

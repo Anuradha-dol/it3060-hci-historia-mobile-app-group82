@@ -5,14 +5,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
 @Builder
-public class PostDto {
+public class PostCommentDto {
 
     private Long id;
+
+    private Long postId;
 
     private Long userId;
 
@@ -20,19 +21,9 @@ public class PostDto {
 
     private String userRole;
 
-    private Long historicalPlaceId;
-
-    private String historicalPlaceName;
-
-    private String customPlaceName;
-
-    private String caption;
-
-    private List<String> imageUrls;
+    private String commentText;
 
     private Integer likeCount;
-
-    private Integer commentCount;
 
     private LocalDateTime createdAt;
 }

@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -15,14 +17,27 @@ public class WebConfig implements WebMvcConfigurer {
             ResourceHandlerRegistry registry
     ) {
 
-        Path uploadDirectory = Paths.get("uploads")
-                .toAbsolutePath()
-                .normalize();
+        Set<String> uploadLocations = new LinkedHashSet<>();
 
-        String uploadPath =
-                uploadDirectory.toUri().toString();
+        uploadLocations.add(
+                Paths.get("uploads")
+                        .toAbsolutePath()
+                        .normalize()
+                        .toUri()
+                        .toString()
+        );
+
+        uploadLocations.add(
+                Paths.get("..", "uploads")
+                        .toAbsolutePath()
+                        .normalize()
+                        .toUri()
+                        .toString()
+        );
 
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(uploadPath);
+                .addResourceLocations(
+                        uploadLocations.toArray(String[]::new)
+                );
     }
 }
