@@ -106,20 +106,39 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       if (picked.isEmpty) return;
 
-      final selected = picked.take(remaining).toList();
+      final candidates = picked.take(remaining).toList();
+      final selected = <XFile>[];
       final bytes = <Uint8List>[];
 
-      for (final image in selected) {
-        bytes.add(await image.readAsBytes());
+      for (final image in candidates) {
+        final imageBytes = await image.readAsBytes();
+
+        if (imageBytes.isEmpty) {
+          continue;
+        }
+
+        selected.add(image);
+        bytes.add(imageBytes);
       }
 
       if (!mounted) return;
+
+      if (selected.isEmpty) {
+        _showMessage('Selected photos could not be read.', isError: true);
+        return;
+      }
 
       setState(() {
         _images.addAll(selected);
         _imageBytes.addAll(bytes);
       });
-    } catch (_) {
+
+      if (selected.length < candidates.length) {
+        _showMessage('Some selected photos could not be read.', isError: true);
+      }
+    } catch (e) {
+      debugPrint('Image selection failed: $e');
+
       if (!mounted) return;
       _showMessage('Unable to select photos.', isError: true);
     }
@@ -342,6 +361,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   width: 92,
                   height: 92,
                   fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _selectedImagePlaceholder(),
                 ),
               ),
               Positioned(
@@ -399,6 +419,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       decoration: _fieldDecoration(Icons.notes_outlined).copyWith(
         hintText: 'Share your experience...',
         alignLabelWithHint: true,
+      ),
+    );
+  }
+
+  Widget _selectedImagePlaceholder() {
+    return Container(
+      width: 92,
+      height: 92,
+      color: const Color(0xFFE6EEE9),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_not_supported_outlined,
+        color: primaryGreen,
       ),
     );
   }

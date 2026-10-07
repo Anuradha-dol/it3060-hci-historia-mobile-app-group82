@@ -826,215 +826,242 @@ class _GuideHomeHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 235,
-
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-
-          end: Alignment.bottomRight,
-
-          colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
-        ),
-      ),
-
+    return SizedBox(
+      height: 210,
+      width: double.infinity,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned(
-            right: -35,
-            bottom: -45,
-
-            child: Container(
-              width: 180,
-              height: 180,
-
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-
-                color: const Color(0xFF176A4C).withValues(alpha: 0.07),
+          Image.asset(
+            'assets/images/home_banner.jpg',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.92),
+                  Colors.white.withValues(alpha: 0.72),
+                  Colors.white.withValues(alpha: 0.10),
+                ],
+                stops: const [0.0, 0.45, 1.0],
               ),
             ),
           ),
 
           Positioned(
-            right: 12,
-            bottom: -17,
-
-            child: Icon(
-              Icons.account_balance_outlined,
-
-              size: 135,
-
-              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
-            ),
-          ),
-
-          Positioned(
-            left: -25,
-            bottom: -25,
-
-            child: Icon(
-              Icons.landscape_outlined,
-
-              size: 120,
-
-              color: const Color(0xFF176A4C).withValues(alpha: 0.07),
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 11, 8, 22),
-
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-
+            top: 14,
+            left: 18,
+            right: 18,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    const HistoriaLogoMark(size: 36),
+                Container(
+                  width: 37,
+                  height: 37,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Image.asset(
+                    'assets/images/historia_logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
 
-                    const SizedBox(width: 9),
+                const SizedBox(width: 8),
 
-                    const Expanded(child: HistoriaBrandText()),
+                const Expanded(
+                  child: HistoriaBrandText(subtitle: 'GUIDE WORKSPACE'),
+                ),
 
-                    IconButton(
-                      tooltip: 'Notifications',
+                _GuideHeroActionButton(
+                  tooltip: 'Notifications',
+                  icon: Icons.notifications_none_rounded,
+                  showDot: true,
+                  onTap: onNotifications,
+                ),
 
-                      onPressed: onNotifications,
+                const SizedBox(width: 8),
 
-                      icon: const Icon(
-                        Icons.notifications_none_rounded,
+                PopupMenuButton<String>(
+                  tooltip: 'More',
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'refresh':
+                        onRefresh();
+                        break;
 
-                        color: Color(0xFF176A4C),
+                      case 'profile':
+                        onProfile();
+                        break;
+
+                      case 'logout':
+                        onLogout();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'refresh',
+                      child: Row(
+                        children: [
+                          Icon(Icons.refresh, size: 18),
+                          SizedBox(width: 9),
+                          Text('Refresh'),
+                        ],
                       ),
                     ),
-
-                    PopupMenuButton<String>(
-                      icon: const Icon(
-                        Icons.more_vert,
-                        color: Color(0xFF176A4C),
+                    PopupMenuItem(
+                      value: 'profile',
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_outline, size: 18),
+                          SizedBox(width: 9),
+                          Text('Profile'),
+                        ],
                       ),
-
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'refresh':
-                            onRefresh();
-                            break;
-
-                          case 'profile':
-                            onProfile();
-                            break;
-
-                          case 'logout':
-                            onLogout();
-                            break;
-                        }
-                      },
-
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'refresh',
-                          child: Row(
-                            children: [
-                              Icon(Icons.refresh, size: 18),
-                              SizedBox(width: 9),
-                              Text('Refresh'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'profile',
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_outline, size: 18),
-                              SizedBox(width: 9),
-                              Text('Profile'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'logout',
-                          child: Row(
-                            children: [
-                              Icon(Icons.logout, size: 18),
-                              SizedBox(width: 9),
-                              Text('Logout'),
-                            ],
-                          ),
-                        ),
-                      ],
+                    ),
+                    PopupMenuItem(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18),
+                          SizedBox(width: 9),
+                          Text('Logout'),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-
-                const Spacer(),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 5,
-                  ),
-
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.70),
-
-                    borderRadius: BorderRadius.circular(20),
-
-                    border: Border.all(color: const Color(0xFFD2E5D9)),
-                  ),
-
-                  child: const Text(
-                    'GUIDE WORKSPACE',
-
-                    style: TextStyle(
-                      color: Color(0xFF4D806A),
-
-                      fontSize: 7,
-
-                      letterSpacing: 1,
-
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 9),
-
-                Text(
-                  'Welcome, $name',
-
-                  maxLines: 1,
-
-                  overflow: TextOverflow.ellipsis,
-
-                  style: const TextStyle(
-                    color: Color(0xFF133C2E),
-
-                    fontSize: 25,
-
-                    height: 1,
-
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-
-                const SizedBox(height: 7),
-
-                const Text(
-                  'Manage your HISTORIA guide profile and application.',
-
-                  style: TextStyle(
-                    color: Color(0xFF596B62),
-
-                    fontSize: 10,
-
-                    height: 1.35,
+                  child: const _GuideHeroIconSurface(
+                    icon: Icons.more_horiz_rounded,
                   ),
                 ),
               ],
             ),
           ),
+
+          Positioned(
+            left: 20,
+            right: 104,
+            bottom: 22,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome,',
+                  style: TextStyle(
+                    color: Color(0xFF103F2D),
+                    fontSize: 24,
+                    height: 0.95,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 3),
+
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF103F2D),
+                    fontSize: 26,
+                    height: 1.0,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+
+                const SizedBox(height: 7),
+                const Text(
+                  'Manage your guide profile and stories.',
+                  style: TextStyle(
+                    color: Color(0xFF596B62),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuideHeroActionButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool showDot;
+
+  const _GuideHeroActionButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onTap,
+    this.showDot = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: _GuideHeroIconSurface(icon: icon, showDot: showDot),
+      ),
+    );
+  }
+}
+
+class _GuideHeroIconSurface extends StatelessWidget {
+  final IconData icon;
+  final bool showDot;
+
+  const _GuideHeroIconSurface({required this.icon, this.showDot = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 39,
+      height: 39,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Center(child: Icon(icon, color: const Color(0xFF174D37), size: 22)),
+          if (showDot)
+            Positioned(
+              right: 5,
+              top: 4,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF543D),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
         ],
       ),
     );

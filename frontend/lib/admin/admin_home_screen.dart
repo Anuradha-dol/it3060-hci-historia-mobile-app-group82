@@ -1018,171 +1018,223 @@ class _AdminHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 235,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
-        ),
-      ),
+    return SizedBox(
+      height: 210,
+      width: double.infinity,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned(
-            right: -45,
-            top: 25,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF176A4C).withValues(alpha: 0.07),
+          Image.asset(
+            'assets/images/home_banner.jpg',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.92),
+                  Colors.white.withValues(alpha: 0.72),
+                  Colors.white.withValues(alpha: 0.10),
+                ],
+                stops: const [0.0, 0.45, 1.0],
               ),
             ),
           ),
 
           Positioned(
-            right: 8,
-            bottom: -14,
-            child: Icon(
-              Icons.admin_panel_settings_outlined,
-              size: 140,
-              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
+            top: 14,
+            left: 18,
+            right: 18,
+            child: Row(
+              children: [
+                Container(
+                  width: 37,
+                  height: 37,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Image.asset(
+                    'assets/images/historia_logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                const Expanded(
+                  child: HistoriaBrandText(
+                    subtitle: 'ADMINISTRATION / GUIDE REVIEW',
+                  ),
+                ),
+
+                _AdminHeroActionButton(
+                  tooltip: 'Applications',
+                  icon: Icons.fact_check_outlined,
+                  onTap: onApplications,
+                ),
+
+                const SizedBox(width: 8),
+
+                PopupMenuButton<String>(
+                  tooltip: 'More',
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'refresh':
+                        onRefresh();
+                        break;
+                      case 'profile':
+                        onProfile();
+                        break;
+                      case 'logout':
+                        onLogout();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'refresh',
+                      child: Row(
+                        children: [
+                          Icon(Icons.refresh, size: 18),
+                          SizedBox(width: 9),
+                          Text('Refresh'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'profile',
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_outline, size: 18),
+                          SizedBox(width: 9),
+                          Text('Profile'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18),
+                          SizedBox(width: 9),
+                          Text('Logout'),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: const _AdminHeroIconSurface(
+                    icon: Icons.more_horiz_rounded,
+                  ),
+                ),
+              ],
             ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 11, 8, 22),
+          Positioned(
+            left: 20,
+            right: 104,
+            bottom: 22,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const HistoriaLogoMark(size: 36),
-
-                    const SizedBox(width: 9),
-
-                    const Expanded(
-                      child: HistoriaBrandText(
-                        subtitle: 'ADMINISTRATION / GUIDE REVIEW',
-                      ),
-                    ),
-
-                    IconButton(
-                      tooltip: 'Applications',
-                      onPressed: onApplications,
-                      icon: const Icon(
-                        Icons.fact_check_outlined,
-                        color: Color(0xFF176A4C),
-                      ),
-                    ),
-
-                    PopupMenuButton<String>(
-                      icon: const Icon(
-                        Icons.more_vert,
-                        color: Color(0xFF176A4C),
-                      ),
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'refresh':
-                            onRefresh();
-                            break;
-                          case 'profile':
-                            onProfile();
-                            break;
-                          case 'logout':
-                            onLogout();
-                            break;
-                        }
-                      },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'refresh',
-                          child: Row(
-                            children: [
-                              Icon(Icons.refresh, size: 18),
-                              SizedBox(width: 9),
-                              Text('Refresh'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'profile',
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_outline, size: 18),
-                              SizedBox(width: 9),
-                              Text('Profile'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'logout',
-                          child: Row(
-                            children: [
-                              Icon(Icons.logout, size: 18),
-                              SizedBox(width: 9),
-                              Text('Logout'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const Spacer(),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.70),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFD2E5D9)),
-                  ),
-                  child: const Text(
-                    'ADMIN DASHBOARD',
-                    style: TextStyle(
-                      color: Color(0xFF4D806A),
-                      fontSize: 7,
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w800,
-                    ),
+                const Text(
+                  'Welcome,',
+                  style: TextStyle(
+                    color: Color(0xFF103F2D),
+                    fontSize: 24,
+                    height: 0.95,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
 
-                const SizedBox(height: 9),
+                const SizedBox(height: 3),
 
                 Text(
-                  'Welcome, $name',
+                  name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xFF133C2E),
-                    fontSize: 25,
-                    height: 1,
+                    color: Color(0xFF103F2D),
+                    fontSize: 26,
+                    height: 1.0,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
 
                 const SizedBox(height: 7),
-
                 const Text(
-                  'Review guide applications and manage their approval status.',
+                  'Review guides and manage heritage places.',
                   style: TextStyle(
                     color: Color(0xFF596B62),
-                    fontSize: 10,
-                    height: 1.35,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AdminHeroActionButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _AdminHeroActionButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: _AdminHeroIconSurface(icon: icon),
+      ),
+    );
+  }
+}
+
+class _AdminHeroIconSurface extends StatelessWidget {
+  final IconData icon;
+
+  const _AdminHeroIconSurface({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 39,
+      height: 39,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Icon(icon, color: const Color(0xFF174D37), size: 22),
       ),
     );
   }
