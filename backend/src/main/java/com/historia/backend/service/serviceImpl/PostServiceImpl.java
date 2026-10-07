@@ -8,12 +8,12 @@ import com.historia.backend.entity.HistoricalPlace;
 import com.historia.backend.entity.Post;
 import com.historia.backend.entity.PostComment;
 import com.historia.backend.entity.User;
-import com.historia.backend.enums.Role;
 import com.historia.backend.repository.HistoricalPlaceRepository;
 import com.historia.backend.repository.PostCommentRepository;
 import com.historia.backend.repository.PostRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.PostService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -266,14 +266,6 @@ public class PostServiceImpl implements PostService {
             Long loggedInUserId
     ) {
 
-        User loggedInUser = userRepository
-                .findById(loggedInUserId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Logged in user not found"
-                        )
-                );
-
         Post post = postRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -285,11 +277,8 @@ public class PostServiceImpl implements PostService {
                         .getId()
                         .equals(loggedInUserId);
 
-        boolean admin =
-                loggedInUser.getRole() == Role.ADMIN;
-
-        if (!owner && !admin) {
-            throw new RuntimeException(
+        if (!owner) {
+            throw new AccessDeniedException(
                     "You are not allowed to delete this post"
             );
         }

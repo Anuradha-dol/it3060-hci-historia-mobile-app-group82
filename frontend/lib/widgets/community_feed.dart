@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../config/api_config.dart';
+import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../services/post_service.dart';
 
@@ -83,9 +85,19 @@ class _CommunityFeedState extends State<CommunityFeed> {
   }
 
   Future<void> _deletePost(int index) async {
-    final postId = _postId(_posts[index]);
+    final post = _posts[index];
+    final postId = _postId(post);
+    final currentUserId = context.read<AuthProvider>().user?.id;
 
     if (postId == null) return;
+
+    if (!_isOwnPost(post, currentUserId)) {
+      _showMessage(
+        'You can only delete your own posts.',
+        error: true,
+      );
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -162,6 +174,16 @@ class _CommunityFeedState extends State<CommunityFeed> {
     return int.tryParse(post['id']?.toString() ?? '');
   }
 
+  bool _isOwnPost(Map<String, dynamic> post, int? currentUserId) {
+    if (currentUserId == null) {
+      return false;
+    }
+
+    final postUserId = int.tryParse(post['userId']?.toString() ?? '');
+
+    return postUserId == currentUserId;
+  }
+
   String _username(Map<String, dynamic> post) {
     final value = post['username']?.toString().trim();
     return value == null || value.isEmpty ? 'Historia User' : value;
@@ -226,6 +248,8 @@ class _CommunityFeedState extends State<CommunityFeed> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = context.watch<AuthProvider>().user?.id;
+
     return Padding(
       padding: widget.padding,
       child: Column(
@@ -264,6 +288,7 @@ class _CommunityFeedState extends State<CommunityFeed> {
                   bottom: index == _posts.length - 1 ? 0 : 14,
                 ),
                 child: _PostCard(
+                  canDelete: _isOwnPost(post, currentUserId),
                   username: _username(post),
                   role: _role(post),
                   placeName: _placeName(post),
@@ -370,6 +395,7 @@ class _CommunityFeedState extends State<CommunityFeed> {
 }
 
 class _PostCard extends StatefulWidget {
+  final bool canDelete;
   final String username;
   final String role;
   final String placeName;
@@ -383,6 +409,7 @@ class _PostCard extends StatefulWidget {
   final VoidCallback onDelete;
 
   const _PostCard({
+    required this.canDelete,
     required this.username,
     required this.role,
     required this.placeName,
@@ -460,26 +487,30 @@ class _PostCardState extends State<_PostCard> {
                     ],
                   ),
                 ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_horiz, color: Color(0xFF53645B)),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      widget.onDelete();
-                    }
-                  },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete Post'),
-                        ],
-                      ),
+                if (widget.canDelete)
+                  PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_horiz,
+                      color: Color(0xFF53645B),
                     ),
-                  ],
-                ),
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        widget.onDelete();
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete Post'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
