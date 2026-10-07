@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.historia.backend.utils.TextSanitizer.cleanOptional;
+import static com.historia.backend.utils.TextSanitizer.cleanRequired;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -51,28 +54,28 @@ public class UserServiceImpl implements UserService {
         User user = getUser(username);
 
         if (request.firstName() != null) {
-            user.setFirstName(request.firstName().trim());
+            user.setFirstName(cleanOptional(request.firstName()));
         }
 
         if (request.lastName() != null) {
-            user.setLastName(request.lastName().trim());
+            user.setLastName(cleanOptional(request.lastName()));
         }
 
         if (request.address() != null) {
-            user.setAddress(request.address().trim());
+            user.setAddress(cleanOptional(request.address()));
         }
 
         if (request.profileImageUrl() != null) {
-            user.setProfileImageUrl(cleanNullable(request.profileImageUrl()));
+            user.setProfileImageUrl(cleanOptional(request.profileImageUrl()));
         }
 
         if (request.coverImageUrl() != null) {
-            user.setCoverImageUrl(cleanNullable(request.coverImageUrl()));
+            user.setCoverImageUrl(cleanOptional(request.coverImageUrl()));
         }
 
         if (request.phone() != null) {
 
-            String phone = request.phone().trim();
+            String phone = cleanRequired(request.phone());
 
             if (phone.isBlank()) {
                 throw new UserException(
@@ -269,13 +272,4 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-
-    private String cleanNullable(String value) {
-
-        String cleaned = value.trim();
-
-        return cleaned.isBlank()
-                ? null
-                : cleaned;
-    }
 }

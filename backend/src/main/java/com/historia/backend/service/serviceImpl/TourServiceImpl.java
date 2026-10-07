@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TourServiceImpl implements TourService {
@@ -80,6 +81,8 @@ public class TourServiceImpl implements TourService {
                 .build();
 
         int order = 1;
+        List<Long> selectedPlaceIds = new ArrayList<>();
+        List<String> selectedPlaceNames = new ArrayList<>();
 
         for (Long placeId :
                 request.getHistoricalPlaceIds()) {
@@ -94,6 +97,13 @@ public class TourServiceImpl implements TourService {
                                     )
                             );
 
+            selectedPlaceIds.add(
+                    historicalPlace.getId()
+            );
+            selectedPlaceNames.add(
+                    historicalPlace.getName()
+            );
+
             TourPlace tourPlace = TourPlace.builder()
                     .tour(tour)
                     .historicalPlace(historicalPlace)
@@ -103,6 +113,19 @@ public class TourServiceImpl implements TourService {
 
             tour.getTourPlaces().add(tourPlace);
         }
+
+        tour.setSelectedPlaceIds(
+                selectedPlaceIds
+                        .stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(","))
+        );
+        tour.setSelectedPlaceNames(
+                String.join(
+                        ", ",
+                        selectedPlaceNames
+                )
+        );
 
         Tour savedTour =
                 tourRepository.save(tour);
@@ -424,6 +447,14 @@ public class TourServiceImpl implements TourService {
 
                 .estimatedDurationMinutes(
                         tour.getEstimatedDurationMinutes()
+                )
+
+                .selectedPlaceIds(
+                        tour.getSelectedPlaceIds()
+                )
+
+                .selectedPlaceNames(
+                        tour.getSelectedPlaceNames()
                 )
 
                 .status(

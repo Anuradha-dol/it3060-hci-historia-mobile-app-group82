@@ -34,6 +34,12 @@ public class Tour {
 
     private Integer estimatedDurationMinutes;
 
+    @Column(name = "selected_place_ids", columnDefinition = "TEXT")
+    private String selectedPlaceIds;
+
+    @Column(name = "selected_place_names", columnDefinition = "TEXT")
+    private String selectedPlaceNames;
+
     @Column(nullable = false, length = 20)
     private String status;
 

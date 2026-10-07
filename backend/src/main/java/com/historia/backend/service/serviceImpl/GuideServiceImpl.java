@@ -22,6 +22,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.historia.backend.utils.TextSanitizer.cleanOptional;
+import static com.historia.backend.utils.TextSanitizer.cleanRequired;
+
 @Service
 public class GuideServiceImpl implements GuideService {
 
@@ -49,9 +52,9 @@ public class GuideServiceImpl implements GuideService {
             GuideDto.GuideRegisterRequest request
     ) {
 
-        String username = request.username().trim();
-        String email = request.email().trim().toLowerCase();
-        String phone = request.phone().trim();
+        String username = cleanRequired(request.username());
+        String email = cleanRequired(request.email()).toLowerCase();
+        String phone = cleanRequired(request.phone());
 
         if (!request.password()
                 .equals(request.confirmPassword())) {
@@ -116,7 +119,7 @@ public class GuideServiceImpl implements GuideService {
         userRepository.save(user);
 
         String primaryArea =
-                request.primaryServiceArea().trim();
+                cleanRequired(request.primaryServiceArea());
 
         Set<String> serviceAreas =
                 cleanSet(request.serviceAreas());
@@ -136,7 +139,7 @@ public class GuideServiceImpl implements GuideService {
                 GuideProfile.builder()
                         .user(user)
                         .displayName(
-                                request.displayName().trim()
+                                cleanRequired(request.displayName())
                         )
                         .primaryServiceArea(primaryArea)
                         .serviceAreas(serviceAreas)
@@ -619,11 +622,7 @@ public class GuideServiceImpl implements GuideService {
             return null;
         }
 
-        String cleaned = value.trim();
-
-        return cleaned.isBlank()
-                ? null
-                : cleaned;
+        return cleanOptional(value);
     }
 
 

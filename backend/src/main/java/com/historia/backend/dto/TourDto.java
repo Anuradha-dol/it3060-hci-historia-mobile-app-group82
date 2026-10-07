@@ -25,6 +25,10 @@ public class TourDto {
 
     private Integer estimatedDurationMinutes;
 
+    private String selectedPlaceIds;
+
+    private String selectedPlaceNames;
+
     private String status;
 
     private Integer progressPercentage;
