@@ -2,6 +2,9 @@ package com.historia.backend.entity;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "historical_places")
 public class HistoricalPlace {
@@ -13,12 +16,16 @@ public class HistoricalPlace {
     @Column(nullable = false)
     private String name;
 
+    private String subtitle;
+
     private String location;
 
     @Column(length = 3000)
     private String description;
 
     private Double rating;
+
+    private Integer reviewCount;
 
     private Double entranceFee;
 
@@ -29,6 +36,19 @@ public class HistoricalPlace {
     private Double longitude;
 
     private String mainImageUrl;
+
+    @Transient
+    private Long tourCount = 0L;
+
+    // Load gallery images together with the historical place.
+    // This prevents LazyInitializationException during JSON serialization.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "historical_place_gallery",
+            joinColumns = @JoinColumn(name = "historical_place_id")
+    )
+    @Column(name = "image_url")
+    private List<String> galleryImages = new ArrayList<>();
 
     public HistoricalPlace() {
     }
@@ -47,6 +67,14 @@ public class HistoricalPlace {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
     }
 
     public String getLocation() {
@@ -71,6 +99,14 @@ public class HistoricalPlace {
 
     public void setRating(Double rating) {
         this.rating = rating;
+    }
+
+    public Integer getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(Integer reviewCount) {
+        this.reviewCount = reviewCount;
     }
 
     public Double getEntranceFee() {
@@ -111,5 +147,25 @@ public class HistoricalPlace {
 
     public void setMainImageUrl(String mainImageUrl) {
         this.mainImageUrl = mainImageUrl;
+    }
+
+    public Long getTourCount() {
+        return tourCount;
+    }
+
+    public void setTourCount(Long tourCount) {
+        this.tourCount = tourCount != null
+                ? tourCount
+                : 0L;
+    }
+
+    public List<String> getGalleryImages() {
+        return galleryImages;
+    }
+
+    public void setGalleryImages(List<String> galleryImages) {
+        this.galleryImages = galleryImages != null
+                ? galleryImages
+                : new ArrayList<>();
     }
 }

@@ -28,6 +28,13 @@ public interface TourService {
             Long loggedInUserId
     );
 
+    TourDto markPlaceStatus(
+            Long tourId,
+            Long historicalPlaceId,
+            boolean completed,
+            Long loggedInUserId
+    );
+
     TourDto completeTour(
             Long tourId,
             Long loggedInUserId

@@ -171,6 +171,23 @@ public class TourServiceImpl implements TourService {
             Long loggedInUserId
     ) {
 
+        return markPlaceStatus(
+                tourId,
+                historicalPlaceId,
+                true,
+                loggedInUserId
+        );
+    }
+
+    @Override
+    @Transactional
+    public TourDto markPlaceStatus(
+            Long tourId,
+            Long historicalPlaceId,
+            boolean completed,
+            Long loggedInUserId
+    ) {
+
         Tour tour = getOwnedTour(
                 tourId,
                 loggedInUserId
@@ -193,13 +210,20 @@ public class TourServiceImpl implements TourService {
                                 )
                         );
 
-        if (!tourPlace.isCompleted()) {
+        if (completed) {
 
             tourPlace.setCompleted(true);
 
-            tourPlace.setCompletedAt(
-                    LocalDateTime.now()
-            );
+            if (tourPlace.getCompletedAt() == null) {
+                tourPlace.setCompletedAt(
+                        LocalDateTime.now()
+                );
+            }
+        } else {
+
+            tourPlace.setCompleted(false);
+
+            tourPlace.setCompletedAt(null);
         }
 
         tour.setStatus("ACTIVE");
@@ -329,6 +353,16 @@ public class TourServiceImpl implements TourService {
             tour.setStatus(
                     "COMPLETED"
             );
+        } else if (progress > 0) {
+
+            tour.setStatus(
+                    "ACTIVE"
+            );
+        } else {
+
+            tour.setStatus(
+                    "PLANNED"
+            );
         }
     }
 
@@ -361,6 +395,18 @@ public class TourServiceImpl implements TourService {
                                                 tourPlace
                                                         .getHistoricalPlace()
                                                         .getName()
+                                        )
+
+                                        .location(
+                                                tourPlace
+                                                        .getHistoricalPlace()
+                                                        .getLocation()
+                                        )
+
+                                        .mainImageUrl(
+                                                tourPlace
+                                                        .getHistoricalPlace()
+                                                        .getMainImageUrl()
                                         )
 
                                         .placeOrder(

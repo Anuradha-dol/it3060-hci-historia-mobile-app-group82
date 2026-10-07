@@ -8,6 +8,8 @@ public interface HistoricalPlaceService {
 
     List<HistoricalPlace> getAllPlaces();
 
+    List<HistoricalPlace> getTopPlacesByTourCount(int limit);
+
     HistoricalPlace getPlaceById(Long id);
 
     List<HistoricalPlace> searchPlaces(String query);

@@ -27,8 +27,11 @@ public class Post {
 
     // Historical place selected when creating the post
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "historical_place_id", nullable = false)
+    @JoinColumn(name = "historical_place_id")
     private HistoricalPlace historicalPlace;
+
+    @Column(length = 150)
+    private String customPlaceName;
 
     @Column(length = 2000)
     private String caption;
@@ -47,6 +50,18 @@ public class Post {
     @Column(nullable = false)
     private Integer likeCount = 0;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer commentCount = 0;
+
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<PostComment> comments = new ArrayList<>();
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -63,6 +78,10 @@ public class Post {
 
         if (likeCount == null) {
             likeCount = 0;
+        }
+
+        if (commentCount == null) {
+            commentCount = 0;
         }
     }
 

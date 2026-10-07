@@ -44,6 +44,10 @@ public class TourDto {
 
         private String historicalPlaceName;
 
+        private String location;
+
+        private String mainImageUrl;
+
         private Integer placeOrder;
 
         private boolean completed;

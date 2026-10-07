@@ -6,7 +6,9 @@ import '../profile/profile_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../services/guide_service.dart';
+import '../tourist/create_post_screen.dart';
 import '../tourist/notifications_screen.dart';
+import '../widgets/community_feed.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
 
@@ -30,6 +32,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
   GuideModel? _guide;
 
   int _index = 0;
+  int _feedKey = 0;
 
   bool _loading = true;
   bool _saving = false;
@@ -208,6 +211,19 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     });
   }
 
+  Future<void> _openCreatePost() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+    );
+
+    if (created == true && mounted) {
+      setState(() {
+        _feedKey++;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -226,7 +242,7 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8F5),
+      backgroundColor: const Color(0xFFF8FAF7),
 
       body: SafeArea(
         child: IndexedStack(index: _index, children: pages),
@@ -337,6 +353,30 @@ class _GuideHomeScreenState extends State<GuideHomeScreen> {
                         _guideEditSection(guide),
                       ],
                     ],
+
+                    const SizedBox(height: 22),
+
+                    const _GuideSectionTitle(
+                      eyebrow: 'COMMUNITY',
+                      title: 'Guide feed',
+                      subtitle: 'Read and share historical discovery posts.',
+                    ),
+
+                    const SizedBox(height: 11),
+
+                    _GuidePrimaryButton(
+                      icon: Icons.add_circle_outline,
+                      label: 'Create Post',
+                      onPressed: _openCreatePost,
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    CommunityFeed(
+                      key: ValueKey(_feedKey),
+                      showHeader: false,
+                      onCreatePost: _openCreatePost,
+                    ),
                   ],
                 ),
         ),
@@ -786,214 +826,242 @@ class _GuideHomeHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 235,
-
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-
-          end: Alignment.bottomRight,
-
-          colors: [Color(0xFF123B2D), Color(0xFF176247), Color(0xFF55916D)],
-        ),
-      ),
-
+    return SizedBox(
+      height: 210,
+      width: double.infinity,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned(
-            right: -35,
-            bottom: -45,
-
-            child: Container(
-              width: 180,
-              height: 180,
-
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-
-                color: Colors.white.withValues(alpha: 0.055),
+          Image.asset(
+            'assets/images/home_banner.jpg',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.92),
+                  Colors.white.withValues(alpha: 0.72),
+                  Colors.white.withValues(alpha: 0.10),
+                ],
+                stops: const [0.0, 0.45, 1.0],
               ),
             ),
           ),
 
           Positioned(
-            right: 12,
-            bottom: -17,
-
-            child: Icon(
-              Icons.account_balance_outlined,
-
-              size: 135,
-
-              color: Colors.white.withValues(alpha: 0.07),
-            ),
-          ),
-
-          Positioned(
-            left: -25,
-            bottom: -25,
-
-            child: Icon(
-              Icons.landscape_outlined,
-
-              size: 120,
-
-              color: Colors.white.withValues(alpha: 0.055),
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 11, 8, 22),
-
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-
+            top: 14,
+            left: 18,
+            right: 18,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    const HistoriaLogoMark(dark: true, size: 36),
+                Container(
+                  width: 37,
+                  height: 37,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Image.asset(
+                    'assets/images/historia_logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
 
-                    const SizedBox(width: 9),
+                const SizedBox(width: 8),
 
-                    const Expanded(child: HistoriaBrandText(dark: true)),
+                const Expanded(
+                  child: HistoriaBrandText(subtitle: 'GUIDE WORKSPACE'),
+                ),
 
-                    IconButton(
-                      tooltip: 'Notifications',
+                _GuideHeroActionButton(
+                  tooltip: 'Notifications',
+                  icon: Icons.notifications_none_rounded,
+                  showDot: true,
+                  onTap: onNotifications,
+                ),
 
-                      onPressed: onNotifications,
+                const SizedBox(width: 8),
 
-                      icon: const Icon(
-                        Icons.notifications_none_rounded,
+                PopupMenuButton<String>(
+                  tooltip: 'More',
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'refresh':
+                        onRefresh();
+                        break;
 
-                        color: Colors.white,
+                      case 'profile':
+                        onProfile();
+                        break;
+
+                      case 'logout':
+                        onLogout();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'refresh',
+                      child: Row(
+                        children: [
+                          Icon(Icons.refresh, size: 18),
+                          SizedBox(width: 9),
+                          Text('Refresh'),
+                        ],
                       ),
                     ),
-
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'refresh':
-                            onRefresh();
-                            break;
-
-                          case 'profile':
-                            onProfile();
-                            break;
-
-                          case 'logout':
-                            onLogout();
-                            break;
-                        }
-                      },
-
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'refresh',
-                          child: Row(
-                            children: [
-                              Icon(Icons.refresh, size: 18),
-                              SizedBox(width: 9),
-                              Text('Refresh'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'profile',
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_outline, size: 18),
-                              SizedBox(width: 9),
-                              Text('Profile'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'logout',
-                          child: Row(
-                            children: [
-                              Icon(Icons.logout, size: 18),
-                              SizedBox(width: 9),
-                              Text('Logout'),
-                            ],
-                          ),
-                        ),
-                      ],
+                    PopupMenuItem(
+                      value: 'profile',
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_outline, size: 18),
+                          SizedBox(width: 9),
+                          Text('Profile'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18),
+                          SizedBox(width: 9),
+                          Text('Logout'),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-
-                const Spacer(),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 5,
-                  ),
-
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.13),
-
-                    borderRadius: BorderRadius.circular(20),
-
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                  ),
-
-                  child: const Text(
-                    'GUIDE WORKSPACE',
-
-                    style: TextStyle(
-                      color: Color(0xFFE2F2E9),
-
-                      fontSize: 7,
-
-                      letterSpacing: 1,
-
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 9),
-
-                Text(
-                  'Welcome, $name',
-
-                  maxLines: 1,
-
-                  overflow: TextOverflow.ellipsis,
-
-                  style: const TextStyle(
-                    color: Colors.white,
-
-                    fontSize: 25,
-
-                    height: 1,
-
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-
-                const SizedBox(height: 7),
-
-                const Text(
-                  'Manage your HISTORIA guide profile and application.',
-
-                  style: TextStyle(
-                    color: Color(0xFFCFE2D8),
-
-                    fontSize: 10,
-
-                    height: 1.35,
+                  child: const _GuideHeroIconSurface(
+                    icon: Icons.more_horiz_rounded,
                   ),
                 ),
               ],
             ),
           ),
+
+          Positioned(
+            left: 20,
+            right: 104,
+            bottom: 22,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome,',
+                  style: TextStyle(
+                    color: Color(0xFF103F2D),
+                    fontSize: 24,
+                    height: 0.95,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 3),
+
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF103F2D),
+                    fontSize: 26,
+                    height: 1.0,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+
+                const SizedBox(height: 7),
+                const Text(
+                  'Manage your guide profile and stories.',
+                  style: TextStyle(
+                    color: Color(0xFF596B62),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuideHeroActionButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool showDot;
+
+  const _GuideHeroActionButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onTap,
+    this.showDot = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: _GuideHeroIconSurface(icon: icon, showDot: showDot),
+      ),
+    );
+  }
+}
+
+class _GuideHeroIconSurface extends StatelessWidget {
+  final IconData icon;
+  final bool showDot;
+
+  const _GuideHeroIconSurface({required this.icon, this.showDot = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 39,
+      height: 39,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Center(child: Icon(icon, color: const Color(0xFF174D37), size: 22)),
+          if (showDot)
+            Positioned(
+              right: 5,
+              top: 4,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF543D),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
         ],
       ),
     );

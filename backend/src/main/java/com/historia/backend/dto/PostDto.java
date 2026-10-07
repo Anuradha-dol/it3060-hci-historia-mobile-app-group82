@@ -18,15 +18,21 @@ public class PostDto {
 
     private String username;
 
+    private String userRole;
+
     private Long historicalPlaceId;
 
     private String historicalPlaceName;
+
+    private String customPlaceName;
 
     private String caption;
 
     private List<String> imageUrls;
 
     private Integer likeCount;
+
+    private Integer commentCount;
 
     private LocalDateTime createdAt;
 }

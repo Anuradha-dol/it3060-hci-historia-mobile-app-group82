@@ -28,6 +28,26 @@ public class HistoricalPlaceController {
         );
     }
 
+    @GetMapping({"/trending", "/top-tours"})
+    public ResponseEntity<List<HistoricalPlace>> getTopTourPlaces(
+            @RequestParam(defaultValue = "10") String limit) {
+
+        return ResponseEntity.ok(
+                historicalPlaceService.getTopPlacesByTourCount(
+                        parseLimit(limit)
+                )
+        );
+    }
+
+    private int parseLimit(String limit) {
+
+        try {
+            return Integer.parseInt(limit);
+        } catch (NumberFormatException exception) {
+            return 10;
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<HistoricalPlace> getPlaceById(
             @PathVariable Long id) {
@@ -58,6 +78,7 @@ public class HistoricalPlaceController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HistoricalPlace> updatePlace(
             @PathVariable Long id,
             @RequestBody HistoricalPlace historicalPlace) {
@@ -68,6 +89,7 @@ public class HistoricalPlaceController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePlace(
             @PathVariable Long id) {
 
