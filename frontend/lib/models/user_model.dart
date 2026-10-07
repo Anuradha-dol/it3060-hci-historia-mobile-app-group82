@@ -6,6 +6,8 @@ class UserModel {
   final String? firstName;
   final String? lastName;
   final String? address;
+  final String? profileImageUrl;
+  final String? coverImageUrl;
   final String role;
   final bool emailVerified;
 
@@ -17,6 +19,8 @@ class UserModel {
     this.firstName,
     this.lastName,
     this.address,
+    this.profileImageUrl,
+    this.coverImageUrl,
     required this.role,
     required this.emailVerified,
   });
@@ -30,6 +34,8 @@ class UserModel {
       firstName: json['firstName']?.toString(),
       lastName: json['lastName']?.toString(),
       address: json['address']?.toString(),
+      profileImageUrl: json['profileImageUrl']?.toString(),
+      coverImageUrl: json['coverImageUrl']?.toString(),
       role: json['role']?.toString() ?? 'TOURIST',
       emailVerified: json['emailVerified'] == true,
     );
@@ -44,6 +50,8 @@ class UserModel {
       'firstName': firstName,
       'lastName': lastName,
       'address': address,
+      'profileImageUrl': profileImageUrl,
+      'coverImageUrl': coverImageUrl,
       'role': role,
       'emailVerified': emailVerified,
     };

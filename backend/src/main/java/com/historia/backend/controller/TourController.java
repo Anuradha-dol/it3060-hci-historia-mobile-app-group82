@@ -25,9 +25,6 @@ public class TourController {
         this.tourService = tourService;
     }
 
-    // =========================================================
-    // CREATE TOUR
-    // =========================================================
 
     @PostMapping
     public ResponseEntity<TourDto> createTour(
@@ -46,9 +43,6 @@ public class TourController {
         );
     }
 
-    // =========================================================
-    // GET TOUR BY ID
-    // =========================================================
 
     @GetMapping("/{id}")
     public ResponseEntity<TourDto> getTourById(
@@ -67,9 +61,6 @@ public class TourController {
         );
     }
 
-    // =========================================================
-    // GET USER TOURS
-    // =========================================================
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TourDto>> getToursByUserId(
@@ -88,9 +79,6 @@ public class TourController {
         );
     }
 
-    // =========================================================
-    // MARK PLACE COMPLETED
-    // =========================================================
 
     @PutMapping(
             "/{tourId}/places/{historicalPlaceId}/complete"
@@ -136,9 +124,6 @@ public class TourController {
         );
     }
 
-    // =========================================================
-    // COMPLETE TOUR
-    // =========================================================
 
     @PutMapping("/{tourId}/complete")
     public ResponseEntity<TourDto> completeTour(
@@ -157,9 +142,6 @@ public class TourController {
         );
     }
 
-    // =========================================================
-    // DELETE TOUR
-    // =========================================================
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTour(

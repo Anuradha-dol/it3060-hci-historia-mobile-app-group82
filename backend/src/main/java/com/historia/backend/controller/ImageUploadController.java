@@ -35,6 +35,24 @@ public class ImageUploadController {
         return uploadImage(file, "places");
     }
 
+    @PostMapping("/profile-image")
+    @PreAuthorize("hasAnyRole('TOURIST','GUIDE','ADMIN')")
+    public ResponseEntity<Map<String, String>> uploadProfileImage(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        return uploadImage(file, "profiles");
+    }
+
+    @PostMapping("/cover-image")
+    @PreAuthorize("hasAnyRole('TOURIST','GUIDE','ADMIN')")
+    public ResponseEntity<Map<String, String>> uploadCoverImage(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        return uploadImage(file, "covers");
+    }
+
     private ResponseEntity<Map<String, String>> uploadImage(
             MultipartFile file,
             String folder
