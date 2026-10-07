@@ -18,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFFF4F8F5),
+      backgroundColor: Color(0xFFF8FAF7),
       body: SafeArea(child: RoleProfileContent(standalone: true)),
     );
   }
@@ -1231,7 +1231,7 @@ class _GuideHero extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF173E31), Color(0xFF21654A), Color(0xFF5B8B67)],
+          colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
         ),
       ),
       child: Stack(
@@ -1242,7 +1242,7 @@ class _GuideHero extends StatelessWidget {
             child: Icon(
               Icons.account_balance_outlined,
               size: 155,
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
             ),
           ),
 
@@ -1252,7 +1252,7 @@ class _GuideHero extends StatelessWidget {
             child: Icon(
               Icons.landscape_outlined,
               size: 145,
-              color: Colors.white.withValues(alpha: 0.08),
+              color: const Color(0xFF176A4C).withValues(alpha: 0.07),
             ),
           ),
 
@@ -1263,23 +1263,23 @@ class _GuideHero extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const _HistoriaMark(dark: true),
+                    const _HistoriaMark(),
 
                     const SizedBox(width: 9),
 
-                    const Expanded(child: _HistoriaBrand(dark: true)),
+                    const Expanded(child: _HistoriaBrand()),
 
                     IconButton(
                       tooltip: 'Refresh',
                       onPressed: onRefresh,
-                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      icon: const Icon(Icons.refresh, color: Color(0xFF176A4C)),
                     ),
 
                     if (onClose != null)
                       IconButton(
                         tooltip: 'Close',
                         onPressed: onClose,
-                        icon: const Icon(Icons.close, color: Colors.white),
+                        icon: const Icon(Icons.close, color: Color(0xFF176A4C)),
                       ),
                   ],
                 ),
@@ -1292,16 +1292,14 @@ class _GuideHero extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.14),
+                    color: Colors.white.withValues(alpha: 0.70),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.18),
-                    ),
+                    border: Border.all(color: const Color(0xFFD2E5D9)),
                   ),
                   child: const Text(
                     'GUIDE PROFILE',
                     style: TextStyle(
-                      color: Color(0xFFE0F3E8),
+                      color: Color(0xFF4D806A),
                       fontSize: 7.5,
                       letterSpacing: 1.2,
                       fontWeight: FontWeight.w800,
@@ -1314,7 +1312,7 @@ class _GuideHero extends StatelessWidget {
                 const Text(
                   'Your guide profile.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF133C2E),
                     fontSize: 25,
                     fontWeight: FontWeight.w900,
                   ),
@@ -1324,7 +1322,7 @@ class _GuideHero extends StatelessWidget {
 
                 const Text(
                   'Your professional information in HISTORIA.',
-                  style: TextStyle(color: Color(0xFFCFE5D8), fontSize: 10),
+                  style: TextStyle(color: Color(0xFF596B62), fontSize: 10),
                 ),
               ],
             ),

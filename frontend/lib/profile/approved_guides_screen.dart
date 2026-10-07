@@ -7,21 +7,33 @@ import '../widgets/form_helpers.dart';
 import '../widgets/historia_header.dart';
 
 class ApprovedGuidesScreen extends StatelessWidget {
-  const ApprovedGuidesScreen({super.key});
+  final String? initialArea;
+
+  const ApprovedGuidesScreen({super.key, this.initialArea});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFF5F9F6),
-      body: SafeArea(child: ApprovedGuidesContent(standalone: true)),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F9F6),
+      body: SafeArea(
+        child: ApprovedGuidesContent(
+          standalone: true,
+          initialArea: initialArea,
+        ),
+      ),
     );
   }
 }
 
 class ApprovedGuidesContent extends StatefulWidget {
   final bool standalone;
+  final String? initialArea;
 
-  const ApprovedGuidesContent({super.key, this.standalone = false});
+  const ApprovedGuidesContent({
+    super.key,
+    this.standalone = false,
+    this.initialArea,
+  });
 
   @override
   State<ApprovedGuidesContent> createState() => _ApprovedGuidesContentState();
@@ -34,6 +46,23 @@ class _ApprovedGuidesContentState extends State<ApprovedGuidesContent> {
 
   bool _loading = false;
   bool _searched = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final initialArea = widget.initialArea?.trim();
+
+    if (initialArea != null && initialArea.isNotEmpty) {
+      _area.text = initialArea;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _search();
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {

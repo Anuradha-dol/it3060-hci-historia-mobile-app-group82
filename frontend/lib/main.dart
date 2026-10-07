@@ -28,8 +28,27 @@ class HistoriaApp extends StatelessWidget {
     return MaterialApp(
       title: 'HISTORIA',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const HistoriaScrollBehavior(),
       theme: AppTheme.theme,
       home: const HomeRouter(),
     );
+  }
+}
+
+class HistoriaScrollBehavior extends MaterialScrollBehavior {
+  const HistoriaScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const ClampingScrollPhysics();
   }
 }

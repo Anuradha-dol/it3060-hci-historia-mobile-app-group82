@@ -30,7 +30,7 @@ class NotificationsContent extends StatelessWidget {
       color: const Color(0xFFF5F9F6),
 
       child: ListView(
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.zero,
 
         children: [

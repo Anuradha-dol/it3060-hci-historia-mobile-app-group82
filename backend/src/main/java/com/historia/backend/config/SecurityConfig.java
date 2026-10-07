@@ -52,6 +52,12 @@ public class SecurityConfig {
                         .permitAll()
 
                         .requestMatchers(
+                                HttpMethod.GET,
+                                "/uploads/**"
+                        )
+                        .permitAll()
+
+                        .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/guides/register"
                         )
