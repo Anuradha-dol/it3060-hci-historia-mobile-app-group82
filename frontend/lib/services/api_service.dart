@@ -40,6 +40,7 @@ class ApiService {
   String getErrorMessage(dynamic error) {
     if (error is DioException) {
       final data = error.response?.data;
+      final statusCode = error.response?.statusCode;
 
       if (data is Map<String, dynamic>) {
         final message = data['message'];
@@ -51,6 +52,14 @@ class ApiService {
 
       if (data is String && data.isNotEmpty) {
         return data;
+      }
+
+      if (statusCode == 401 || statusCode == 403) {
+        return 'Please log in again and try once more.';
+      }
+
+      if (statusCode == 404) {
+        return 'This action is not available on the running server.';
       }
 
       if (error.type == DioExceptionType.connectionTimeout) {

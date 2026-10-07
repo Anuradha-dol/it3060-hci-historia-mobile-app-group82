@@ -138,9 +138,15 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     } catch (e) {
       if (!mounted) return;
 
+      debugPrint('Profile media update failed: $e');
+
+      final message = ApiService.instance.getErrorMessage(e);
+
       showAppMessage(
         context,
-        ApiService.instance.getErrorMessage(e),
+        message == 'Something went wrong.'
+            ? 'Unable to select or upload this image.'
+            : message,
         error: true,
       );
     } finally {
