@@ -8,7 +8,7 @@ class ApiConfig {
   static String get baseUrl {
     // Flutter Web / Chrome
     if (kIsWeb) {
-      return 'http://localhost:8081';
+      return 'http://192.168.1.4:8081';
     }
 
     // Android Emulator
@@ -162,5 +162,41 @@ class ApiConfig {
 
   static String tourPlaceStatus(int tourId, int historicalPlaceId) {
     return '/api/tours/$tourId/places/$historicalPlaceId/status';
+  }
+
+  // ------------------------------------------------------------
+  // BOOKINGS
+  // ------------------------------------------------------------
+
+  static const String myBookings = '/api/bookings/me';
+
+  static const String createDemoBooking = '/api/bookings/demo';
+
+  static String bookingById(int bookingId) {
+    return '/api/bookings/$bookingId';
+  }
+
+  // ------------------------------------------------------------
+  // PAYMENTS
+  // ------------------------------------------------------------
+
+  static String payBooking(int bookingId) {
+    return '/api/bookings/$bookingId/payments';
+  }
+
+  // ------------------------------------------------------------
+  // REVIEWS
+  // ------------------------------------------------------------
+
+  static const String submitReview = '/api/reviews';
+
+  static const String myReviews = '/api/reviews/me';
+
+  static String guideReviews(int guideProfileId) {
+    return '/api/reviews/guide/$guideProfileId';
+  }
+
+  static String guideRatingSummary(int guideProfileId) {
+    return '/api/reviews/guide/$guideProfileId/summary';
   }
 }
