@@ -98,7 +98,11 @@ public class UserDto {
 
             String phone,
 
-            String address
+            String address,
+
+            String profileImageUrl,
+
+            String coverImageUrl
 
     ) {}
 
@@ -189,6 +193,10 @@ public class UserDto {
             String lastName,
 
             String address,
+
+            String profileImageUrl,
+
+            String coverImageUrl,
 
             Role role,
 

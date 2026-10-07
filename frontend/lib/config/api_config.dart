@@ -142,6 +142,10 @@ class ApiConfig {
 
   static const String uploadPlaceImage = '/api/uploads/place-image';
 
+  static const String uploadProfileImage = '/api/uploads/profile-image';
+
+  static const String uploadCoverImage = '/api/uploads/cover-image';
+
   // ------------------------------------------------------------
   // TOURS
   // ------------------------------------------------------------

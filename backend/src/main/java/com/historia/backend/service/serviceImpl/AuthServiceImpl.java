@@ -618,6 +618,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAddress(),
+                user.getProfileImageUrl(),
+                user.getCoverImageUrl(),
                 user.getRole(),
                 user.isEmailVerified()
         );

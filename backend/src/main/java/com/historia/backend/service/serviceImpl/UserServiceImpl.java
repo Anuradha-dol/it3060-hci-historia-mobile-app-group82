@@ -62,6 +62,14 @@ public class UserServiceImpl implements UserService {
             user.setAddress(request.address().trim());
         }
 
+        if (request.profileImageUrl() != null) {
+            user.setProfileImageUrl(cleanNullable(request.profileImageUrl()));
+        }
+
+        if (request.coverImageUrl() != null) {
+            user.setCoverImageUrl(cleanNullable(request.coverImageUrl()));
+        }
+
         if (request.phone() != null) {
 
             String phone = request.phone().trim();
@@ -186,6 +194,8 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(null);
         user.setLastName(null);
         user.setAddress(null);
+        user.setProfileImageUrl(null);
+        user.setCoverImageUrl(null);
 
         user.setUsername(
                 "deleted_" + userId
@@ -252,8 +262,20 @@ public class UserServiceImpl implements UserService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAddress(),
+                user.getProfileImageUrl(),
+                user.getCoverImageUrl(),
                 user.getRole(),
                 user.isEmailVerified()
         );
+    }
+
+
+    private String cleanNullable(String value) {
+
+        String cleaned = value.trim();
+
+        return cleaned.isBlank()
+                ? null
+                : cleaned;
     }
 }
