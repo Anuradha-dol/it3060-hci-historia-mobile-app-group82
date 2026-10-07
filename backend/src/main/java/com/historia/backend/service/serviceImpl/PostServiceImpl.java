@@ -72,8 +72,6 @@ public class PostServiceImpl implements PostService {
             Long loggedInUserId
     ) {
 
-        // Logged-in user can only create a post
-        // using their own user ID
         if (!loggedInUserId.equals(request.getUserId())) {
 
             throw new RuntimeException(

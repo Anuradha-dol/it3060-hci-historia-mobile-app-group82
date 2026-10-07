@@ -20,12 +20,10 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User who created the post
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Historical place selected when creating the post
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "historical_place_id")
     private HistoricalPlace historicalPlace;
@@ -36,7 +34,6 @@ public class Post {
     @Column(length = 2000)
     private String caption;
 
-    // A post can contain multiple images
     @ElementCollection
     @CollectionTable(
             name = "post_images",

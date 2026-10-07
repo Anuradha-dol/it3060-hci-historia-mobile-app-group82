@@ -1412,15 +1412,6 @@ class _CoverHeroBanner extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            right: -15,
-            bottom: -12,
-            child: Icon(
-              Icons.account_balance_outlined,
-              size: 155,
-              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 12, 21),
             child: Column(
@@ -1554,23 +1545,12 @@ class _ProfileCoverBackground extends StatelessWidget {
       );
     }
 
-    return DecoratedBox(
-      decoration: const BoxDecoration(
+    return const DecoratedBox(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
-        ),
-      ),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 18),
-          child: Icon(
-            Icons.account_balance_outlined,
-            size: 150,
-            color: accent.withValues(alpha: 0.08),
-          ),
         ),
       ),
     );

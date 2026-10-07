@@ -21,34 +21,26 @@ public class Tour {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User who created the tour
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Optional tour name/title
     @Column(length = 150)
     private String title;
 
-    // Planned date
     private LocalDate tourDate;
 
-    // Distance can be filled later from frontend / map API
     private Double totalDistanceKm;
 
-    // Estimated duration in minutes
     private Integer estimatedDurationMinutes;
 
-    // PLANNED / ACTIVE / COMPLETED
     @Column(nullable = false, length = 20)
     private String status;
 
-    // Progress percentage
     @Builder.Default
     @Column(nullable = false)
     private Integer progressPercentage = 0;
 
-    // Selected places in the tour
     @OneToMany(
             mappedBy = "tour",
             cascade = CascadeType.ALL,

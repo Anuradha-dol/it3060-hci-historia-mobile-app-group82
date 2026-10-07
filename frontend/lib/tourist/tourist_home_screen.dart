@@ -12,10 +12,6 @@ import 'historical_search_screen.dart';
 import 'notifications_screen.dart';
 import 'tour_planner_screen.dart';
 
-// ============================================================================
-// TOURIST HOME SCREEN
-// ============================================================================
-
 class TouristHomeScreen extends StatefulWidget {
   const TouristHomeScreen({super.key});
 
@@ -29,10 +25,6 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
   int _index = 0;
   int _postRefreshKey = 0;
 
-  // --------------------------------------------------------------------------
-  // OPEN HOME
-  // --------------------------------------------------------------------------
-
   void _openHome() {
     if (_index == 0) {
       return;
@@ -42,10 +34,6 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
       _index = 0;
     });
   }
-
-  // --------------------------------------------------------------------------
-  // OPEN PROFILE
-  // --------------------------------------------------------------------------
 
   void _openProfile() {
     if (_index == 4) {
@@ -57,10 +45,6 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
     });
   }
 
-  // --------------------------------------------------------------------------
-  // OPEN NOTIFICATIONS
-  // --------------------------------------------------------------------------
-
   void _openNotifications() {
     Navigator.push(
       context,
@@ -68,20 +52,12 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
     );
   }
 
-  // --------------------------------------------------------------------------
-  // OPEN SEARCH
-  // --------------------------------------------------------------------------
-
   void _openSearch() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const HistoricalSearchScreen()),
     );
   }
-
-  // --------------------------------------------------------------------------
-  // OPEN CREATE POST
-  // --------------------------------------------------------------------------
 
   Future<void> _openCreatePost() async {
     final created = await Navigator.push<bool>(
@@ -93,12 +69,10 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
       return;
     }
 
-    // CreatePostScreen returns true after a successful post.
     if (created == true) {
       setState(() {
         _index = 0;
 
-        // Recreates the dashboard and loads the newest posts.
         _postRefreshKey++;
       });
 
@@ -119,10 +93,6 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
       MaterialPageRoute(builder: (_) => const TourPlannerScreen()),
     );
   }
-
-  // --------------------------------------------------------------------------
-  // BOTTOM NAVIGATION
-  // --------------------------------------------------------------------------
 
   void _onBottomNavTap(int index) {
     switch (index) {
@@ -147,10 +117,6 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
         break;
     }
   }
-
-  // --------------------------------------------------------------------------
-  // UI
-  // --------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -210,10 +176,6 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
     );
   }
 }
-
-// ============================================================================
-// HOME DASHBOARD
-// ============================================================================
 
 class _TouristDashboard extends StatefulWidget {
   final VoidCallback onNotifications;
@@ -345,10 +307,6 @@ class _TouristDashboardState extends State<_TouristDashboard> {
     );
   }
 
-  // --------------------------------------------------------------------------
-  // UI
-  // --------------------------------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -359,9 +317,6 @@ class _TouristDashboardState extends State<_TouristDashboard> {
           parent: ClampingScrollPhysics(),
         ),
         slivers: [
-          // ------------------------------------------------------------------
-          // HOME BANNER
-          // ------------------------------------------------------------------
           SliverToBoxAdapter(
             child: _HomeBanner(
               onNotifications: widget.onNotifications,
@@ -369,9 +324,6 @@ class _TouristDashboardState extends State<_TouristDashboard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // SEARCH
-          // ------------------------------------------------------------------
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
@@ -379,15 +331,12 @@ class _TouristDashboardState extends State<_TouristDashboard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // TRENDING PLACES TITLE
-          // ------------------------------------------------------------------
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
               child: Row(
                 children: [
-                  const Text('🔥', style: TextStyle(fontSize: 19)),
+                  const Text('ðŸ”¥', style: TextStyle(fontSize: 19)),
 
                   const SizedBox(width: 6),
 
@@ -434,14 +383,8 @@ class _TouristDashboardState extends State<_TouristDashboard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // TRENDING PLACES
-          // ------------------------------------------------------------------
           SliverToBoxAdapter(child: _buildTopTourPlaces()),
 
-          // ------------------------------------------------------------------
-          // COMMUNITY STORIES TITLE
-          // ------------------------------------------------------------------
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(18, 14, 18, 12),
@@ -477,10 +420,6 @@ class _TouristDashboardState extends State<_TouristDashboard> {
   }
 }
 
-// ============================================================================
-// HOME BANNER
-// ============================================================================
-
 class _HomeBanner extends StatelessWidget {
   static const Color darkGreen = Color(0xFF103F2D);
   static const Color primaryGreen = Color(0xFF176B45);
@@ -498,18 +437,12 @@ class _HomeBanner extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ------------------------------------------------------------------
-          // BANNER IMAGE
-          // ------------------------------------------------------------------
           Image.asset(
             'assets/images/home_banner.jpg',
             fit: BoxFit.cover,
             alignment: Alignment.center,
           ),
 
-          // ------------------------------------------------------------------
-          // SOFT OVERLAY
-          // ------------------------------------------------------------------
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -525,9 +458,6 @@ class _HomeBanner extends StatelessWidget {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // HEADER
-          // ------------------------------------------------------------------
           Positioned(
             top: 14,
             left: 18,
@@ -564,7 +494,7 @@ class _HomeBanner extends StatelessWidget {
                     ),
 
                     Text(
-                      'EXPLORE • WALK • BELONG',
+                      'EXPLORE â€¢ WALK â€¢ BELONG',
                       style: TextStyle(
                         color: Color(0xFF60746A),
                         fontSize: 6.5,
@@ -616,9 +546,6 @@ class _HomeBanner extends StatelessWidget {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // MAIN BANNER TITLE
-          // ------------------------------------------------------------------
           const Positioned(
             left: 20,
             bottom: 22,
@@ -638,7 +565,7 @@ class _HomeBanner extends StatelessWidget {
                 SizedBox(height: 3),
 
                 Text(
-                  'Sri Lanka’s Heritage',
+                  'Sri Lankaâ€™s Heritage',
                   style: TextStyle(
                     color: darkGreen,
                     fontSize: 26,
@@ -665,10 +592,6 @@ class _HomeBanner extends StatelessWidget {
     );
   }
 }
-
-// ============================================================================
-// HEADER CIRCLE BUTTON
-// ============================================================================
 
 class _HeaderCircleButton extends StatelessWidget {
   final IconData icon;
@@ -724,10 +647,6 @@ class _HeaderCircleButton extends StatelessWidget {
     );
   }
 }
-
-// ============================================================================
-// SEARCH BAR
-// ============================================================================
 
 class _SearchBar extends StatelessWidget {
   static const Color primaryGreen = Color(0xFF176B45);
@@ -820,10 +739,6 @@ class _TopPlacesMessage extends StatelessWidget {
     );
   }
 }
-
-// ============================================================================
-// TRENDING PLACE CARD
-// ============================================================================
 
 class _TrendingPlaceCard extends StatelessWidget {
   final String image;
@@ -949,10 +864,6 @@ class _TrendingPlaceCard extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// COMMUNITY POST CARD
-// ============================================================================
-
 class _CommunityPostCard extends StatefulWidget {
   final int? postId;
   final String userName;
@@ -986,10 +897,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
   bool liked = false;
   bool saved = false;
   bool deleting = false;
-
-  // --------------------------------------------------------------------------
-  // DELETE POST
-  // --------------------------------------------------------------------------
 
   Future<void> _deletePost() async {
     final postId = widget.postId;
@@ -1047,14 +954,12 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
         deleting = true;
       });
 
-      // DELETE /api/posts/{id}
       await _postService.deletePost(postId);
 
       if (!mounted) {
         return;
       }
 
-      // Remove post from the home screen.
       widget.onDeleted();
 
       ScaffoldMessenger.of(context)
@@ -1085,16 +990,11 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
     }
   }
 
-  // --------------------------------------------------------------------------
-  // POST IMAGE
-  // --------------------------------------------------------------------------
-
   Widget _buildPostImage() {
     if (widget.image.trim().isEmpty) {
       return _imagePlaceholder();
     }
 
-    // Backend/network image
     if (widget.image.startsWith('http://') ||
         widget.image.startsWith('https://')) {
       return Image.network(
@@ -1108,7 +1008,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       );
     }
 
-    // Local asset image
     return Image.asset(
       widget.image,
       width: double.infinity,
@@ -1120,10 +1019,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
     );
   }
 
-  // --------------------------------------------------------------------------
-  // IMAGE PLACEHOLDER
-  // --------------------------------------------------------------------------
-
   Widget _imagePlaceholder() {
     return Container(
       width: double.infinity,
@@ -1134,10 +1029,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       ),
     );
   }
-
-  // --------------------------------------------------------------------------
-  // UI
-  // --------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -1158,9 +1049,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ------------------------------------------------------------------
-          // USER INFORMATION
-          // ------------------------------------------------------------------
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -1204,7 +1092,7 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                             child: Text(
                               widget.time.isEmpty
                                   ? widget.location
-                                  : '${widget.location} • ${widget.time}',
+                                  : '${widget.location} â€¢ ${widget.time}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -1219,9 +1107,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
                   ),
                 ),
 
-                // ------------------------------------------------------------
-                // THREE DOT MENU
-                // ------------------------------------------------------------
                 deleting
                     ? const Padding(
                         padding: EdgeInsets.all(10),
@@ -1272,9 +1157,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // POST IMAGE
-          // ------------------------------------------------------------------
           AspectRatio(
             aspectRatio: 1.55,
             child: Stack(
@@ -1308,9 +1190,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // ACTIONS
-          // ------------------------------------------------------------------
           Padding(
             padding: const EdgeInsets.fromLTRB(11, 8, 11, 2),
             child: Row(
@@ -1386,9 +1265,6 @@ class _CommunityPostCardState extends State<_CommunityPostCard> {
             ),
           ),
 
-          // ------------------------------------------------------------------
-          // CAPTION
-          // ------------------------------------------------------------------
           if (widget.caption.trim().isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(15, 3, 15, 15),

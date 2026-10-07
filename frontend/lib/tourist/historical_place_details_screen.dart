@@ -25,10 +25,6 @@ class _HistoricalPlaceDetailsScreenState
 
   HistoricalPlaceModel get place => widget.place;
 
-  // ============================================================
-  // BUILD
-  // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,10 +62,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // HERO
-  // ============================================================
-
   Widget _buildHero(BuildContext context) {
     return SizedBox(
       height: 370,
@@ -78,7 +70,6 @@ class _HistoricalPlaceDetailsScreenState
         children: [
           _buildMainImage(),
 
-          // Dark gradient for readable text.
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -94,7 +85,6 @@ class _HistoricalPlaceDetailsScreenState
             ),
           ),
 
-          // Back button
           Positioned(
             top: 16,
             left: 16,
@@ -106,7 +96,6 @@ class _HistoricalPlaceDetailsScreenState
             ),
           ),
 
-          // Favorite
           Positioned(
             top: 16,
             right: 66,
@@ -135,7 +124,6 @@ class _HistoricalPlaceDetailsScreenState
             ),
           ),
 
-          // Share
           Positioned(
             top: 16,
             right: 16,
@@ -147,7 +135,6 @@ class _HistoricalPlaceDetailsScreenState
             ),
           ),
 
-          // Main place information
           Positioned(
             left: 20,
             right: 20,
@@ -219,7 +206,10 @@ class _HistoricalPlaceDetailsScreenState
                     if (place.openingHours.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('•', style: TextStyle(color: Colors.white)),
+                        child: Text(
+                          'â€¢',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
 
                       const Icon(
@@ -251,10 +241,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // MAIN IMAGE
-  // ============================================================
 
   Widget _buildMainImage() {
     final String imagePath = place.mainImageUrl?.trim() ?? '';
@@ -318,10 +304,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // TOP ROUND BUTTON
-  // ============================================================
-
   Widget _roundButton({
     required IconData icon,
     required VoidCallback onTap,
@@ -341,10 +323,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // ABOUT
-  // ============================================================
 
   Widget _buildAbout() {
     final description = place.description.trim();
@@ -433,10 +411,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // INFORMATION CARDS
-  // ============================================================
 
   Widget _buildInformation() {
     return Padding(
@@ -527,10 +501,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // LOCATION / GPS READY SECTION
-  // ============================================================
 
   Widget _buildLocationSection() {
     return Padding(
@@ -628,10 +598,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // GALLERY
-  // ============================================================
-
   Widget _buildGallery() {
     final gallery = _galleryImages;
 
@@ -724,10 +690,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // BOTTOM ACTIONS
-  // ============================================================
-
   Widget _buildBottomActions() {
     return SafeArea(
       top: false,
@@ -794,10 +756,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // BUTTON ACTIONS
-  // ============================================================
-
   void _onDirectionsPressed() {
     if (!place.hasCoordinates) {
       _showFeatureMessage(
@@ -806,8 +764,6 @@ class _HistoricalPlaceDetailsScreenState
       return;
     }
 
-    // GPS / external map navigation will be connected
-    // in the location-service step.
     _showFeatureMessage(
       'Directions are ready to use '
       '${place.latitude!.toStringAsFixed(4)}, '
@@ -846,10 +802,6 @@ class _HistoricalPlaceDetailsScreenState
       );
   }
 
-  // ============================================================
-  // DISPLAY HELPERS
-  // ============================================================
-
   String get _displayLocation {
     final location = place.location.trim();
 
@@ -885,14 +837,6 @@ class _HistoricalPlaceDetailsScreenState
   bool _isNetworkImage(String value) {
     return value.startsWith('http://') || value.startsWith('https://');
   }
-
-  // ============================================================
-  // LOCAL IMAGE FALLBACK
-  //
-  // Database data remains dynamic.
-  // These are only temporary UI image fallbacks for the images
-  // already included in your Flutter project.
-  // ============================================================
 
   String? _localImageForPlace(String placeName) {
     switch (placeName.toLowerCase().trim()) {
@@ -948,9 +892,6 @@ class _HistoricalPlaceDetailsScreenState
       return [localMainImage];
     }
 
-    // This intentionally returns an invalid asset name.
-    // _buildGalleryImage catches it and displays the
-    // clean image placeholder.
     return const ['assets/images/historical_place_placeholder.jpg'];
   }
 }

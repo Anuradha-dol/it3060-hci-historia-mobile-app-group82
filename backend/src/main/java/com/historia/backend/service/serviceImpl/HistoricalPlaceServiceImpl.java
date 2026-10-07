@@ -55,8 +55,6 @@ public class HistoricalPlaceServiceImpl implements HistoricalPlaceService {
                 return topPlaces;
             }
         } catch (RuntimeException exception) {
-            // Fall back to image-backed places so the mobile home screen
-            // still has useful content if the aggregate query cannot run.
         }
 
         return historicalPlaceRepository

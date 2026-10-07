@@ -34,9 +34,6 @@ public class TourServiceImpl implements TourService {
         this.historicalPlaceRepository = historicalPlaceRepository;
     }
 
-    // =========================================================
-    // CREATE TOUR
-    // =========================================================
 
     @Override
     @Transactional
@@ -45,7 +42,6 @@ public class TourServiceImpl implements TourService {
             Long loggedInUserId
     ) {
 
-        // Logged-in user can only use their own user ID
         if (!loggedInUserId.equals(request.getUserId())) {
             throw new RuntimeException(
                     "You can only create tours for your own account"
@@ -114,9 +110,6 @@ public class TourServiceImpl implements TourService {
         return convertToDto(savedTour);
     }
 
-    // =========================================================
-    // GET TOUR BY ID
-    // =========================================================
 
     @Override
     @Transactional(readOnly = true)
@@ -133,9 +126,6 @@ public class TourServiceImpl implements TourService {
         return convertToDto(tour);
     }
 
-    // =========================================================
-    // GET LOGGED USER'S TOURS
-    // =========================================================
 
     @Override
     @Transactional(readOnly = true)
@@ -144,7 +134,6 @@ public class TourServiceImpl implements TourService {
             Long loggedInUserId
     ) {
 
-        // Cannot request another user's tours
         if (!loggedInUserId.equals(userId)) {
 
             throw new RuntimeException(
@@ -159,9 +148,6 @@ public class TourServiceImpl implements TourService {
                 .toList();
     }
 
-    // =========================================================
-    // MARK HISTORICAL PLACE COMPLETED
-    // =========================================================
 
     @Override
     @Transactional
@@ -236,9 +222,6 @@ public class TourServiceImpl implements TourService {
         return convertToDto(updatedTour);
     }
 
-    // =========================================================
-    // COMPLETE FULL TOUR
-    // =========================================================
 
     @Override
     @Transactional
@@ -274,9 +257,6 @@ public class TourServiceImpl implements TourService {
         return convertToDto(updatedTour);
     }
 
-    // =========================================================
-    // DELETE TOUR
-    // =========================================================
 
     @Override
     @Transactional
@@ -293,9 +273,6 @@ public class TourServiceImpl implements TourService {
         tourRepository.delete(tour);
     }
 
-    // =========================================================
-    // GET TOUR ONLY IF IT BELONGS TO LOGGED USER
-    // =========================================================
 
     private Tour getOwnedTour(
             Long tourId,
@@ -314,9 +291,6 @@ public class TourServiceImpl implements TourService {
                 );
     }
 
-    // =========================================================
-    // UPDATE TOUR PROGRESS
-    // =========================================================
 
     private void updateProgress(Tour tour) {
 
@@ -366,9 +340,6 @@ public class TourServiceImpl implements TourService {
         }
     }
 
-    // =========================================================
-    // CONVERT TOUR ENTITY TO DTO
-    // =========================================================
 
     private TourDto convertToDto(
             Tour tour

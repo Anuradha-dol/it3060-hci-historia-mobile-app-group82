@@ -92,10 +92,7 @@ class _CommunityFeedState extends State<CommunityFeed> {
     if (postId == null) return;
 
     if (!_isOwnPost(post, currentUserId)) {
-      _showMessage(
-        'You can only delete your own posts.',
-        error: true,
-      );
+      _showMessage('You can only delete your own posts.', error: true);
       return;
     }
 
