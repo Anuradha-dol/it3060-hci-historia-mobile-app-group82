@@ -15,6 +15,12 @@ backend-run.err
 */backend-run.out
 */backend-run.err
 
+### Local run artifacts ###
+frontend/*.png
+frontend/*.out
+frontend/*.err
+uploads/
+
 ### IDE ###
 .idea/
 *.iws
