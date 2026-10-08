@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../config/api_config.dart';
 import '../models/guide_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
@@ -46,6 +48,10 @@ class RoleProfileContent extends StatefulWidget {
 }
 
 class _RoleProfileContentState extends State<RoleProfileContent> {
+  final _userService = UserService();
+  final _guideService = GuideService();
+  final _imagePicker = ImagePicker();
+
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   final _phone = TextEditingController();
@@ -64,6 +70,8 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
 
   bool _loading = true;
   bool _saving = false;
+  bool _uploadingProfileImage = false;
+  bool _uploadingCoverImage = false;
 
   bool _showEditProfile = false;
   bool _showSecurity = false;
@@ -98,14 +106,14 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     }
 
     try {
-      final profile = await UserService().getMyProfile();
+      final profile = await _userService.getMyProfile();
 
       GuideModel? guide;
       String? guideError;
 
       if (profile.role == 'GUIDE') {
         try {
-          guide = await GuideService().getMyGuideProfile();
+          guide = await _guideService.getMyGuideProfile();
         } catch (e) {
           guideError = ApiService.instance.getErrorMessage(e);
         }
@@ -130,9 +138,15 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     } catch (e) {
       if (!mounted) return;
 
+      debugPrint('Profile media update failed: $e');
+
+      final message = ApiService.instance.getErrorMessage(e);
+
       showAppMessage(
         context,
-        ApiService.instance.getErrorMessage(e),
+        message == 'Something went wrong.'
+            ? 'Unable to select or upload this image.'
+            : message,
         error: true,
       );
     } finally {
@@ -150,7 +164,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     });
 
     try {
-      final updated = await UserService().updateProfile(
+      final updated = await _userService.updateProfile(
         firstName: _firstName.text.trim(),
         lastName: _lastName.text.trim(),
         phone: _phone.text.trim(),
@@ -186,6 +200,110 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     }
   }
 
+  Future<void> _pickProfileImage() async {
+    await _pickAndSaveProfileMedia(cover: false);
+  }
+
+  Future<void> _pickCoverImage() async {
+    await _pickAndSaveProfileMedia(cover: true);
+  }
+
+  Future<void> _pickAndSaveProfileMedia({required bool cover}) async {
+    if (_saving || _uploadingProfileImage || _uploadingCoverImage) {
+      return;
+    }
+
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: cover ? 88 : 86,
+        maxWidth: cover ? 2200 : 1200,
+      );
+
+      if (picked == null) {
+        return;
+      }
+
+      final bytes = await picked.readAsBytes();
+
+      if (bytes.isEmpty) {
+        if (!mounted) return;
+        showAppMessage(
+          context,
+          'Selected image could not be read.',
+          error: true,
+        );
+        return;
+      }
+
+      setState(() {
+        if (cover) {
+          _uploadingCoverImage = true;
+        } else {
+          _uploadingProfileImage = true;
+        }
+      });
+
+      final imageUrl = cover
+          ? await _userService.uploadCoverImage(
+              imageBytes: bytes,
+              fileName: _mediaFileName(picked, 'cover'),
+            )
+          : await _userService.uploadProfileImage(
+              imageBytes: bytes,
+              fileName: _mediaFileName(picked, 'profile'),
+            );
+
+      final updated = await _userService.updateProfile(
+        profileImageUrl: cover ? null : imageUrl,
+        coverImageUrl: cover ? imageUrl : null,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _profile = updated;
+      });
+
+      await context.read<AuthProvider>().refreshProfile();
+
+      if (!mounted) return;
+
+      showAppMessage(
+        context,
+        cover ? 'Cover photo updated.' : 'Profile photo updated.',
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      showAppMessage(
+        context,
+        ApiService.instance.getErrorMessage(e),
+        error: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (cover) {
+            _uploadingCoverImage = false;
+          } else {
+            _uploadingProfileImage = false;
+          }
+        });
+      }
+    }
+  }
+
+  String _mediaFileName(XFile file, String fallback) {
+    final name = file.name.trim();
+
+    if (name.isNotEmpty) {
+      return name;
+    }
+
+    return '$fallback-${DateTime.now().millisecondsSinceEpoch}.jpg';
+  }
+
   Future<void> _changePassword() async {
     if (_currentPassword.text.isEmpty ||
         _newPassword.text.isEmpty ||
@@ -204,7 +322,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     });
 
     try {
-      final result = await UserService().changePassword(
+      final result = await _userService.changePassword(
         currentPassword: _currentPassword.text,
         newPassword: _newPassword.text,
         confirmPassword: _confirmPassword.text,
@@ -291,7 +409,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     });
 
     try {
-      final result = await UserService().deleteAccount(
+      final result = await _userService.deleteAccount(
         currentPassword: _deletePassword.text,
       );
 
@@ -400,6 +518,10 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
           initials: _initials(profile.fullName),
           onNotification: _openNotifications,
           onClose: widget.standalone ? () => Navigator.maybePop(context) : null,
+          onPickProfileImage: _pickProfileImage,
+          onPickCoverImage: _pickCoverImage,
+          uploadingProfileImage: _uploadingProfileImage,
+          uploadingCoverImage: _uploadingCoverImage,
         ),
 
         Padding(
@@ -547,8 +669,11 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
       padding: EdgeInsets.zero,
       children: [
         _GuideHero(
+          profile: profile,
           onRefresh: _load,
           onClose: widget.standalone ? () => Navigator.maybePop(context) : null,
+          onPickCoverImage: _pickCoverImage,
+          uploadingCoverImage: _uploadingCoverImage,
         ),
 
         Transform.translate(
@@ -560,9 +685,12 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
               children: [
                 _GuideIdentityCard(
                   initials: _initials(profile.fullName),
+                  profileImageUrl: profile.profileImageUrl,
                   name: displayName,
                   area: _emptyText(guide?.primaryServiceArea),
                   status: guide?.status ?? 'PENDING',
+                  onPickProfileImage: _pickProfileImage,
+                  uploadingProfileImage: _uploadingProfileImage,
                 ),
 
                 const SizedBox(height: 12),
@@ -789,6 +917,10 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
           profile: profile,
           onRefresh: _load,
           onClose: widget.standalone ? () => Navigator.maybePop(context) : null,
+          onPickProfileImage: _pickProfileImage,
+          onPickCoverImage: _pickCoverImage,
+          uploadingProfileImage: _uploadingProfileImage,
+          uploadingCoverImage: _uploadingCoverImage,
         ),
 
         Padding(
@@ -1078,66 +1210,383 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
   }
 }
 
-class _TouristHero extends StatelessWidget {
+class _ProfileHeroShell extends StatelessWidget {
   final UserModel profile;
   final String initials;
-
-  final VoidCallback onNotification;
+  final String roleLabel;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final bool dark;
+  final String statusText;
+  final bool statusSuccess;
+  final List<Widget> leadingActions;
   final VoidCallback? onClose;
+  final VoidCallback onPickProfileImage;
+  final VoidCallback onPickCoverImage;
+  final bool uploadingProfileImage;
+  final bool uploadingCoverImage;
 
-  const _TouristHero({
+  const _ProfileHeroShell({
     required this.profile,
     required this.initials,
-    required this.onNotification,
+    required this.roleLabel,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.dark,
+    required this.statusText,
+    required this.statusSuccess,
+    required this.leadingActions,
+    required this.onClose,
+    required this.onPickProfileImage,
+    required this.onPickCoverImage,
+    required this.uploadingProfileImage,
+    required this.uploadingCoverImage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final titleColor = dark ? Colors.white : const Color(0xFF133C2E);
+    final subtitleColor = dark
+        ? const Color(0xFFD1E6DC)
+        : const Color(0xFF73857B);
+    final labelColor = dark ? const Color(0xFFB9DDCD) : const Color(0xFF4D806A);
+
+    return SizedBox(
+      height: 270,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _ProfileCoverBackground(
+            imageUrl: profile.coverImageUrl,
+            dark: dark,
+            accent: accent,
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: dark
+                    ? [
+                        Colors.black.withValues(alpha: 0.18),
+                        Colors.black.withValues(alpha: 0.62),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.18),
+                        Colors.white.withValues(alpha: 0.78),
+                      ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Column(
+              children: [
+                _ProfileTopBar(
+                  dark: dark,
+                  actions: leadingActions,
+                  onClose: onClose,
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    _EditableAvatar(
+                      initials: initials,
+                      imageUrl: profile.profileImageUrl,
+                      size: 82,
+                      accent: accent,
+                      onTap: onPickProfileImage,
+                      uploading: uploadingProfileImage,
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            roleLabel,
+                            style: TextStyle(
+                              color: labelColor,
+                              fontSize: 7.5,
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: titleColor,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: subtitleColor,
+                              fontSize: 10,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _StatusBadge(
+                            text: statusText,
+                            success: statusSuccess,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 18,
+            child: _CoverEditButton(
+              onTap: onPickCoverImage,
+              uploading: uploadingCoverImage,
+              dark: dark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoverHeroBanner extends StatelessWidget {
+  final UserModel profile;
+  final String roleLabel;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final bool dark;
+  final VoidCallback onPickCoverImage;
+  final bool uploadingCoverImage;
+  final List<Widget> actions;
+  final VoidCallback? onClose;
+
+  const _CoverHeroBanner({
+    required this.profile,
+    required this.roleLabel,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.dark,
+    required this.onPickCoverImage,
+    required this.uploadingCoverImage,
+    required this.actions,
     required this.onClose,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(17, 12, 17, 23),
-      decoration: const BoxDecoration(
+    return SizedBox(
+      height: 225,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _ProfileCoverBackground(
+            imageUrl: profile.coverImageUrl,
+            dark: dark,
+            accent: accent,
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withValues(alpha: 0.12),
+                  Colors.white.withValues(alpha: 0.82),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 21),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ProfileTopBar(dark: dark, actions: actions, onClose: onClose),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.74),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFD2E5D9)),
+                  ),
+                  child: Text(
+                    roleLabel,
+                    style: const TextStyle(
+                      color: Color(0xFF4D806A),
+                      fontSize: 7.5,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 9),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF133C2E),
+                    fontSize: 25,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFF596B62),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 14,
+            bottom: 15,
+            child: _CoverEditButton(
+              onTap: onPickCoverImage,
+              uploading: uploadingCoverImage,
+              dark: dark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileTopBar extends StatelessWidget {
+  final bool dark;
+  final List<Widget> actions;
+  final VoidCallback? onClose;
+
+  const _ProfileTopBar({
+    required this.dark,
+    required this.actions,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = dark ? Colors.white : const Color(0xFF176A4C);
+
+    return Row(
+      children: [
+        _HistoriaMark(dark: dark),
+        const SizedBox(width: 9),
+        Expanded(child: _HistoriaBrand(dark: dark)),
+        ...actions,
+        if (onClose != null)
+          IconButton(
+            tooltip: 'Close',
+            onPressed: onClose,
+            icon: Icon(Icons.close, color: iconColor),
+          ),
+      ],
+    );
+  }
+}
+
+class _ProfileCoverBackground extends StatelessWidget {
+  final String? imageUrl;
+  final bool dark;
+  final Color accent;
+
+  const _ProfileCoverBackground({
+    required this.imageUrl,
+    required this.dark,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final resolved = ApiConfig.resolveImageUrl(imageUrl);
+
+    if (resolved.isNotEmpty) {
+      return Image.network(
+        resolved,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _fallback(),
+      );
+    }
+
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    if (dark) {
+      return const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF122F27), Color(0xFF174E3B)],
+          ),
+        ),
+      );
+    }
+
+    return const DecoratedBox(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
         ),
       ),
-      child: Column(
+    );
+  }
+}
+
+class _EditableAvatar extends StatelessWidget {
+  final String initials;
+  final String? imageUrl;
+  final double size;
+  final Color accent;
+  final VoidCallback onTap;
+  final bool uploading;
+
+  const _EditableAvatar({
+    required this.initials,
+    required this.imageUrl,
+    required this.size,
+    required this.accent,
+    required this.onTap,
+    required this.uploading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Row(
-            children: [
-              const _HistoriaMark(),
-
-              const SizedBox(width: 9),
-
-              const Expanded(child: _HistoriaBrand()),
-
-              IconButton(
-                tooltip: 'Notifications',
-                onPressed: onNotification,
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: Color(0xFF176A4C),
-                ),
-              ),
-
-              if (onClose != null)
-                IconButton(
-                  tooltip: 'Close',
-                  onPressed: onClose,
-                  icon: const Icon(Icons.close, color: Color(0xFF176A4C)),
-                ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          Row(
-            children: [
-              Container(
-                width: 76,
-                height: 76,
+          Positioned.fill(
+            child: InkWell(
+              onTap: uploading ? null : onTap,
+              customBorder: const CircleBorder(),
+              child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -1151,184 +1600,216 @@ class _TouristHero extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Color(0xFF176A4C),
-                    fontSize: 23,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+                child: ClipOval(child: _avatarContent()),
               ),
-
-              const SizedBox(width: 15),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'TOURIST PROFILE',
-                      style: TextStyle(
-                        color: Color(0xFF4D806A),
-                        fontSize: 7.5,
-                        letterSpacing: 1.2,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    Text(
-                      profile.fullName,
-                      style: const TextStyle(
-                        color: Color(0xFF133C2E),
-                        fontSize: 21,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-
-                    const SizedBox(height: 3),
-
-                    Text(
-                      '@${profile.username}',
-                      style: const TextStyle(
-                        color: Color(0xFF73857B),
-                        fontSize: 10,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    _StatusBadge(
-                      text: profile.emailVerified
-                          ? 'VERIFIED'
-                          : 'EMAIL PENDING',
-                      success: profile.emailVerified,
-                    ),
-                  ],
-                ),
+            ),
+          ),
+          Positioned(
+            right: -1,
+            bottom: -1,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: accent,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
               ),
-            ],
+              child: uploading
+                  ? const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.photo_camera_outlined,
+                      color: Colors.white,
+                      size: 15,
+                    ),
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _avatarContent() {
+    final resolved = ApiConfig.resolveImageUrl(imageUrl);
+
+    if (resolved.isNotEmpty) {
+      return Image.network(
+        resolved,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _initials(),
+      );
+    }
+
+    return _initials();
+  }
+
+  Widget _initials() {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ColoredBox(
+        color: const Color(0xFFDCEFE4),
+        child: Center(
+          child: Text(
+            initials,
+            style: TextStyle(
+              color: accent,
+              fontSize: size * 0.29,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _GuideHero extends StatelessWidget {
-  final VoidCallback onRefresh;
-  final VoidCallback? onClose;
+class _CoverEditButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final bool uploading;
+  final bool dark;
 
-  const _GuideHero({required this.onRefresh, required this.onClose});
+  const _CoverEditButton({
+    required this.onTap,
+    required this.uploading,
+    required this.dark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 225,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF7FBF8), Color(0xFFE6F3EB), Color(0xFFD3E9DC)],
+    return Tooltip(
+      message: 'Change cover photo',
+      child: InkWell(
+        onTap: uploading ? null : onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: dark
+                ? Colors.white.withValues(alpha: 0.20)
+                : Colors.white.withValues(alpha: 0.88),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: dark
+                  ? Colors.white.withValues(alpha: 0.26)
+                  : const Color(0xFFD2E5D9),
+            ),
+          ),
+          child: uploading
+              ? const Padding(
+                  padding: EdgeInsets.all(10),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF176A4C),
+                  ),
+                )
+              : Icon(
+                  Icons.add_photo_alternate_outlined,
+                  color: dark ? Colors.white : const Color(0xFF176A4C),
+                  size: 19,
+                ),
         ),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -15,
-            bottom: -12,
-            child: Icon(
-              Icons.account_balance_outlined,
-              size: 155,
-              color: const Color(0xFF176A4C).withValues(alpha: 0.09),
-            ),
+    );
+  }
+}
+
+class _TouristHero extends StatelessWidget {
+  final UserModel profile;
+  final String initials;
+
+  final VoidCallback onNotification;
+  final VoidCallback? onClose;
+  final VoidCallback onPickProfileImage;
+  final VoidCallback onPickCoverImage;
+  final bool uploadingProfileImage;
+  final bool uploadingCoverImage;
+
+  const _TouristHero({
+    required this.profile,
+    required this.initials,
+    required this.onNotification,
+    required this.onClose,
+    required this.onPickProfileImage,
+    required this.onPickCoverImage,
+    required this.uploadingProfileImage,
+    required this.uploadingCoverImage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfileHeroShell(
+      profile: profile,
+      initials: initials,
+      roleLabel: 'TOURIST PROFILE',
+      title: profile.fullName,
+      subtitle: '@${profile.username}',
+      accent: const Color(0xFF176A4C),
+      dark: false,
+      statusText: profile.emailVerified ? 'VERIFIED' : 'EMAIL PENDING',
+      statusSuccess: profile.emailVerified,
+      leadingActions: [
+        IconButton(
+          tooltip: 'Notifications',
+          onPressed: onNotification,
+          icon: const Icon(
+            Icons.notifications_none_rounded,
+            color: Color(0xFF176A4C),
           ),
+        ),
+      ],
+      onClose: onClose,
+      onPickProfileImage: onPickProfileImage,
+      onPickCoverImage: onPickCoverImage,
+      uploadingProfileImage: uploadingProfileImage,
+      uploadingCoverImage: uploadingCoverImage,
+    );
+  }
+}
 
-          Positioned(
-            left: -25,
-            bottom: -25,
-            child: Icon(
-              Icons.landscape_outlined,
-              size: 145,
-              color: const Color(0xFF176A4C).withValues(alpha: 0.07),
-            ),
-          ),
+class _GuideHero extends StatelessWidget {
+  final UserModel profile;
+  final VoidCallback onRefresh;
+  final VoidCallback? onClose;
+  final VoidCallback onPickCoverImage;
+  final bool uploadingCoverImage;
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 12, 21),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const _HistoriaMark(),
+  const _GuideHero({
+    required this.profile,
+    required this.onRefresh,
+    required this.onClose,
+    required this.onPickCoverImage,
+    required this.uploadingCoverImage,
+  });
 
-                    const SizedBox(width: 9),
-
-                    const Expanded(child: _HistoriaBrand()),
-
-                    IconButton(
-                      tooltip: 'Refresh',
-                      onPressed: onRefresh,
-                      icon: const Icon(Icons.refresh, color: Color(0xFF176A4C)),
-                    ),
-
-                    if (onClose != null)
-                      IconButton(
-                        tooltip: 'Close',
-                        onPressed: onClose,
-                        icon: const Icon(Icons.close, color: Color(0xFF176A4C)),
-                      ),
-                  ],
-                ),
-
-                const Spacer(),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.70),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFD2E5D9)),
-                  ),
-                  child: const Text(
-                    'GUIDE PROFILE',
-                    style: TextStyle(
-                      color: Color(0xFF4D806A),
-                      fontSize: 7.5,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 9),
-
-                const Text(
-                  'Your guide profile.',
-                  style: TextStyle(
-                    color: Color(0xFF133C2E),
-                    fontSize: 25,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                const Text(
-                  'Your professional information in HISTORIA.',
-                  style: TextStyle(color: Color(0xFF596B62), fontSize: 10),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  @override
+  Widget build(BuildContext context) {
+    return _CoverHeroBanner(
+      profile: profile,
+      roleLabel: 'GUIDE PROFILE',
+      title: 'Your guide profile.',
+      subtitle: 'Your professional information in HISTORIA.',
+      accent: const Color(0xFF176A4C),
+      dark: false,
+      onPickCoverImage: onPickCoverImage,
+      uploadingCoverImage: uploadingCoverImage,
+      actions: [
+        IconButton(
+          tooltip: 'Refresh',
+          onPressed: onRefresh,
+          icon: const Icon(Icons.refresh, color: Color(0xFF176A4C)),
+        ),
+      ],
+      onClose: onClose,
     );
   }
 }
@@ -1337,94 +1818,86 @@ class _AdminHero extends StatelessWidget {
   final UserModel profile;
   final VoidCallback onRefresh;
   final VoidCallback? onClose;
+  final VoidCallback onPickProfileImage;
+  final VoidCallback onPickCoverImage;
+  final bool uploadingProfileImage;
+  final bool uploadingCoverImage;
 
   const _AdminHero({
     required this.profile,
     required this.onRefresh,
     required this.onClose,
+    required this.onPickProfileImage,
+    required this.onPickCoverImage,
+    required this.uploadingProfileImage,
+    required this.uploadingCoverImage,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(17, 12, 17, 24),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF122F27), Color(0xFF174E3B)],
+    return _ProfileHeroShell(
+      profile: profile,
+      initials: _fallbackInitials(profile.fullName),
+      roleLabel: 'ADMIN PROFILE',
+      title: profile.fullName,
+      subtitle: profile.email,
+      accent: const Color(0xFFB9DDCD),
+      dark: true,
+      statusText: profile.emailVerified ? 'VERIFIED ADMIN' : 'EMAIL PENDING',
+      statusSuccess: profile.emailVerified,
+      leadingActions: [
+        IconButton(
+          tooltip: 'Refresh',
+          onPressed: onRefresh,
+          icon: const Icon(Icons.refresh, color: Colors.white),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const _HistoriaMark(dark: true),
-
-              const SizedBox(width: 9),
-
-              const Expanded(child: _HistoriaBrand(dark: true)),
-
-              IconButton(
-                onPressed: onRefresh,
-                icon: const Icon(Icons.refresh, color: Colors.white),
-              ),
-
-              if (onClose != null)
-                IconButton(
-                  onPressed: onClose,
-                  icon: const Icon(Icons.close, color: Colors.white),
-                ),
-            ],
-          ),
-
-          const SizedBox(height: 26),
-
-          const Text(
-            'ADMIN PROFILE',
-            style: TextStyle(
-              color: Color(0xFFB9DDCD),
-              fontSize: 8,
-              letterSpacing: 1.3,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-
-          const SizedBox(height: 7),
-
-          Text(
-            profile.fullName,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 23,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-
-          const SizedBox(height: 5),
-
-          Text(
-            profile.email,
-            style: const TextStyle(color: Color(0xFFD1E6DC), fontSize: 10),
-          ),
-        ],
-      ),
+      ],
+      onClose: onClose,
+      onPickProfileImage: onPickProfileImage,
+      onPickCoverImage: onPickCoverImage,
+      uploadingProfileImage: uploadingProfileImage,
+      uploadingCoverImage: uploadingCoverImage,
     );
+  }
+
+  String _fallbackInitials(String value) {
+    final parts = value
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) {
+      return 'A';
+    }
+
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+
+    return '${parts.first.substring(0, 1)}'
+            '${parts.last.substring(0, 1)}'
+        .toUpperCase();
   }
 }
 
 class _GuideIdentityCard extends StatelessWidget {
   final String initials;
+  final String? profileImageUrl;
   final String name;
   final String area;
   final String status;
+  final VoidCallback onPickProfileImage;
+  final bool uploadingProfileImage;
 
   const _GuideIdentityCard({
     required this.initials,
+    required this.profileImageUrl,
     required this.name,
     required this.area,
     required this.status,
+    required this.onPickProfileImage,
+    required this.uploadingProfileImage,
   });
 
   @override
@@ -1433,22 +1906,13 @@ class _GuideIdentityCard extends StatelessWidget {
       strongShadow: true,
       child: Row(
         children: [
-          Container(
-            width: 62,
-            height: 62,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: Color(0xFFDCEFE4),
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              initials,
-              style: const TextStyle(
-                color: Color(0xFF166747),
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+          _EditableAvatar(
+            initials: initials,
+            imageUrl: profileImageUrl,
+            size: 66,
+            accent: const Color(0xFF166747),
+            onTap: onPickProfileImage,
+            uploading: uploadingProfileImage,
           ),
 
           const SizedBox(width: 13),

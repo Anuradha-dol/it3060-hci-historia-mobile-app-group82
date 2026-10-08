@@ -34,7 +34,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
   Timer? _debounce;
 
-  // Prevent an older request from replacing a newer search result.
   int _requestVersion = 0;
 
   @override
@@ -51,10 +50,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
     super.dispose();
   }
-
-  // ============================================================
-  // BACKEND DATA
-  // ============================================================
 
   Future<void> _loadAllPlaces() async {
     final int requestVersion = ++_requestVersion;
@@ -191,10 +186,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     return 'Could not load historical places. Check that the backend is running and try again.';
   }
 
-  // ============================================================
-  // OPEN DETAILS
-  // ============================================================
-
   Future<void> _openPlace(HistoricalPlaceModel place) async {
     try {
       final latestPlace = await _placeService.getPlaceById(place.id);
@@ -222,10 +213,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       );
     }
   }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -276,10 +263,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     );
   }
 
-  // ============================================================
-  // HEADER
-  // ============================================================
-
   Widget _buildHeader() {
     return Container(
       color: Colors.white,
@@ -315,10 +298,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       ),
     );
   }
-
-  // ============================================================
-  // SEARCH BAR
-  // ============================================================
 
   Widget _buildSearchBar() {
     return Container(
@@ -381,10 +360,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     );
   }
 
-  // ============================================================
-  // TABS
-  // ============================================================
-
   Widget _buildTabs() {
     const tabs = ['All', 'Places', 'Posts', 'People'];
 
@@ -430,10 +405,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       ),
     );
   }
-
-  // ============================================================
-  // HISTORICAL PLACES SECTION
-  // ============================================================
 
   Widget _buildPlacesSection() {
     return Padding(
@@ -495,10 +466,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       ),
     );
   }
-
-  // ============================================================
-  // PLACE CARD
-  // ============================================================
 
   Widget _buildPlaceCard(HistoricalPlaceModel place) {
     return Material(
@@ -636,10 +603,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     );
   }
 
-  // ============================================================
-  // IMAGE HANDLING
-  // ============================================================
-
   Widget _buildPlaceImage(
     HistoricalPlaceModel place, {
     required double width,
@@ -747,10 +710,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     }
   }
 
-  // ============================================================
-  // LOADING
-  // ============================================================
-
   Widget _buildLoadingState() {
     return Container(
       width: double.infinity,
@@ -776,10 +735,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       ),
     );
   }
-
-  // ============================================================
-  // ERROR
-  // ============================================================
 
   Widget _buildErrorState() {
     return Container(
@@ -843,10 +798,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     );
   }
 
-  // ============================================================
-  // EMPTY SEARCH RESULT
-  // ============================================================
-
   Widget _buildEmptyState() {
     final bool searching = searchQuery.trim().isNotEmpty;
 
@@ -904,13 +855,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     );
   }
 
-  // ============================================================
-  // POSTS
-  //
-  // These are UI preview cards for the community section.
-  // Historical-place search itself is now backend-driven.
-  // ============================================================
-
   Widget _buildPosts() {
     final HistoricalPlaceModel place = _places.first;
 
@@ -950,7 +894,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
           _buildPostCard(
             place,
-            'Exploring ${place.name} ✨',
+            'Exploring ${place.name} âœ¨',
             'A beautiful historical experience in Sri Lanka.',
           ),
 
@@ -958,7 +902,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
           _buildPostCard(
             place,
-            '${place.name} – A Must Visit!',
+            '${place.name} â€“ A Must Visit!',
             'History, culture and unforgettable memories.',
           ),
 
@@ -967,7 +911,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
           _buildPostCard(
             place,
             'My ${place.name} Adventure',
-            'Another amazing heritage journey. 💚',
+            'Another amazing heritage journey. ðŸ’š',
           ),
         ],
       ),
@@ -1045,7 +989,7 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
 
                         Expanded(
                           child: Text(
-                            '@travelwithsara • 2 days ago',
+                            '@travelwithsara â€¢ 2 days ago',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -1067,13 +1011,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
       ),
     );
   }
-
-  // ============================================================
-  // PEOPLE
-  //
-  // This stays as presentation UI until your community/user
-  // search backend is connected separately.
-  // ============================================================
 
   Widget _buildPeople() {
     return Padding(
@@ -1183,10 +1120,6 @@ class _HistoricalSearchScreenState extends State<HistoricalSearchScreen> {
     );
   }
 }
-
-// ============================================================================
-// FOLLOW BUTTON
-// ============================================================================
 
 class _FollowButton extends StatefulWidget {
   const _FollowButton();

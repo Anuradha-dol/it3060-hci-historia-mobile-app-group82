@@ -1,0 +1,30 @@
+# Copy to application-local.yml only if that file does not already exist.
+# Replace placeholders locally. Never commit application-local.yml.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/historia
+    username: postgres
+    password: REPLACE_WITH_YOUR_POSTGRES_PASSWORD
+  mail:
+    username: ""
+    password: ""
+
+jwt:
+  secret: REPLACE_WITH_RANDOM_BASE64_SECRET
+
+google:
+  oauth:
+    client-id: ""
+
+# Optional: configure these to create the first admin account.
+admin:
+  username: ""
+  email: ""
+  phone: ""
+  password: ""
+
+historia:
+  booking:
+    seed: false
+    demo-payments: false
+  web-origins: http://localhost:*,http://127.0.0.1:*
