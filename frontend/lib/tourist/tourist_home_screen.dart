@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,13 +7,17 @@ import '../models/historical_place_model.dart';
 import '../profile/profile_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../services/booking_service.dart';
 import '../services/historical_place_service.dart';
 import '../services/post_service.dart';
 import '../widgets/community_feed.dart';
+import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
+import 'checkout_screen.dart';
 import 'create_post_screen.dart';
 import 'historical_search_screen.dart';
 import 'notifications_screen.dart';
+import 'review_screen.dart';
 import 'tour_planner_screen.dart';
 import 'travel_buddy_screen.dart';
 
@@ -28,6 +33,8 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
 
   int _index = 0;
   int _postRefreshKey = 0;
+  final _bookingService = BookingService();
+  bool _creatingBooking = false;
 
   void _openHome() {
     if (_index == 0) {
@@ -97,6 +104,86 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
     );
   }
 
+  // --------------------------------------------------------------------------
+  // OPEN CHECKOUT
+  // --------------------------------------------------------------------------
+
+  Future<void> _openCheckout() async {
+    if (_creatingBooking) return;
+
+    setState(() => _creatingBooking = true);
+
+    try {
+      final booking = await _bookingService.createDemoBooking();
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CheckoutScreen(booking: booking),
+        ),
+      );
+    } on DioException catch (error) {
+      if (!mounted) return;
+
+      showAppMessage(
+        context,
+        ApiService.instance.getErrorMessage(error),
+        error: true,
+      );
+    } finally {
+      if (mounted) setState(() => _creatingBooking = false);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // OPEN REVIEW
+  // --------------------------------------------------------------------------
+
+  Future<void> _openReview() async {
+    try {
+      final bookings = await _bookingService.getMyBookings();
+
+      final reviewable = bookings
+          .where((booking) => booking.isPaid && !booking.reviewed)
+          .toList();
+
+      if (!mounted) return;
+
+      if (reviewable.isEmpty) {
+        showAppMessage(
+          context,
+          'Complete a booking payment before leaving a review.',
+        );
+        return;
+      }
+
+      final booking = reviewable.first;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ReviewScreen(
+            bookingId: booking.id!,
+            tourTitle: booking.guideName,
+          ),
+        ),
+      );
+    } on DioException catch (error) {
+      if (!mounted) return;
+
+      showAppMessage(
+        context,
+        ApiService.instance.getErrorMessage(error),
+        error: true,
+      );
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // BOTTOM NAVIGATION
+  // --------------------------------------------------------------------------
   // ============================================================
   // TRAVEL BUDDY
   // ============================================================
@@ -146,6 +233,8 @@ class _TouristHomeScreenState extends State<TouristHomeScreen> {
               onNotifications: _openNotifications,
               onProfile: _openProfile,
               onSearch: _openSearch,
+              onCheckout: _openCheckout,
+              onReview: _openReview,
               onTravelBuddy: _openTravelBuddy,
             ),
 
@@ -200,6 +289,8 @@ class _TouristDashboard extends StatefulWidget {
   final VoidCallback onNotifications;
   final VoidCallback onProfile;
   final VoidCallback onSearch;
+  final VoidCallback onCheckout;
+  final VoidCallback onReview;
   final VoidCallback onTravelBuddy;
 
   const _TouristDashboard({
@@ -207,6 +298,8 @@ class _TouristDashboard extends StatefulWidget {
     required this.onNotifications,
     required this.onProfile,
     required this.onSearch,
+    required this.onCheckout,
+    required this.onReview,
     required this.onTravelBuddy,
   });
 
@@ -385,6 +478,90 @@ class _TouristDashboardState extends State<_TouristDashboard> {
             ),
           ),
 
+          // ------------------------------------------------------------------
+          // QUICK ACTIONS
+          // ------------------------------------------------------------------
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: widget.onCheckout,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: primaryGreen,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.credit_card_outlined,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Checkout & Pay',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: InkWell(
+                      onTap: widget.onReview,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          border: Border.all(color: primaryGreen, width: 1.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.star_outline_rounded,
+                              color: primaryGreen,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Rate & Review',
+                              style: TextStyle(
+                                color: primaryGreen,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                ),
+            ),
+          ),
           // ====================================================
           // TRAVEL BUDDY SPECIAL FEATURE
           // ====================================================
@@ -400,6 +577,9 @@ class _TouristDashboardState extends State<_TouristDashboard> {
             ),
           ),
 
+          // ------------------------------------------------------------------
+          // TRENDING PLACES TITLE
+          // ------------------------------------------------------------------
           // ====================================================
           // TRENDING TITLE
           // ====================================================

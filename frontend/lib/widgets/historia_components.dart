@@ -5,6 +5,7 @@ export 'historia_footer_art.dart';
 export 'historia_header.dart';
 export 'historia_info_box.dart';
 export 'historia_progress_stepper.dart';
+export 'historia_rating_stars.dart';
 export 'historia_role_card.dart';
 export 'historia_support.dart';
 export 'historia_text_field.dart';
