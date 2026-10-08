@@ -9,7 +9,7 @@ import java.util.*;
 import static com.historia.backend.booking.BookingDto.*;
 
 @RestController @RequestMapping("/api/guide-bookings") @RequiredArgsConstructor
-public class BookingController {
+public class GuideBookingController {
     private final BookingService service;
     @GetMapping("/guides") public List<GuideView> guides(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String language,@RequestParam(defaultValue="") String area,@RequestParam(defaultValue="") String specialty,@RequestParam(defaultValue="false") boolean certified,@RequestParam(required=false) Double rating,@RequestParam(required=false) LocalDate date,@RequestParam(required=false) Instant at) {return service.discover(q,language,area,specialty,certified,rating,date,at);}
     @GetMapping("/landmarks") public List<MeetingLandmark> landmarks(){return service.landmarks();}

@@ -19,19 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
-    private static final Pattern EXPIRY_PATTERN =
-            Pattern.compile("^(\\d{2})/(\\d{2})$");
+    private static final Pattern EXPIRY_PATTERN = Pattern.compile("^(\\d{2})/(\\d{2})$");
 
-    // Baseline simulated-gateway failure rate, since no real payment
-    // gateway is integrated yet.
-    private static final double SIMULATED_FAILURE_RATE = 0.2;
+    // Mock payment for university project: always succeeds
+    // In production, this would connect to a real payment gateway
+    private static final boolean MOCK_PAYMENT_SUCCESS = true;
 
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
@@ -40,44 +38,35 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentServiceImpl(
             BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
-            UserRepository userRepository
-    ) {
+            UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
     }
-
 
     @Override
     @Transactional
     public PaymentDto.PaymentResponse pay(
             String username,
             Long bookingId,
-            PaymentDto.CheckoutRequest request
-    ) {
+            PaymentDto.CheckoutRequest request) {
 
         User tourist = userRepository
                 .findByUsernameIgnoreCaseAndDeletedFalse(username)
-                .orElseThrow(() ->
-                        new UserException("User not found")
-                );
+                .orElseThrow(() -> new UserException("User not found"));
 
         Booking booking = bookingRepository
                 .findByIdAndTourist(bookingId, tourist)
-                .orElseThrow(() ->
-                        new UserException("Booking not found")
-                );
+                .orElseThrow(() -> new UserException("Booking not found"));
 
         if (booking.getStatus() == BookingStatus.PAID) {
             throw new UserException(
-                    "This booking has already been paid for"
-            );
+                    "This booking has already been paid for");
         }
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             throw new UserException(
-                    "This booking has been cancelled"
-            );
+                    "This booking has been cancelled");
         }
 
         String maskedCardNumber = null;
@@ -91,17 +80,17 @@ public class PaymentServiceImpl implements PaymentService {
             validateExpiry(request.expiryDate());
             validateCvv(request.cvv());
 
-            maskedCardNumber =
-                    "**** **** **** " + digits.substring(digits.length() - 4);
+            maskedCardNumber = "**** **** **** " + digits.substring(digits.length() - 4);
 
-            // Lets QA / demos deterministically trigger a failed payment.
-            forcedFailure = digits.endsWith("0000");
+            // For testing failures: cards ending in "0000" will fail
+            // (only in production mode; for university demo, all succeed)
+            if (!MOCK_PAYMENT_SUCCESS) {
+                forcedFailure = digits.endsWith("0000");
+            }
         }
 
-        boolean randomFailure = ThreadLocalRandom.current().nextDouble()
-                < SIMULATED_FAILURE_RATE;
-
-        boolean success = !(forcedFailure || randomFailure);
+        // For university project demo: always succeed mock payments
+        boolean success = MOCK_PAYMENT_SUCCESS || !forcedFailure;
 
         Payment payment = Payment.builder()
                 .booking(booking)
@@ -124,7 +113,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         return toResponse(payment);
     }
-
 
     private String validateCardNumber(String cardNumber) {
 
@@ -151,8 +139,7 @@ public class PaymentServiceImpl implements PaymentService {
     private void validateExpiry(String expiryDate) {
 
         Matcher matcher = EXPIRY_PATTERN.matcher(
-                expiryDate == null ? "" : expiryDate
-        );
+                expiryDate == null ? "" : expiryDate);
 
         if (!matcher.matches()) {
             throw new UserException("Use MM/YY for the expiry date");
@@ -222,7 +209,6 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getCurrency(),
                 payment.getFailureReason(),
                 payment.getTransactionRef(),
-                payment.getCreatedAt()
-        );
+                payment.getCreatedAt());
     }
 }
