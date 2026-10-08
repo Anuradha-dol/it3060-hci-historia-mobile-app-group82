@@ -84,9 +84,9 @@ class GuideModel {
   }
 
   String get title {
-    if (headline != null && headline!.isNotEmpty) {
-      return headline!;
+    if (displayName.trim().isNotEmpty) {
+      return displayName;
     }
-    return displayName.isEmpty ? username : displayName;
+    return username;
   }
 }

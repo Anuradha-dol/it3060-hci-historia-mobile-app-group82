@@ -14,6 +14,7 @@ import java.security.SecureRandom;
 import java.time.*;
 import java.util.*;
 import static com.historia.backend.booking.BookingDto.*;
+import static com.historia.backend.utils.LocationMatcher.matchesServiceArea;
 
 @Service @RequiredArgsConstructor @Transactional
 public class BookingService {
@@ -58,7 +59,7 @@ public class BookingService {
             .filter(g -> g.getUser().isEnabled())
             .filter(g -> contains(g.getDisplayName()+" "+g.getSpecialties(), q))
             .filter(g -> contains(g.getLanguages().toString(), language))
-            .filter(g -> contains(g.getPrimaryServiceArea()+" "+g.getServiceAreas(), area))
+            .filter(g -> matchesSearchArea(g, area))
             .filter(g -> contains(g.getSpecialties().toString(), specialty))
             .map(g -> {
                 GuideEvidence e = em.find(GuideEvidence.class, g.getId());
@@ -107,7 +108,7 @@ public class BookingService {
         GuidePackage p=tourPackage(r.packageId(),g.getId());
         if(r.visitors()<p.getMinVisitors() || r.visitors()>p.getMaxVisitors()) throw bad("Visitor count outside package limits");
         MeetingLandmark l=em.find(MeetingLandmark.class,r.landmarkId());
-        if(l==null || !(g.getPrimaryServiceArea().equalsIgnoreCase(l.getArea()) || g.getServiceAreas().stream().anyMatch(a->a.equalsIgnoreCase(l.getArea())))) throw bad("Meeting point is outside guide service area");
+        if(l==null || !matchesRequiredArea(g, l.getArea())) throw bad("Meeting point is outside guide service area");
         Instant end=r.startsAt().plusSeconds(p.getDurationMinutes()*60L);
         if(!slots(g.getId(),p.getId(),r.startsAt().atZone(ZONE).toLocalDate()).contains(r.startsAt()) || !available(g.getId(),r.startsAt(),end)) throw bad("This slot is no longer available. Choose another time.");
         GuideBooking b=new GuideBooking(); b.setId(UUID.randomUUID().toString()); b.setTourist(user); b.setGuide(g); b.setTourPackage(p); b.setLandmark(l);
@@ -117,6 +118,8 @@ public class BookingService {
         em.persist(b); return view(b,userId);
     }
     private void expire(GuideBooking b) { if(b.getState().equals("HELD") && (!b.getHoldExpiresAt().isAfter(Instant.now()) || !b.getStartsAt().isAfter(Instant.now()))) b.setState("EXPIRED"); }
+    private boolean matchesSearchArea(GuideProfile g, String area) { return area==null || area.isBlank() || matchesRequiredArea(g, area); }
+    private boolean matchesRequiredArea(GuideProfile g, String area) { return matchesServiceArea(g.getPrimaryServiceArea(), area) || (g.getServiceAreas()!=null && g.getServiceAreas().stream().anyMatch(a->matchesServiceArea(a, area))); }
     private GuideBooking authorized(Long userId,String id) {
         actor(userId); GuideBooking b=em.find(GuideBooking.class,id,LockModeType.PESSIMISTIC_WRITE);
         if(b==null || !(b.getTourist().getId().equals(userId) || b.getGuide().getUser().getId().equals(userId))) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Booking not found");

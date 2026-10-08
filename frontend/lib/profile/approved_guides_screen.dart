@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/guide_model.dart';
+import '../booking/guide_directory_screen.dart';
 import '../services/api_service.dart';
 import '../services/guide_service.dart';
 import '../widgets/form_helpers.dart';
@@ -877,6 +878,36 @@ class _GuideResultCard extends StatelessWidget {
               ),
             ),
           ],
+
+          const SizedBox(height: 13),
+
+          SizedBox(
+            width: double.infinity,
+            height: 43,
+            child: FilledButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GuideDirectoryScreen(
+                      initialArea: guide.primaryServiceArea,
+                    ),
+                  ),
+                );
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF176D4E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.event_available_rounded, size: 18),
+              label: const Text(
+                'Select for booking',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
         ],
       ),
     );

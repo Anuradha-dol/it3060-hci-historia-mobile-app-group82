@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/historical_place_model.dart';
 import '../models/tour_model.dart';
-import '../profile/approved_guides_screen.dart';
+import '../booking/guide_directory_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../services/historical_place_service.dart';
@@ -732,7 +732,7 @@ class _TourProgressScreenState extends State<TourProgressScreen> {
       context,
       MaterialPageRoute(
         builder: (_) =>
-            ApprovedGuidesScreen(initialArea: _searchAreaForPlace(place)),
+            GuideDirectoryScreen(initialArea: _searchAreaForPlace(place)),
       ),
     );
   }

@@ -1,6 +1,7 @@
 package com.historia.backend.service.serviceImpl;
 
 import com.historia.backend.dto.GuideDto;
+import com.historia.backend.booking.GuideBookingDefaults;
 import com.historia.backend.entity.GuideProfile;
 import com.historia.backend.entity.User;
 import com.historia.backend.enums.AuthProvider;
@@ -11,6 +12,7 @@ import com.historia.backend.repository.GuideProfileRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.EmailService;
 import com.historia.backend.service.GuideService;
+import com.historia.backend.utils.LocationMatcher;
 import com.historia.backend.utils.OtpUtil;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,17 +34,20 @@ public class GuideServiceImpl implements GuideService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GuideBookingDefaults guideBookingDefaults;
 
     public GuideServiceImpl(
             GuideProfileRepository guideProfileRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            EmailService emailService
+            EmailService emailService,
+            GuideBookingDefaults guideBookingDefaults
     ) {
         this.guideProfileRepository = guideProfileRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.guideBookingDefaults = guideBookingDefaults;
     }
 
 
@@ -427,6 +432,7 @@ public class GuideServiceImpl implements GuideService {
         if (status == GuideApplicationStatus.APPROVED) {
 
             user.setEnabled(true);
+            guideBookingDefaults.ensureBookable(guideProfile);
 
         } else {
 
@@ -501,8 +507,10 @@ public class GuideServiceImpl implements GuideService {
     ) {
 
         if (profile.getPrimaryServiceArea() != null &&
-                profile.getPrimaryServiceArea()
-                        .equalsIgnoreCase(area)) {
+                LocationMatcher.matchesServiceArea(
+                        profile.getPrimaryServiceArea(),
+                        area
+                )) {
 
             return true;
         }
@@ -514,7 +522,10 @@ public class GuideServiceImpl implements GuideService {
         return profile.getServiceAreas()
                 .stream()
                 .anyMatch(serviceArea ->
-                        serviceArea.equalsIgnoreCase(area)
+                        LocationMatcher.matchesServiceArea(
+                                serviceArea,
+                                area
+                        )
                 );
     }
 
