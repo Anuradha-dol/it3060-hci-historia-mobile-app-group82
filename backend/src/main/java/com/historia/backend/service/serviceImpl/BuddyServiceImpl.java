@@ -566,10 +566,6 @@ public class BuddyServiceImpl implements BuddyService {
     }
 
     private boolean isOnline(User user) {
-        String refreshTokenHash = user.getRefreshTokenHash();
-
-        return user.isEnabled() &&
-                refreshTokenHash != null &&
-                !refreshTokenHash.isBlank();
+        return user.isEnabled() && Boolean.TRUE.equals(user.getOnline());
     }
 }
