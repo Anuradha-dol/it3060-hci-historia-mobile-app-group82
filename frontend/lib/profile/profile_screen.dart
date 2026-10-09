@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../config/api_config.dart';
+import '../auth/login_screen.dart';
 import '../models/guide_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
@@ -421,9 +422,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
 
       if (!mounted) return;
 
-      if (widget.standalone) {
-        Navigator.maybePop(context);
-      }
+      _goToLogin();
     } catch (e) {
       if (!mounted) return;
 
@@ -439,6 +438,31 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
         });
       }
     }
+  }
+
+  Future<void> _logout() async {
+    if (_saving) {
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+    });
+
+    await context.read<AuthProvider>().logout();
+
+    if (!mounted) {
+      return;
+    }
+
+    _goToLogin();
+  }
+
+  void _goToLogin() {
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
   }
 
   void _openNotifications() {
@@ -1139,11 +1163,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     return _OutlineProfileButton(
       icon: Icons.logout_rounded,
       label: 'Logout',
-      onPressed: _saving
-          ? null
-          : () {
-              context.read<AuthProvider>().logout();
-            },
+      onPressed: _saving ? null : _logout,
     );
   }
 

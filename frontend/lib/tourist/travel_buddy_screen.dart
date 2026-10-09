@@ -1006,45 +1006,52 @@ class _TravelBuddyScreenState extends State<TravelBuddyScreen> {
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      conversation.lastMessage ??
-                          conversation.historicalPlaceName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: conversation.unreadCount > 0
-                            ? const Color(0xFF223A30)
-                            : const Color(0xFF76827B),
-                        fontWeight: conversation.unreadCount > 0
-                            ? FontWeight.w800
-                            : FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  if (conversation.unreadCount > 0)
-                    Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      constraints: const BoxConstraints(
-                        minWidth: 22,
-                        minHeight: 22,
-                      ),
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: primaryGreen,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        conversation.unreadCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversation.lastMessage ??
+                              conversation.historicalPlaceName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: conversation.unreadCount > 0
+                                ? const Color(0xFF223A30)
+                                : const Color(0xFF76827B),
+                            fontWeight: conversation.unreadCount > 0
+                                ? FontWeight.w800
+                                : FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
+                      if (conversation.unreadCount > 0)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          constraints: const BoxConstraints(
+                            minWidth: 22,
+                            minHeight: 22,
+                          ),
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            color: primaryGreen,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            conversation.unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  _PresenceBadge(online: conversation.online),
                 ],
               ),
             ),
