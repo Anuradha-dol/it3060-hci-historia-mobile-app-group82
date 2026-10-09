@@ -135,13 +135,33 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto likePost(Long id) {
+    public PostDto likePost(
+            Long id,
+            Long loggedInUserId
+    ) {
 
         Post post = postRepository
                 .findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Post not found")
                 );
+
+        if (postRepository.existsByIdAndLikedUsers_Id(
+                id,
+                loggedInUserId
+        )) {
+            return convertToDto(post);
+        }
+
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged in user not found"
+                        )
+                );
+
+        post.getLikedUsers().add(loggedInUser);
 
         int currentLikeCount =
                 post.getLikeCount() == null
@@ -233,7 +253,8 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostCommentDto likeComment(
             Long postId,
-            Long commentId
+            Long commentId,
+            Long loggedInUserId
     ) {
 
         PostComment comment = postCommentRepository
@@ -241,6 +262,23 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() ->
                         new RuntimeException("Comment not found")
                 );
+
+        if (postCommentRepository.existsByIdAndLikedUsers_Id(
+                commentId,
+                loggedInUserId
+        )) {
+            return convertCommentToDto(comment);
+        }
+
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged in user not found"
+                        )
+                );
+
+        comment.getLikedUsers().add(loggedInUser);
 
         int currentLikeCount =
                 comment.getLikeCount() == null

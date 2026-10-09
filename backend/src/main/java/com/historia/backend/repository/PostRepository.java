@@ -14,4 +14,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Long postId,
             Long userId
     );
+
+    boolean existsByIdAndLikedUsers_Id(
+            Long postId,
+            Long userId
+    );
 }

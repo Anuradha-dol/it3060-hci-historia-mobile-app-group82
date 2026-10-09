@@ -18,7 +18,10 @@ public interface PostService {
             Long loggedInUserId
     );
 
-    PostDto likePost(Long id);
+    PostDto likePost(
+            Long id,
+            Long loggedInUserId
+    );
 
     List<PostCommentDto> getComments(Long postId);
 
@@ -30,7 +33,8 @@ public interface PostService {
 
     PostCommentDto likeComment(
             Long postId,
-            Long commentId
+            Long commentId,
+            Long loggedInUserId
     );
 
     void deletePost(
