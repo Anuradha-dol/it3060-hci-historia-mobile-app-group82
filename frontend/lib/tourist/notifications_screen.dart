@@ -1,3 +1,4 @@
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -32,7 +33,8 @@ class NotificationsContent extends StatefulWidget {
   });
 
   @override
-  State<NotificationsContent> createState() => _NotificationsContentState();
+  State<NotificationsContent> createState() =>
+      _NotificationsContentState();
 }
 
 class _NotificationsContentState extends State<NotificationsContent> {
@@ -89,15 +91,16 @@ class _NotificationsContentState extends State<NotificationsContent> {
     await _connectionSubscription?.cancel();
 
     _liveSubscription = _service.liveNotifications.listen(_receiveLive);
-    _connectionSubscription = _service.connectionStatus.listen((connected) {
-      if (!mounted) {
-        return;
-      }
+    _connectionSubscription =
+        _service.connectionStatus.listen((connected) {
+          if (!mounted) {
+            return;
+          }
 
-      setState(() {
-        _socketConnected = connected;
-      });
-    });
+          setState(() {
+            _socketConnected = connected;
+          });
+        });
 
     await _loadNotifications();
     await _service.connectLive(userId);
@@ -142,7 +145,7 @@ class _NotificationsContentState extends State<NotificationsContent> {
 
     setState(() {
       final existingIndex = _notifications.indexWhere(
-        (item) => item.id == notification.id,
+            (item) => item.id == notification.id,
       );
 
       if (existingIndex >= 0) {
@@ -161,9 +164,10 @@ class _NotificationsContentState extends State<NotificationsContent> {
     setState(() {
       _notifications = _notifications
           .map(
-            (item) =>
-                item.id == notification.id ? item.copyWith(read: true) : item,
-          )
+            (item) => item.id == notification.id
+            ? item.copyWith(read: true)
+            : item,
+      )
           .toList();
     });
 
@@ -229,7 +233,7 @@ class _NotificationsContentState extends State<NotificationsContent> {
   @override
   Widget build(BuildContext context) {
     final role = context.select<AuthProvider, String?>(
-      (auth) => auth.user?.role,
+          (auth) => auth.user?.role,
     );
     final roleCopy = _roleCopy(role);
 
@@ -273,12 +277,12 @@ class _NotificationsContentState extends State<NotificationsContent> {
                       onRetry: _loadNotifications,
                     )
                   else if (_notifications.isEmpty)
-                    _NotificationEmpty(roleCopy.emptyMessage)
-                  else
-                    _NotificationList(
-                      notifications: _notifications,
-                      onTap: _markRead,
-                    ),
+                      _NotificationEmpty(roleCopy.emptyMessage)
+                    else
+                      _NotificationList(
+                        notifications: _notifications,
+                        onTap: _markRead,
+                      ),
                 ],
               ),
             ),
@@ -338,6 +342,10 @@ class _RoleNotificationCopy {
   });
 }
 
+// ============================================================
+// NOTIFICATION HERO - HISTORICAL IMAGE AS THE HEADER BACKGROUND
+// ============================================================
+
 class _NotificationsHero extends StatelessWidget {
   final String roleLabel;
   final bool standalone;
@@ -354,12 +362,13 @@ class _NotificationsHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 24),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF9FCFA), Color(0xFFE8F4EC), Color(0xFFD8EBDD)],
+        image: DecorationImage(
+          image: AssetImage('assets/images/notification_cover.png'),
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
         ),
       ),
       child: Stack(
@@ -400,7 +409,7 @@ class _NotificationsHero extends StatelessWidget {
                   _StatusPill(
                     text: '$roleLabel / NOTIFICATIONS',
                     color: const Color(0xFF347258),
-                    background: Colors.white.withValues(alpha: 0.70),
+                    background: Colors.white.withValues(alpha: 0.82),
                     border: const Color(0xFFD2E6DA),
                   ),
                   const SizedBox(width: 7),
@@ -439,9 +448,10 @@ class _NotificationsHero extends StatelessWidget {
                         Text(
                           'Your account updates in one place.',
                           style: TextStyle(
-                            color: Color(0xFF6C8176),
+                            color: Color(0xFF143C2F),
                             fontSize: 10.5,
                             height: 1.4,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -507,7 +517,7 @@ class _NotificationBell extends StatelessWidget {
           width: 62,
           height: 62,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.72),
+            color: Colors.white.withValues(alpha: 0.85),
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFFCFE4D7)),
           ),
@@ -661,17 +671,20 @@ class _NotificationSummary extends StatelessWidget {
                   ),
                   icon: markingAllRead
                       ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                       : const Icon(Icons.done_all_rounded, size: 16),
                   label: const Text(
                     'Read all',
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
@@ -695,16 +708,22 @@ class _UnreadCounter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
-        color: active ? const Color(0xFFFFECEA) : const Color(0xFFE9F4ED),
+        color: active
+            ? const Color(0xFFFFECEA)
+            : const Color(0xFFE9F4ED),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: active ? const Color(0xFFF1C3BF) : const Color(0xFFCFE3D7),
+          color: active
+              ? const Color(0xFFF1C3BF)
+              : const Color(0xFFCFE3D7),
         ),
       ),
       child: Text(
         active ? '$unread NEW' : 'CLEAR',
         style: TextStyle(
-          color: active ? const Color(0xFFB94B43) : const Color(0xFF247255),
+          color: active
+              ? const Color(0xFFB94B43)
+              : const Color(0xFF247255),
           fontSize: 7,
           letterSpacing: 0.5,
           fontWeight: FontWeight.w900,
@@ -718,7 +737,10 @@ class _SummaryMetric extends StatelessWidget {
   final String value;
   final String label;
 
-  const _SummaryMetric({required this.value, required this.label});
+  const _SummaryMetric({
+    required this.value,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -764,7 +786,10 @@ class _NotificationList extends StatelessWidget {
   final List<AppNotification> notifications;
   final ValueChanged<AppNotification> onTap;
 
-  const _NotificationList({required this.notifications, required this.onTap});
+  const _NotificationList({
+    required this.notifications,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -787,7 +812,10 @@ class _NotificationTile extends StatelessWidget {
   final AppNotification notification;
   final VoidCallback onTap;
 
-  const _NotificationTile({required this.notification, required this.onTap});
+  const _NotificationTile({
+    required this.notification,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -803,7 +831,9 @@ class _NotificationTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: unread ? palette.border : const Color(0xFFDDE8E1),
+            color: unread
+                ? palette.border
+                : const Color(0xFFDDE8E1),
           ),
           boxShadow: const [
             BoxShadow(
@@ -826,7 +856,11 @@ class _NotificationTile extends StatelessWidget {
                     color: palette.soft,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(palette.icon, color: palette.main, size: 21),
+                  child: Icon(
+                    palette.icon,
+                    color: palette.main,
+                    size: 21,
+                  ),
                 ),
                 if (unread)
                   Positioned(
@@ -838,7 +872,10 @@ class _NotificationTile extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFFE04942),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 2,
+                        ),
                       ),
                     ),
                   ),
@@ -889,10 +926,14 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 9),
                   Row(
                     children: [
-                      _TypeBadge(label: _typeLabel(notification.type)),
+                      _TypeBadge(
+                        label: _typeLabel(notification.type),
+                      ),
                       if (notification.referenceType != null) ...[
                         const SizedBox(width: 6),
-                        _TypeBadge(label: notification.referenceType!),
+                        _TypeBadge(
+                          label: notification.referenceType!,
+                        ),
                       ],
                     ],
                   ),
@@ -947,11 +988,16 @@ class _TypeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Flexible(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 7,
+          vertical: 4,
+        ),
         decoration: BoxDecoration(
           color: const Color(0xFFF1F7F3),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFDCE8E1)),
+          border: Border.all(
+            color: const Color(0xFFDCE8E1),
+          ),
         ),
         child: Text(
           label,
@@ -976,7 +1022,11 @@ class _NotificationLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 54),
-      child: Center(child: CircularProgressIndicator(color: Color(0xFF176D4E))),
+      child: Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF176D4E),
+        ),
+      ),
     );
   }
 }
@@ -985,7 +1035,10 @@ class _NotificationError extends StatelessWidget {
   final String message;
   final Future<void> Function() onRetry;
 
-  const _NotificationError({required this.message, required this.onRetry});
+  const _NotificationError({
+    required this.message,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -994,7 +1047,9 @@ class _NotificationError extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE6D5D2)),
+        border: Border.all(
+          color: const Color(0xFFE6D5D2),
+        ),
       ),
       child: Column(
         children: [
@@ -1032,7 +1087,10 @@ class _NotificationError extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            icon: const Icon(Icons.refresh_rounded, size: 17),
+            icon: const Icon(
+              Icons.refresh_rounded,
+              size: 17,
+            ),
             label: const Text('Retry'),
           ),
         ],
@@ -1053,7 +1111,9 @@ class _NotificationEmpty extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFDCE8E1)),
+        border: Border.all(
+          color: const Color(0xFFDCE8E1),
+        ),
       ),
       child: Column(
         children: [
