@@ -142,6 +142,27 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
     );
   }
 
+  void _openGuidesForHistoricalPlace(HistoricalPlaceModel place) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GuideDirectoryScreen(
+          initialArea: _searchAreaForHistoricalPlace(place),
+        ),
+      ),
+    );
+  }
+
+  String _searchAreaForHistoricalPlace(HistoricalPlaceModel place) {
+    final location = place.location.trim();
+
+    if (location.isNotEmpty) {
+      return location;
+    }
+
+    return place.name.trim();
+  }
+
   Future<void> _createTour() async {
     if (_selectedPlaces.isEmpty || _creating) {
       _showMessage('Select at least one historical place.', error: true);
@@ -443,7 +464,7 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
               'No places selected yet.',
               style: TextStyle(color: Color(0xFF758179), fontSize: 12),
             )
-          else
+          else ...[
             ...List.generate(_selectedPlaces.length, (index) {
               final place = _selectedPlaces[index];
 
@@ -499,7 +520,47 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
                 ),
               );
             }),
+            const SizedBox(height: 12),
+            _selectedGuideButton(),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _selectedGuideButton() {
+    final place = _selectedPlaces.first;
+    final label = _selectedPlaces.length == 1
+        ? 'Need a Guide for ${place.name}'
+        : 'Need a Guide for this tour';
+
+    return SizedBox(
+      height: 46,
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () => _openGuidesForHistoricalPlace(place),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryGreen,
+          side: const BorderSide(color: primaryGreen, width: 1.2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(23),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.support_agent_outlined, size: 18),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -225,7 +225,7 @@ class _SignupScreenState extends State<SignupScreen> {
       },
 
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
 
         backgroundColor: const Color(0xFFFCFDF8),
 
@@ -252,53 +252,40 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
 
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 6, 18, 4),
+                    child: ListView(
+                      physics: const ClampingScrollPhysics(),
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.fromLTRB(18, 6, 18, 12),
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
 
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                        children: [
-                          HistoriaProgressStepper(
-                            currentStep: _step,
-                            labels: const ['Account', 'Security', 'Profile'],
-                          ),
-
-                          const SizedBox(height: 5),
-
-                          Expanded(
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                return FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.topCenter,
-
-                                  child: SizedBox(
-                                    width: constraints.maxWidth,
-
-                                    child: Form(
-                                      key: _stepKeys[_step],
-
-                                      child: AnimatedSwitcher(
-                                        duration: const Duration(
-                                          milliseconds: 180,
-                                        ),
-                                        switchInCurve: Curves.easeOut,
-                                        switchOutCurve: Curves.easeIn,
-
-                                        child: KeyedSubtree(
-                                          key: ValueKey(_step),
-                                          child: _stepContent(),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
+                          children: [
+                            HistoriaProgressStepper(
+                              currentStep: _step,
+                              labels: const ['Account', 'Security', 'Profile'],
                             ),
-                          ),
-                        ],
-                      ),
+
+                            const SizedBox(height: 5),
+
+                            Form(
+                              key: _stepKeys[_step],
+
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeIn,
+
+                                child: KeyedSubtree(
+                                  key: ValueKey(_step),
+                                  child: _stepContent(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
 

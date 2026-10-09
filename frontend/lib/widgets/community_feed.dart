@@ -760,95 +760,100 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.78,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 10, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Comments',
-                          style: TextStyle(
-                            color: Color(0xFF173D2E),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
+    final media = MediaQuery.of(context);
+
+    return SafeArea(
+      top: false,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+        child: SizedBox(
+          height: media.size.height * 0.78,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 10, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Comments',
+                            style: TextStyle(
+                              color: Color(0xFF173D2E),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
-                        ),
-                        Text(
-                          widget.placeName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF738078),
-                            fontSize: 11,
+                          Text(
+                            widget.placeName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF738078),
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context, _changed),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () => Navigator.pop(context, _changed),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const Divider(height: 1),
-            Expanded(child: _body()),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      minLines: 1,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: 'Write a comment',
-                        filled: true,
-                        fillColor: const Color(0xFFF5F8F6),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none,
+              const Divider(height: 1),
+              Expanded(child: _body()),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        minLines: 1,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Write a comment',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F8F6),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _sending ? null : _addComment,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: primaryGreen,
-                      shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(14),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: _sending ? null : _addComment,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: primaryGreen,
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(14),
+                      ),
+                      child: _sending
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.send_rounded),
                     ),
-                    child: _sending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.send_rounded),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
