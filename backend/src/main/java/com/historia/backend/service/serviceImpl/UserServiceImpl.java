@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.historia.backend.utils.TextSanitizer.cleanOptional;
+import static com.historia.backend.utils.TextSanitizer.cleanRequired;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -32,7 +35,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // View profile
     @Override
     public UserDto.UserProfileResponse getProfile(String username) {
 
@@ -42,7 +44,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Update profile
     @Override
     @Transactional
     public UserDto.UserProfileResponse updateProfile(
@@ -53,20 +54,28 @@ public class UserServiceImpl implements UserService {
         User user = getUser(username);
 
         if (request.firstName() != null) {
-            user.setFirstName(request.firstName().trim());
+            user.setFirstName(cleanOptional(request.firstName()));
         }
 
         if (request.lastName() != null) {
-            user.setLastName(request.lastName().trim());
+            user.setLastName(cleanOptional(request.lastName()));
         }
 
         if (request.address() != null) {
-            user.setAddress(request.address().trim());
+            user.setAddress(cleanOptional(request.address()));
+        }
+
+        if (request.profileImageUrl() != null) {
+            user.setProfileImageUrl(cleanOptional(request.profileImageUrl()));
+        }
+
+        if (request.coverImageUrl() != null) {
+            user.setCoverImageUrl(cleanOptional(request.coverImageUrl()));
         }
 
         if (request.phone() != null) {
 
-            String phone = request.phone().trim();
+            String phone = cleanRequired(request.phone());
 
             if (phone.isBlank()) {
                 throw new UserException(
@@ -91,7 +100,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Change password
     @Override
     @Transactional
     public UserDto.MessageResponse changePassword(
@@ -135,8 +143,8 @@ public class UserServiceImpl implements UserService {
                 )
         );
 
-        // End old refresh sessions
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         userRepository.save(user);
 
@@ -147,7 +155,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Logout
     @Override
     @Transactional
     public UserDto.MessageResponse logout(String username) {
@@ -155,6 +162,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(username);
 
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         userRepository.save(user);
 
@@ -165,7 +173,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Delete account
     @Override
     @Transactional
     public UserDto.MessageResponse deleteAccount(
@@ -187,13 +194,13 @@ public class UserServiceImpl implements UserService {
 
         Long userId = user.getId();
 
-        // Remove temporary reset data
-        forgotPasswordRepository.deleteByUser(user);
+        forgotPasswordRepository.deleteByUserId(userId);
 
-        // Remove personal data
         user.setFirstName(null);
         user.setLastName(null);
         user.setAddress(null);
+        user.setProfileImageUrl(null);
+        user.setCoverImageUrl(null);
 
         user.setUsername(
                 "deleted_" + userId
@@ -209,7 +216,6 @@ public class UserServiceImpl implements UserService {
 
         user.setProviderId(null);
 
-        // Clear login data
         user.setPassword(
                 passwordEncoder.encode(
                         UUID.randomUUID().toString()
@@ -217,8 +223,8 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
-        // Clear OTP data
         user.setVerifyCode(null);
         user.setVerifyCodeExpiry(null);
         user.setLastOtpSentAt(null);
@@ -226,7 +232,6 @@ public class UserServiceImpl implements UserService {
         user.setOtpFirstResendTime(null);
         user.setOtpBlockUntil(null);
 
-        // Disable account
         user.setEmailVerified(false);
         user.setEnabled(false);
         user.setDeleted(true);
@@ -241,7 +246,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Find user
     private User getUser(String username) {
 
         return userRepository
@@ -252,7 +256,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // Profile response
     private UserDto.UserProfileResponse toProfileResponse(
             User user
     ) {
@@ -265,8 +268,11 @@ public class UserServiceImpl implements UserService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAddress(),
+                user.getProfileImageUrl(),
+                user.getCoverImageUrl(),
                 user.getRole(),
                 user.isEmailVerified()
         );
     }
+
 }

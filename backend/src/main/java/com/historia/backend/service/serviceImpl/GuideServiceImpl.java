@@ -1,6 +1,7 @@
 package com.historia.backend.service.serviceImpl;
 
 import com.historia.backend.dto.GuideDto;
+import com.historia.backend.booking.GuideBookingDefaults;
 import com.historia.backend.entity.GuideProfile;
 import com.historia.backend.entity.User;
 import com.historia.backend.enums.AuthProvider;
@@ -11,6 +12,8 @@ import com.historia.backend.repository.GuideProfileRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.EmailService;
 import com.historia.backend.service.GuideService;
+import com.historia.backend.service.NotificationService;
+import com.historia.backend.utils.LocationMatcher;
 import com.historia.backend.utils.OtpUtil;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +25,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.historia.backend.utils.TextSanitizer.cleanOptional;
+import static com.historia.backend.utils.TextSanitizer.cleanRequired;
+
 @Service
 public class GuideServiceImpl implements GuideService {
 
@@ -29,30 +35,35 @@ public class GuideServiceImpl implements GuideService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GuideBookingDefaults guideBookingDefaults;
+    private final NotificationService notificationService;
 
     public GuideServiceImpl(
             GuideProfileRepository guideProfileRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            EmailService emailService
+            EmailService emailService,
+            GuideBookingDefaults guideBookingDefaults,
+            NotificationService notificationService
     ) {
         this.guideProfileRepository = guideProfileRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.guideBookingDefaults = guideBookingDefaults;
+        this.notificationService = notificationService;
     }
 
 
-    // Guide registration
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse registerGuide(
             GuideDto.GuideRegisterRequest request
     ) {
 
-        String username = request.username().trim();
-        String email = request.email().trim().toLowerCase();
-        String phone = request.phone().trim();
+        String username = cleanRequired(request.username());
+        String email = cleanRequired(request.email()).toLowerCase();
+        String phone = cleanRequired(request.phone());
 
         if (!request.password()
                 .equals(request.confirmPassword())) {
@@ -117,12 +128,11 @@ public class GuideServiceImpl implements GuideService {
         userRepository.save(user);
 
         String primaryArea =
-                request.primaryServiceArea().trim();
+                cleanRequired(request.primaryServiceArea());
 
         Set<String> serviceAreas =
                 cleanSet(request.serviceAreas());
 
-        // Always include primary area
         serviceAreas.add(primaryArea);
 
         Set<String> languages =
@@ -138,7 +148,7 @@ public class GuideServiceImpl implements GuideService {
                 GuideProfile.builder()
                         .user(user)
                         .displayName(
-                                request.displayName().trim()
+                                cleanRequired(request.displayName())
                         )
                         .primaryServiceArea(primaryArea)
                         .serviceAreas(serviceAreas)
@@ -170,11 +180,21 @@ public class GuideServiceImpl implements GuideService {
                 otp
         );
 
+        notificationService.notifyRole(
+                Role.ADMIN,
+                "GUIDE_APPLICATION",
+                "New guide application",
+                guideProfile.getDisplayName()
+                        + " submitted a guide application for review.",
+                "GUIDE_PROFILE",
+                guideProfile.getId().toString(),
+                "/admin/guides"
+        );
+
         return toResponse(guideProfile);
     }
 
 
-    // View my guide profile
     @Override
     @Transactional(readOnly = true)
     public GuideDto.GuideProfileResponse getMyGuideProfile(
@@ -196,7 +216,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Update guide profile
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse updateMyGuideProfile(
@@ -235,7 +254,8 @@ public class GuideServiceImpl implements GuideService {
                 request.specialties()
         );
 
-        // Re-submit after requested changes
+        boolean resubmitted = false;
+
         if (guideProfile.getStatus()
                 == GuideApplicationStatus.NEEDS_WORK) {
 
@@ -252,15 +272,28 @@ public class GuideServiceImpl implements GuideService {
             user.setEnabled(false);
             user.setRefreshTokenHash(null);
             userRepository.save(user);
+            resubmitted = true;
         }
 
         guideProfileRepository.save(guideProfile);
+
+        if (resubmitted) {
+            notificationService.notifyRole(
+                    Role.ADMIN,
+                    "GUIDE_RESUBMITTED",
+                    "Guide application resubmitted",
+                    guideProfile.getDisplayName()
+                            + " updated the guide application.",
+                    "GUIDE_PROFILE",
+                    guideProfile.getId().toString(),
+                    "/admin/guides"
+            );
+        }
 
         return toResponse(guideProfile);
     }
 
 
-    // Resubmit after admin requests changes without normal app login
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse resubmitNeedsWorkApplication(
@@ -351,11 +384,21 @@ public class GuideServiceImpl implements GuideService {
         userRepository.save(user);
         guideProfileRepository.save(guideProfile);
 
+        notificationService.notifyRole(
+                Role.ADMIN,
+                "GUIDE_RESUBMITTED",
+                "Guide application resubmitted",
+                guideProfile.getDisplayName()
+                        + " resubmitted a guide application.",
+                "GUIDE_PROFILE",
+                guideProfile.getId().toString(),
+                "/admin/guides"
+        );
+
         return toResponse(guideProfile);
     }
 
 
-    // Admin - guides by status
     @Override
     @Transactional(readOnly = true)
     public List<GuideDto.GuideProfileResponse> getGuidesByStatus(
@@ -363,14 +406,13 @@ public class GuideServiceImpl implements GuideService {
     ) {
 
         return guideProfileRepository
-                .findByStatus(status)
+                .findByStatusAndUserDeletedFalse(status)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
 
-    // Admin review
     @Override
     @Transactional
     public GuideDto.GuideProfileResponse reviewGuide(
@@ -380,7 +422,7 @@ public class GuideServiceImpl implements GuideService {
 
         GuideProfile guideProfile =
                 guideProfileRepository
-                        .findById(guideProfileId)
+                        .findByIdAndUserDeletedFalse(guideProfileId)
                         .orElseThrow(() ->
                                 new UserException(
                                         "Guide profile not found"
@@ -432,6 +474,7 @@ public class GuideServiceImpl implements GuideService {
         if (status == GuideApplicationStatus.APPROVED) {
 
             user.setEnabled(true);
+            guideBookingDefaults.ensureBookable(guideProfile);
 
         } else {
 
@@ -442,11 +485,20 @@ public class GuideServiceImpl implements GuideService {
         userRepository.save(user);
         guideProfileRepository.save(guideProfile);
 
+        notificationService.notifyUser(
+                user,
+                "GUIDE_REVIEW",
+                guideReviewTitle(status),
+                guideReviewMessage(status, guideProfile.getAdminNote()),
+                "GUIDE_PROFILE",
+                guideProfile.getId().toString(),
+                "/guide/profile"
+        );
+
         return toResponse(guideProfile);
     }
 
 
-    // Approved guides by area
     @Override
     @Transactional(readOnly = true)
     public List<GuideDto.GuideProfileResponse>
@@ -461,7 +513,7 @@ public class GuideServiceImpl implements GuideService {
         }
 
         return guideProfileRepository
-                .findByStatus(
+                .findByStatusAndUserDeletedFalse(
                         GuideApplicationStatus.APPROVED
                 )
                 .stream()
@@ -479,7 +531,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Find guide user
     private User getGuideUser(String username) {
 
         User user = userRepository
@@ -502,15 +553,16 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Match guide area
     private boolean matchesArea(
             GuideProfile profile,
             String area
     ) {
 
         if (profile.getPrimaryServiceArea() != null &&
-                profile.getPrimaryServiceArea()
-                        .equalsIgnoreCase(area)) {
+                LocationMatcher.matchesServiceArea(
+                        profile.getPrimaryServiceArea(),
+                        area
+                )) {
 
             return true;
         }
@@ -522,12 +574,14 @@ public class GuideServiceImpl implements GuideService {
         return profile.getServiceAreas()
                 .stream()
                 .anyMatch(serviceArea ->
-                        serviceArea.equalsIgnoreCase(area)
+                        LocationMatcher.matchesServiceArea(
+                                serviceArea,
+                                area
+                        )
                 );
     }
 
 
-    // Apply guide profile field edits
     private void applyProfileUpdates(
             GuideProfile guideProfile,
             String displayName,
@@ -578,7 +632,6 @@ public class GuideServiceImpl implements GuideService {
             );
         }
 
-        // Primary area should always be included
         guideProfile
                 .getServiceAreas()
                 .add(
@@ -626,22 +679,49 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Clean text
     private String clean(String value) {
 
         if (value == null) {
             return null;
         }
 
-        String cleaned = value.trim();
-
-        return cleaned.isBlank()
-                ? null
-                : cleaned;
+        return cleanOptional(value);
     }
 
 
-    // Clean set
+    private String guideReviewTitle(GuideApplicationStatus status) {
+        return switch (status) {
+            case APPROVED -> "Guide application approved";
+            case NEEDS_WORK -> "Guide application needs work";
+            case REJECTED -> "Guide application rejected";
+            case PENDING -> "Guide application updated";
+        };
+    }
+
+
+    private String guideReviewMessage(
+            GuideApplicationStatus status,
+            String adminNote
+    ) {
+
+        String note = clean(adminNote);
+
+        return switch (status) {
+            case APPROVED ->
+                    "Your guide profile is approved. Travellers can now find and book you.";
+            case NEEDS_WORK ->
+                    note == null
+                            ? "Admin requested changes before approval."
+                            : "Admin requested changes: " + note;
+            case REJECTED ->
+                    note == null
+                            ? "Your guide application was rejected."
+                            : "Your guide application was rejected: " + note;
+            case PENDING -> "Your guide application status changed.";
+        };
+    }
+
+
     private Set<String> cleanSet(
             Set<String> values
     ) {
@@ -666,7 +746,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Copy collections while the persistence context is open
     private Set<String> copySet(Set<String> values) {
 
         if (values == null) {
@@ -677,7 +756,6 @@ public class GuideServiceImpl implements GuideService {
     }
 
 
-    // Guide response
     private GuideDto.GuideProfileResponse toResponse(
             GuideProfile profile
     ) {

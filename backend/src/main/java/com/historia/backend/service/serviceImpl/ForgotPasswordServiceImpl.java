@@ -37,7 +37,6 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
 
-    // Forgot password
     @Override
     public UserDto.MessageResponse requestReset(
             UserDto.ForgotPasswordRequest request
@@ -119,7 +118,6 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
 
-    // Verify reset OTP
     @Override
     public UserDto.MessageResponse verifyOtp(
             UserDto.ForgotPasswordVerifyRequest request
@@ -166,7 +164,6 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
 
-    // Resend reset OTP
     @Override
     public UserDto.MessageResponse resendOtp(
             UserDto.ForgotPasswordResendRequest request
@@ -250,7 +247,6 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
 
-    // Reset password
     @Override
     @Transactional
     public UserDto.MessageResponse resetPassword(
@@ -311,8 +307,8 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
                 )
         );
 
-        // Logout old sessions
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         userRepository.save(user);
 
@@ -325,7 +321,6 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
 
-    // Find matching account
     private User findMatchingUser(
             UserDto.ForgotPasswordRequest request
     ) {
@@ -403,7 +398,6 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
 
-    // Check OTP block
     private void checkBlock(
             ForgotPassword reset,
             LocalDateTime now

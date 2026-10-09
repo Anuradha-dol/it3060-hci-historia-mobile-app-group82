@@ -2,6 +2,8 @@ package com.historia.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +26,7 @@ public class ForgotPassword {
             nullable = false,
             unique = true
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @Column(nullable = false, length = 6)

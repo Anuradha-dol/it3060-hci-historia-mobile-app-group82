@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.historia.backend.utils.TextSanitizer.cleanOptional;
+import static com.historia.backend.utils.TextSanitizer.cleanRequired;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -44,16 +47,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Tourist registration
     @Override
     @Transactional
     public UserDto.MessageResponse register(
             UserDto.RegisterRequest request
     ) {
 
-        String username = request.username().trim();
-        String email = request.email().trim().toLowerCase();
-        String phone = request.phone().trim();
+        String username = cleanRequired(request.username());
+        String email = cleanRequired(request.email()).toLowerCase();
+        String phone = cleanRequired(request.phone());
 
         if (!request.password()
                 .equals(request.confirmPassword())) {
@@ -63,7 +65,6 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // Tourist accounts only
         if (request.role() != Role.TOURIST) {
             throw new UserException(
                     "Please use guide registration for guide accounts"
@@ -106,9 +107,9 @@ public class AuthServiceImpl implements AuthService {
                                 request.password()
                         )
                 )
-                .firstName(request.firstName())
-                .lastName(request.lastName())
-                .address(request.address())
+                .firstName(cleanOptional(request.firstName()))
+                .lastName(cleanOptional(request.lastName()))
+                .address(cleanOptional(request.address()))
                 .role(Role.TOURIST)
                 .provider(AuthProvider.LOCAL)
                 .emailVerified(false)
@@ -136,7 +137,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Verify email
     @Override
     @Transactional
     public UserDto.MessageResponse verifyEmail(
@@ -195,7 +195,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Resend OTP
     @Override
     @Transactional
     public UserDto.MessageResponse resendOtp(
@@ -220,7 +219,6 @@ public class AuthServiceImpl implements AuthService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Check block
         if (user.getOtpBlockUntil() != null) {
 
             if (now.isBefore(
@@ -237,7 +235,6 @@ public class AuthServiceImpl implements AuthService {
             user.setOtpFirstResendTime(null);
         }
 
-        // Wait before resend
         if (user.getLastOtpSentAt() != null &&
                 now.isBefore(
                         user.getLastOtpSentAt()
@@ -249,7 +246,6 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // Reset resend count
         if (user.getOtpFirstResendTime() == null ||
                 now.isAfter(
                         user.getOtpFirstResendTime()
@@ -265,7 +261,6 @@ public class AuthServiceImpl implements AuthService {
                         ? 0
                         : user.getOtpResendCount();
 
-        // Resend limit
         if (resendCount >= 3) {
 
             user.setOtpBlockUntil(
@@ -304,7 +299,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Login
     @Override
     @Transactional
     public UserDto.AuthResponse login(
@@ -347,6 +341,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshTokenHash(
                 TokenHashUtil.hash(refreshToken)
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -358,7 +353,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Refresh token
     @Override
     @Transactional
     public UserDto.AuthResponse refreshToken(
@@ -426,6 +420,7 @@ public class AuthServiceImpl implements AuthService {
                         newRefreshToken
                 )
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -437,7 +432,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Google login
     @Override
     @Transactional
     public UserDto.AuthResponse googleLogin(
@@ -460,27 +454,23 @@ public class AuthServiceImpl implements AuthService {
 
         if (user == null) {
 
-            if (request.role() == null) {
-                throw new UserException(
-                        "Please select an account type"
-                );
-            }
+            Role requestedRole = request.role() == null
+                    ? Role.TOURIST
+                    : request.role();
 
-            if (request.role() == Role.ADMIN) {
+            if (requestedRole == Role.ADMIN) {
                 throw new UserException(
                         "Admin registration is not allowed"
                 );
             }
 
-            // Guide needs the full guide registration form
-            if (request.role() == Role.GUIDE) {
+            if (requestedRole == Role.GUIDE) {
                 throw new UserException(
                         "Please complete the guide registration form to create a guide account"
                 );
             }
 
-            // New Google accounts are tourists
-            if (request.role() != Role.TOURIST) {
+            if (requestedRole != Role.TOURIST) {
                 throw new UserException(
                         "Invalid account type"
                 );
@@ -520,26 +510,54 @@ public class AuthServiceImpl implements AuthService {
 
         } else {
 
+            if (user.getRole() == Role.ADMIN) {
+                throw new UserException(
+                        "Google login is not allowed for admin accounts"
+                );
+            }
+
+            if (user.getProvider() == null ||
+                    user.getProvider() == AuthProvider.LOCAL) {
+
+                if (user.getProviderId() != null &&
+                        !user.getProviderId()
+                                .equals(
+                                        googleUser.providerId()
+                                )) {
+
+                    throw new UserException(
+                            "Google account does not match"
+                    );
+                }
+
+                user.setProviderId(googleUser.providerId());
+                user.setEmailVerified(true);
+                user.setVerifyCode(null);
+                user.setVerifyCodeExpiry(null);
+
+            } else if (user.getProvider() == AuthProvider.GOOGLE) {
+
+                if (user.getProviderId() == null ||
+                        !user.getProviderId()
+                                .equals(
+                                        googleUser.providerId()
+                                )) {
+
+                    throw new UserException(
+                            "Google account does not match"
+                    );
+                }
+            }
+
             if (!user.isEnabled()) {
+                if (user.getRole() == Role.GUIDE) {
+                    throw new UserException(
+                            "Guide account is not approved yet"
+                    );
+                }
+
                 throw new UserException(
                         "Account is not active"
-                );
-            }
-
-            if (user.getProvider() != AuthProvider.GOOGLE) {
-                throw new UserException(
-                        "An account already exists with this email. Please login with your password."
-                );
-            }
-
-            if (user.getProviderId() == null ||
-                    !user.getProviderId()
-                            .equals(
-                                    googleUser.providerId()
-                            )) {
-
-                throw new UserException(
-                        "Google account does not match"
                 );
             }
         }
@@ -553,6 +571,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshTokenHash(
                 TokenHashUtil.hash(refreshToken)
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -564,7 +583,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Find user
     private User findUser(String identifier) {
 
         return userRepository
@@ -594,7 +612,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    // Profile response
     private UserDto.UserProfileResponse toProfileResponse(
             User user
     ) {
@@ -607,13 +624,14 @@ public class AuthServiceImpl implements AuthService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAddress(),
+                user.getProfileImageUrl(),
+                user.getCoverImageUrl(),
                 user.getRole(),
                 user.isEmailVerified()
         );
     }
 
 
-    // Create username
     private String createGoogleUsername(
             String email
     ) {

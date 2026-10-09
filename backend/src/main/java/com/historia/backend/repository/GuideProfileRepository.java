@@ -15,13 +15,25 @@ public interface GuideProfileRepository
 
     Optional<GuideProfile> findByUserId(Long userId);
 
+    Optional<GuideProfile> findByIdAndUserDeletedFalse(Long id);
+
+    Optional<GuideProfile> findByUserIdAndUserDeletedFalse(Long userId);
+
     boolean existsByUser(User user);
 
     List<GuideProfile> findByStatus(
             GuideApplicationStatus status
     );
 
+    List<GuideProfile> findByStatusAndUserDeletedFalse(
+            GuideApplicationStatus status
+    );
+
     List<GuideProfile> findByPrimaryServiceAreaIgnoreCase(
+            String primaryServiceArea
+    );
+
+    List<GuideProfile> findByPrimaryServiceAreaIgnoreCaseAndUserDeletedFalse(
             String primaryServiceArea
     );
 }

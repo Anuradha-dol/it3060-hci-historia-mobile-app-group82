@@ -27,7 +27,6 @@ public class User implements UserDetails {
     private Long id;
 
 
-    //user information
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
@@ -50,13 +49,17 @@ public class User implements UserDetails {
     @Column(length = 500)
     private String address;
 
-    // role
+    @Column(length = 500)
+    private String profileImageUrl;
+
+    @Column(length = 500)
+    private String coverImageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
 
 
-    // email verification / otp
     private String verifyCode;
 
     private LocalDateTime verifyCodeExpiry;
@@ -74,7 +77,6 @@ public class User implements UserDetails {
 
     private LocalDateTime otpBlockUntil;
 
-    // Google OAUTH
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     @Builder.Default
@@ -87,14 +89,31 @@ public class User implements UserDetails {
     @JsonIgnore
     private String refreshTokenHash;
 
-    // account status
+    @Builder.Default
+    private Boolean online = false;
+
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private GuideProfile guideProfile;
+
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    private ForgotPassword forgotPassword;
+
     @Builder.Default
     @Column(nullable = false)
     private boolean enabled = true;
 
-    /*
-     * This helps avoid foreign key issues with related user data.
-     */
     @Builder.Default
     @Column(nullable = false)
     private boolean deleted = false;
@@ -125,6 +144,10 @@ public class User implements UserDetails {
         if (otpResendCount == null) {
             otpResendCount = 0;
         }
+
+        if (online == null) {
+            online = false;
+        }
     }
 
     @PreUpdate
@@ -133,7 +156,6 @@ public class User implements UserDetails {
     }
 
 
-    // spring security
     @Override
     @JsonIgnore
     public String getUsername() {

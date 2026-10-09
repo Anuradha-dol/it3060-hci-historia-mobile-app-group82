@@ -25,7 +25,6 @@ public class JwtService {
     private long refreshTokenExpiration;
 
 
-    // Access token
     public String generateAccessToken(User user) {
 
         Date now = new Date();
@@ -42,7 +41,6 @@ public class JwtService {
     }
 
 
-    // Refresh token
     public String generateRefreshToken(User user) {
 
         Date now = new Date();
@@ -58,25 +56,21 @@ public class JwtService {
     }
 
 
-    // Get username
     public String extractUsername(String token) {
         return extractClaims(token).getSubject();
     }
 
 
-    // Get role
     public String extractRole(String token) {
         return extractClaims(token).get("role", String.class);
     }
 
 
-    // Get token type
     public String extractTokenType(String token) {
         return extractClaims(token).get("type", String.class);
     }
 
 
-    // Validate access token
     public boolean isAccessTokenValid(String token, User user) {
 
         try {
@@ -94,7 +88,6 @@ public class JwtService {
     }
 
 
-    // Validate refresh token
     public boolean isRefreshTokenValid(String token, User user) {
 
         try {
@@ -112,7 +105,6 @@ public class JwtService {
     }
 
 
-    // Check expiry
     public boolean isTokenExpired(String token) {
 
         Date expiration = extractClaims(token).getExpiration();
@@ -121,7 +113,6 @@ public class JwtService {
     }
 
 
-    // Read token
     private Claims extractClaims(String token) {
 
         return Jwts.parser()
@@ -132,7 +123,6 @@ public class JwtService {
     }
 
 
-    // Signing key
     private SecretKey getSigningKey() {
 
         byte[] keyBytes = Decoders.BASE64.decode(secret);

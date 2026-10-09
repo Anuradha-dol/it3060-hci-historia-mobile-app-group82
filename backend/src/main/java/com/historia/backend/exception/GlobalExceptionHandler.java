@@ -1,11 +1,13 @@
 package com.historia.backend.exception;
 
 import com.historia.backend.dto.UserDto;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // User errors
     @ExceptionHandler(UserException.class)
     public ResponseEntity<UserDto.MessageResponse> handleUserException(
             UserException exception
@@ -27,7 +28,6 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    // Missing or invalid authentication
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<UserDto.MessageResponse> handleAuthenticationException(
             AuthenticationException exception
@@ -42,7 +42,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Role or permission errors
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<UserDto.MessageResponse> handleAccessDeniedException(
             AccessDeniedException exception
@@ -57,7 +56,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<UserDto.MessageResponse> handleValidationException(
             MethodArgumentNotValidException exception
@@ -80,7 +78,20 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Invalid query or path parameter values
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<UserDto.MessageResponse> handleMissingRequestParameter(
+            MissingServletRequestParameterException exception
+    ) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(new UserDto.MessageResponse(
+                        false,
+                        "Missing request parameter: " + exception.getParameterName()
+                ));
+    }
+
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<UserDto.MessageResponse> handleTypeMismatchException(
             MethodArgumentTypeMismatchException exception
@@ -95,17 +106,56 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Other errors
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<UserDto.MessageResponse> handleException(
-            Exception exception
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<UserDto.MessageResponse> handleDataAccessException(
+            DataAccessException exception
     ) {
+
+        exception.printStackTrace();
+
+        String message = exception.getMessage();
+        boolean invalidText = message != null &&
+                (message.contains("invalid byte sequence") ||
+                        message.contains("0x00"));
+
+        if (invalidText) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new UserDto.MessageResponse(
+                            false,
+                            "Please remove unsupported characters and try again."
+                    ));
+        }
+
+        String errorDetail = message != null ? message : exception.toString();
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new UserDto.MessageResponse(
                         false,
-                        "Something went wrong"
+                        "Could not save data. Please try again."
+                ));
+    }
+
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<UserDto.MessageResponse> handleException(
+            Exception exception
+    ) {
+
+        exception.printStackTrace();
+
+        String message = exception.getMessage();
+
+        if (message == null || message.isBlank()) {
+            message = exception.getClass().getSimpleName();
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new UserDto.MessageResponse(
+                        false,
+                        message
                 ));
     }
 }

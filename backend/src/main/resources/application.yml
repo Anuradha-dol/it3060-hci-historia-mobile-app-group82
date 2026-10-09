@@ -16,11 +16,12 @@ spring:
       max-request-size: 500MB
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/historia
-    username: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/historia}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
-      connection-timeout: 5000
+      connection-timeout: 15000
 
   jpa:
     hibernate:
@@ -41,18 +42,12 @@ spring:
           starttls:
             enable: true
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            scope:
-              - email
-              - profile
-            redirect-uri: "http://localhost:8081/login/oauth2/code/google"
-
 server:
   port: 8081
+
+google:
+  oauth:
+    client-id: ${GOOGLE_CLIENT_ID:}
 
 jwt:
   secret: ${JWT_SECRET:}

@@ -17,7 +17,6 @@ public class AuthController {
     }
 
 
-    // Registration
     @PostMapping("/register")
     public ResponseEntity<UserDto.MessageResponse> register(
             @Valid @RequestBody UserDto.RegisterRequest request
@@ -29,7 +28,6 @@ public class AuthController {
     }
 
 
-    // Verify email
     @PostMapping("/verify-email")
     public ResponseEntity<UserDto.MessageResponse> verifyEmail(
             @Valid @RequestBody UserDto.VerifyOtpRequest request
@@ -41,7 +39,6 @@ public class AuthController {
     }
 
 
-    // Resend OTP
     @PostMapping("/resend-otp")
     public ResponseEntity<UserDto.MessageResponse> resendOtp(
             @Valid @RequestBody UserDto.ResendOtpRequest request
@@ -53,7 +50,6 @@ public class AuthController {
     }
 
 
-    // Login
     @PostMapping("/login")
     public ResponseEntity<UserDto.AuthResponse> login(
             @Valid @RequestBody UserDto.LoginRequest request
@@ -65,7 +61,6 @@ public class AuthController {
     }
 
 
-    // Refresh token
     @PostMapping("/refresh")
     public ResponseEntity<UserDto.AuthResponse> refreshToken(
             @Valid @RequestBody UserDto.RefreshTokenRequest request
@@ -77,7 +72,6 @@ public class AuthController {
     }
 
 
-    // Google login
     @PostMapping("/google")
     public ResponseEntity<UserDto.AuthResponse> googleLogin(
             @Valid @RequestBody UserDto.GoogleLoginRequest request

@@ -22,7 +22,6 @@ public class GuideController {
     }
 
 
-    // Guide registration
     @PostMapping("/register")
     public ResponseEntity<GuideDto.GuideProfileResponse> registerGuide(
             @Valid @RequestBody GuideDto.GuideRegisterRequest request
@@ -34,7 +33,6 @@ public class GuideController {
     }
 
 
-    // Resubmit guide application after admin requests changes
     @PostMapping("/resubmit")
     public ResponseEntity<GuideDto.GuideProfileResponse> resubmitGuide(
             @Valid @RequestBody GuideDto.GuideResubmitRequest request
@@ -46,7 +44,6 @@ public class GuideController {
     }
 
 
-    // My guide profile
     @GetMapping("/me")
     @PreAuthorize("hasRole('GUIDE')")
     public ResponseEntity<GuideDto.GuideProfileResponse> getMyGuideProfile(
@@ -61,7 +58,6 @@ public class GuideController {
     }
 
 
-    // Update guide profile
     @PutMapping("/me")
     @PreAuthorize("hasRole('GUIDE')")
     public ResponseEntity<GuideDto.GuideProfileResponse> updateMyGuideProfile(
@@ -78,7 +74,6 @@ public class GuideController {
     }
 
 
-    // Approved guides by area
     @GetMapping("/approved")
     public ResponseEntity<List<GuideDto.GuideProfileResponse>>
     getApprovedGuidesByArea(
