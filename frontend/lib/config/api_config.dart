@@ -1,12 +1,26 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConfig {
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+
+  static const String _defaultLanBaseUrl = 'http://192.168.1.5:8081';
+
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://192.168.1.4:8081';
+    final configured = _configuredBaseUrl.trim();
+
+    if (configured.isNotEmpty) {
+      return _removeTrailingSlash(configured);
     }
 
-    return 'http://10.0.2.2:8081';
+    return _defaultLanBaseUrl;
+  }
+
+  static String _removeTrailingSlash(String value) {
+    if (value.endsWith('/')) {
+      return value.substring(0, value.length - 1);
+    }
+
+    return value;
   }
 
   static String resolveImageUrl(String? value) {
