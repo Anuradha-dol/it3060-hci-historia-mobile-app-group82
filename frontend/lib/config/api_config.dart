@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConfig {
   static const String _configuredBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
   );
 
-  static const String _defaultLanBaseUrl = 'http://192.168.1.5:8081';
+  static const String _localBackendUrl = 'http://localhost:8081';
+  static const String _androidEmulatorBackendUrl = 'http://10.0.2.2:8081';
 
   static String get baseUrl {
     final configured = _configuredBaseUrl.trim();
@@ -12,7 +15,19 @@ class ApiConfig {
       return _removeTrailingSlash(configured);
     }
 
-    return _defaultLanBaseUrl;
+    return _defaultBaseUrl;
+  }
+
+  static String get _defaultBaseUrl {
+    if (kIsWeb) {
+      return _localBackendUrl;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return _androidEmulatorBackendUrl;
+    }
+
+    return _localBackendUrl;
   }
 
   static String _removeTrailingSlash(String value) {
@@ -82,8 +97,7 @@ class ApiConfig {
   static const String notifications = '/api/notifications/me';
   static const String notificationUnreadCount =
       '/api/notifications/me/unread-count';
-  static const String markAllNotificationsRead =
-      '/api/notifications/read-all';
+  static const String markAllNotificationsRead = '/api/notifications/read-all';
 
   static String markNotificationRead(int id) {
     return '/api/notifications/$id/read';

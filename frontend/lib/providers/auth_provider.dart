@@ -17,7 +17,7 @@ class AuthProvider extends ChangeNotifier {
 
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: const ['email', 'profile'],
-    clientId: GoogleAuthConfig.clientId,
+    clientId: kIsWeb ? GoogleAuthConfig.clientId : null,
     serverClientId: kIsWeb ? null : GoogleAuthConfig.serverClientId,
   );
 

@@ -165,25 +165,23 @@ An empty array is valid on a fresh database. There is no advertised /api/health 
 Start an Android emulator through Android Studio's Device Manager. Open terminal 2 in the project root:
 
 ```powershell
-cd frontend
-flutter pub get
-flutter devices
-flutter run -d YOUR_ANDROID_DEVICE_ID
+.\scripts\Run-Flutter.ps1 -Target emulator
 ```
 
-Replace YOUR_ANDROID_DEVICE_ID with the ID printed by flutter devices; if only the intended device is connected, flutter run is sufficient. Keep both backend and Flutter terminals open. `r` in Flutter's terminal hot reloads supported changes; changes to platform configuration can need a restart/rebuild.
+If more than one device is connected, run `flutter devices` and pass `-DeviceId YOUR_ANDROID_DEVICE_ID`. Keep both backend and Flutter terminals open. `r` in Flutter's terminal hot reloads supported changes; changes to platform configuration can need a restart/rebuild.
 
 Current ApiConfig behavior:
 
 | Target | API base URL | Action |
 |---|---|---|
 | Android emulator | http://10.0.2.2:8081 | Already the default for non-web. |
-| Browser on the laptop | http://localhost:8081 | Already selected for web; web compatibility/CORS still need verification. |
-| Real Android phone | http://YOUR_LAPTOP_LAN_IP:8081 | Requires a configuration change; same Wi-Fi and a narrowly scoped firewall allowance. |
+| Browser on the laptop | http://localhost:8081 | Use `.\scripts\Run-Flutter.ps1 -Target chrome`; Chrome runs on http://localhost:5300. |
+| Real Android phone over USB | http://127.0.0.1:8081 | Use `.\scripts\Run-Flutter.ps1 -Target usb`; the script runs adb reverse. |
+| Real Android phone on Wi-Fi | http://YOUR_LAPTOP_LAN_IP:8081 | Use `.\scripts\Run-Flutter.ps1 -Target wifi -LaptopIp YOUR_LAPTOP_LAN_IP`; allow Windows Firewall port 8081. |
 
 Android documents 10.0.2.2 as the emulator's route to the host loopback interface: https://developer.android.com/studio/run/emulator-networking-address
 
-Use the Android emulator for the initial mobile evaluation. If using a physical phone before Codex changes the configuration, update only the appropriate return value inside frontend/lib/config/api_config.dart, preserving resolveImageUrl. The full prompt asks Codex to add an API_BASE_URL dart-define override. **That override does not exist yet** in the supplied code. After it is implemented, use:
+Use the Android emulator for the initial mobile evaluation. For a physical phone, do not edit frontend/lib/config/api_config.dart; use the script or pass the API URL with `API_BASE_URL`:
 
 ```powershell
 flutter run -d YOUR_PHONE_ID --dart-define=API_BASE_URL=http://YOUR_LAPTOP_LAN_IP:8081

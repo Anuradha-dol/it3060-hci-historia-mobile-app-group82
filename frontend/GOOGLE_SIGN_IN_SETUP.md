@@ -8,6 +8,18 @@ For Android, Google Cloud must have an Android OAuth client that matches this ap
 - Debug signing certificate SHA-1 on this machine: `E6:22:17:CD:39:2B:36:16:18:2D:F6:A1:9D:EF:7A:0B:7F:51:FE:3C`
 - Web client ID: the same value used by `GOOGLE_WEB_CLIENT_ID` in Flutter and `GOOGLE_CLIENT_ID` in the backend
 
+For Chrome, the Google Cloud Web OAuth client must allow this JavaScript origin:
+
+```text
+http://localhost:5300
+```
+
+The helper script pins Flutter web to that port:
+
+```powershell
+.\scripts\Run-Flutter.ps1 -Target chrome
+```
+
 To get the debug SHA-1 on Windows:
 
 ```powershell

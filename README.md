@@ -134,10 +134,16 @@ In Google Cloud, keep the Android OAuth client for the package name and SHA-1, a
 - `google.oauth.client-id` in `backend/src/main/resources/application-local.yml`
 - `GOOGLE_WEB_CLIENT_ID` when running Flutter, if you want to override the value in the app
 
-Example Flutter run with a client ID:
+For Chrome Google sign-in, add this JavaScript origin to the same Web OAuth client because the run script uses a fixed web port:
+
+```text
+http://localhost:5300
+```
+
+Example Flutter run with a custom client ID:
 
 ```powershell
-flutter run --dart-define=GOOGLE_WEB_CLIENT_ID=YOUR_GOOGLE_WEB_CLIENT_ID
+.\scripts\Run-Flutter.ps1 -Target emulator -GoogleWebClientId YOUR_GOOGLE_WEB_CLIENT_ID
 ```
 
 ## Run The Backend
@@ -160,34 +166,33 @@ Hibernate is set to `ddl-auto: update`, so the database tables are created or up
 
 ## Run The Flutter App
 
-Open another terminal in the project root:
+Open another terminal in the project root. Use the helper script so the app gets the correct backend URL for the selected target.
+
+Android emulator:
 
 ```powershell
-cd frontend
-flutter pub get
-flutter devices
-flutter run
+.\scripts\Run-Flutter.ps1 -Target emulator
 ```
 
-The Android emulator can reach the backend through this URL:
+Real Android phone over USB debugging:
 
-```text
-http://10.0.2.2:8081
+```powershell
+.\scripts\Run-Flutter.ps1 -Target usb
 ```
 
-That is already set in:
+Chrome:
 
-```text
-frontend/lib/config/api_config.dart
+```powershell
+.\scripts\Run-Flutter.ps1 -Target chrome
 ```
 
-If you run the app on a real Android phone, `10.0.2.2` will not work. Put the phone and laptop on the same Wi-Fi network, find the laptop IP address with `ipconfig`, and change the base URL to something like:
+Real Android phone on the same Wi-Fi:
 
-```dart
-static const String baseUrl = 'http://192.168.1.10:8081';
+```powershell
+.\scripts\Run-Flutter.ps1 -Target wifi -LaptopIp 192.168.1.10
 ```
 
-Make sure Windows Firewall allows the backend port if a real phone cannot connect.
+If more than one device is connected, run `flutter devices` and pass `-DeviceId YOUR_DEVICE_ID`. USB mode runs `adb reverse tcp:8081 tcp:8081` and uses `http://127.0.0.1:8081`; Wi-Fi mode uses the laptop LAN IP. Make sure Windows Firewall allows backend port `8081` for Wi-Fi testing.
 
 ## Useful Checks
 
