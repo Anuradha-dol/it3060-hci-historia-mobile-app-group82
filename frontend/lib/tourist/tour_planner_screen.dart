@@ -153,6 +153,49 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
     );
   }
 
+  Future<void> _openNearbyPlacesForHistoricalPlace(
+    HistoricalPlaceModel place,
+  ) async {
+    final area = _searchAreaForHistoricalPlace(place);
+    final query = 'tourist attractions near $area';
+    final uri = Uri.https('www.google.com', '/maps/search/', {
+      'api': '1',
+      'query': query,
+    });
+
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      if (!opened) {
+        await _openNearbyPlacesInBrowser(uri);
+      }
+    } on PlatformException catch (error) {
+      if (error.code == 'channel-error') {
+        _showMessage(
+          'Please fully restart the app once so Nearby Places can open.',
+          error: true,
+        );
+        return;
+      }
+
+      _showMessage('Unable to open nearby places.', error: true);
+    } catch (_) {
+      _showMessage('Unable to open nearby places.', error: true);
+    }
+  }
+
+  Future<void> _openNearbyPlacesInBrowser(Uri uri) async {
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.platformDefault);
+
+      if (!opened) {
+        _showMessage('Unable to open nearby places.', error: true);
+      }
+    } catch (_) {
+      _showMessage('Unable to open nearby places.', error: true);
+    }
+  }
+
   String _searchAreaForHistoricalPlace(HistoricalPlaceModel place) {
     final location = place.location.trim();
 
@@ -371,6 +414,15 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
                           onTap: () => _openPlaceDetails(place),
                         ),
                       ),
+                      Positioned(
+                        left: 8,
+                        bottom: 8,
+                        right: 8,
+                        child: _nearbyPlacesButton(
+                          onTap: () =>
+                              _openNearbyPlacesForHistoricalPlace(place),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -512,6 +564,10 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
                       compact: true,
                     ),
                     const SizedBox(width: 2),
+                    _nearbyPlacesIconButton(
+                      onTap: () => _openNearbyPlacesForHistoricalPlace(place),
+                    ),
+                    const SizedBox(width: 2),
                     IconButton(
                       onPressed: () => _togglePlace(place),
                       icon: const Icon(Icons.close, size: 18),
@@ -579,6 +635,64 @@ class _TourPlannerScreenState extends State<TourPlannerScreen> {
             Icons.visibility_outlined,
             color: primaryGreen,
             size: compact ? 18 : 19,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _nearbyPlacesButton({required VoidCallback onTap}) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.94),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.travel_explore_outlined,
+                color: primaryGreen,
+                size: 15,
+              ),
+              SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  'Nearby Places',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: primaryGreen,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _nearbyPlacesIconButton({required VoidCallback onTap}) {
+    return Material(
+      color: const Color(0xFFEAF5EE),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: const Padding(
+          padding: EdgeInsets.all(7),
+          child: Icon(
+            Icons.travel_explore_outlined,
+            color: primaryGreen,
+            size: 18,
           ),
         ),
       ),

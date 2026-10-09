@@ -79,6 +79,16 @@ class ApiConfig {
   static const String changePassword = '/api/users/me/password';
   static const String logout = '/api/users/logout';
 
+  static const String notifications = '/api/notifications/me';
+  static const String notificationUnreadCount =
+      '/api/notifications/me/unread-count';
+  static const String markAllNotificationsRead =
+      '/api/notifications/read-all';
+
+  static String markNotificationRead(int id) {
+    return '/api/notifications/$id/read';
+  }
+
   static const String guideRegister = '/api/guides/register';
   static const String guideResubmit = '/api/guides/resubmit';
   static const String currentGuide = '/api/guides/me';

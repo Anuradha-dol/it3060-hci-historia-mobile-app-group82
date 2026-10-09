@@ -4,6 +4,7 @@ import com.historia.backend.entity.*;
 import com.historia.backend.enums.*;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
+import com.historia.backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import static com.historia.backend.utils.LocationMatcher.matchesServiceArea;
 @Service @RequiredArgsConstructor @Transactional
 public class BookingService {
     private final EntityManager em;
+    private final NotificationService notificationService;
     @Value("${historia.booking.demo-payments:false}") private boolean demoPayments;
     @Value("${spring.profiles.active:}") private String profiles;
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -115,7 +117,14 @@ public class BookingService {
         b.setRequestKey(r.requestKey()); b.setStartsAt(r.startsAt()); b.setEndsAt(end); b.setVisitors(r.visitors()); b.setPackageName(p.getName());
         b.setAmount(p.getPricePerVisitor().multiply(BigDecimal.valueOf(r.visitors()))); b.setHoldExpiresAt(Instant.now().plusSeconds(600));
         b.setMeetingPin(String.format("%04d",RANDOM.nextInt(10000))); b.setPinExpiresAt(end.plusSeconds(3600));
-        em.persist(b); return view(b,userId);
+        em.persist(b);
+        notifyBookingParticipants(
+            b,
+            "BOOKING_HOLD",
+            "Booking hold created",
+            user.getUsername() + " held a booking with " + g.getDisplayName() + "."
+        );
+        return view(b,userId);
     }
     private void expire(GuideBooking b) { if(b.getState().equals("HELD") && (!b.getHoldExpiresAt().isAfter(Instant.now()) || !b.getStartsAt().isAfter(Instant.now()))) b.setState("EXPIRED"); }
     private boolean matchesSearchArea(GuideProfile g, String area) { return area==null || area.isBlank() || matchesRequiredArea(g, area); }
@@ -161,9 +170,31 @@ public class BookingService {
                 expire(b);
                 if (!b.getState().equals("HELD")) throw bad("Hold expired while checkout was pending");
                 b.setPaymentState("DEMO_PAID");b.setPaymentReference("demo:"+b.getId());b.setState("CONFIRMED");
+                notifyBookingParticipants(
+                    b,
+                    "BOOKING_CONFIRMED",
+                    "Booking confirmed",
+                    "Payment was completed for " + b.getPackageName() + "."
+                );
             }
-            case "failure" -> b.setPaymentState("FAILED");
-            case "cancel" -> {b.setPaymentState("CANCELLED");b.setState("CANCELLED");}
+            case "failure" -> {
+                b.setPaymentState("FAILED");
+                notifyBookingParticipants(
+                    b,
+                    "BOOKING_PAYMENT_FAILED",
+                    "Booking payment failed",
+                    "Payment failed for " + b.getPackageName() + "."
+                );
+            }
+            case "cancel" -> {
+                b.setPaymentState("CANCELLED");b.setState("CANCELLED");
+                notifyBookingParticipants(
+                    b,
+                    "BOOKING_CANCELLED",
+                    "Booking cancelled",
+                    "Checkout was cancelled for " + b.getPackageName() + "."
+                );
+            }
             default -> throw bad("Unknown checkout outcome");
         }
         return view(b,userId);
@@ -181,6 +212,12 @@ public class BookingService {
             b.setState(next);
         }
         if(!ACTIVE.contains(b.getState())) {b.setLatitude(null);b.setLongitude(null);b.setEta(null);}
+        notifyBookingParticipants(
+            b,
+            "BOOKING_STATUS",
+            "Booking status updated",
+            "Booking " + reference(b) + " is now " + formatState(b.getState()) + "."
+        );
         return view(b,userId);
     }
     public BookingView location(Long userId,String id,LocationInput r) {
@@ -222,6 +259,14 @@ public class BookingService {
         em.remove(w); // Existing reservations retain their schedule.
     }
     private String reference(GuideBooking b) {return "HS-"+b.getId().substring(0,8).toUpperCase(Locale.ROOT);}
+    private void notifyBookingParticipants(GuideBooking b, String type, String title, String message) {
+        String referenceId = b.getId();
+        notificationService.notifyUser(b.getTourist(),type,title,message,"GUIDE_BOOKING",referenceId,"/bookings/"+referenceId);
+        notificationService.notifyUser(b.getGuide().getUser(),type,title,message,"GUIDE_BOOKING",referenceId,"/guide/bookings/"+referenceId);
+    }
+    private String formatState(String state) {
+        return state == null ? "updated" : state.replace('_',' ').toLowerCase(Locale.ROOT);
+    }
     private BookingView view(GuideBooking b,Long userId) {
         boolean active=ACTIVE.contains(b.getState()) && b.getPinExpiresAt().isAfter(Instant.now());
         return new BookingView(b.getId(),reference(b),b.getGuide().getId(),b.getGuide().getDisplayName(),b.getGuide().getUser().getPhone(),b.getTourist().getId().equals(userId)?b.getGuide().getUser().getPhone():b.getTourist().getPhone(),b.getPackageName(),b.getLandmark(),b.getStartsAt(),b.getEndsAt(),b.getVisitors(),b.getAmount(),"LKR",b.getState(),b.getPaymentState(),b.getHoldExpiresAt(),active&&b.getPinUsedAt()==null?b.getMeetingPin():null,b.getPinExpiresAt(),b.getPinUsedAt()!=null,Math.max(0,5-b.getPinAttempts()),active?b.getLatitude():null,active?b.getLongitude():null,b.getLocationUpdatedAt(),active?b.getEta():null,demoEnabled());

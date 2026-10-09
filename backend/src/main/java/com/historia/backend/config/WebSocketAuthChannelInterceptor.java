@@ -1,7 +1,6 @@
 package com.historia.backend.config;
 
 import com.historia.backend.entity.User;
-import com.historia.backend.enums.Role;
 import com.historia.backend.security.CustomUserDetailsService;
 import com.historia.backend.security.JwtService;
 import com.historia.backend.service.BuddyService;
@@ -24,6 +23,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private static final String BUDDY_TOPIC_PREFIX = "/topic/buddies/";
     private static final String BUDDY_SEND_PREFIX = "/app/buddies/";
+    private static final String NOTIFICATION_TOPIC_PREFIX =
+            "/topic/notifications/";
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -60,7 +61,16 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                 user = (User) authentication.getPrincipal();
             }
 
-            Long requestId = buddyRequestId(accessor.getDestination());
+            String destination = accessor.getDestination();
+
+            Long notificationUserId = notificationUserId(destination);
+
+            if (notificationUserId != null &&
+                    !notificationUserId.equals(user.getId())) {
+                throw new RuntimeException("Access denied");
+            }
+
+            Long requestId = buddyRequestId(destination);
 
             if (requestId != null) {
                 buddyService.validateChatAccess(
@@ -93,10 +103,6 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         if (!(userDetails instanceof User user) ||
                 !jwtService.isAccessTokenValid(token, user)) {
             throw new RuntimeException("Authentication required");
-        }
-
-        if (user.getRole() != Role.TOURIST) {
-            throw new RuntimeException("Access denied");
         }
 
         return new UsernamePasswordAuthenticationToken(
@@ -150,6 +156,23 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             return Long.parseLong(id);
         } catch (NumberFormatException exception) {
             throw new RuntimeException("Invalid chat destination");
+        }
+    }
+
+    private Long notificationUserId(String destination) {
+        if (destination == null ||
+                !destination.startsWith(NOTIFICATION_TOPIC_PREFIX)) {
+            return null;
+        }
+
+        String value =
+                destination.substring(NOTIFICATION_TOPIC_PREFIX.length());
+        String id = value.split("/", 2)[0];
+
+        try {
+            return Long.parseLong(id);
+        } catch (NumberFormatException exception) {
+            throw new RuntimeException("Invalid notification destination");
         }
     }
 }

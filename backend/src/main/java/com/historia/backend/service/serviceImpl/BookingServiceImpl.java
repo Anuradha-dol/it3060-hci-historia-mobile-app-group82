@@ -12,6 +12,7 @@ import com.historia.backend.repository.GuideProfileRepository;
 import com.historia.backend.repository.ReviewRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.BookingService;
+import com.historia.backend.service.NotificationService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,17 +28,20 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final GuideProfileRepository guideProfileRepository;
     private final ReviewRepository reviewRepository;
+    private final NotificationService notificationService;
 
     public BookingServiceImpl(
             BookingRepository bookingRepository,
             UserRepository userRepository,
             GuideProfileRepository guideProfileRepository,
-            ReviewRepository reviewRepository
+            ReviewRepository reviewRepository,
+            NotificationService notificationService
     ) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.guideProfileRepository = guideProfileRepository;
         this.reviewRepository = reviewRepository;
+        this.notificationService = notificationService;
     }
 
 
@@ -107,6 +111,16 @@ public class BookingServiceImpl implements BookingService {
 
         bookingRepository.save(booking);
 
+        notifyBookingParticipants(
+                booking,
+                "BOOKING_CREATED",
+                "Booking created",
+                tourist.getUsername()
+                        + " created a booking with "
+                        + guideProfile.getDisplayName()
+                        + "."
+        );
+
         return toResponse(booking);
     }
 
@@ -134,6 +148,36 @@ public class BookingServiceImpl implements BookingService {
                 booking.getCurrency(),
                 booking.getStatus(),
                 reviewed
+        );
+    }
+
+    private void notifyBookingParticipants(
+            Booking booking,
+            String type,
+            String title,
+            String message
+    ) {
+
+        String referenceId = booking.getId().toString();
+
+        notificationService.notifyUser(
+                booking.getTourist(),
+                type,
+                title,
+                message,
+                "BOOKING",
+                referenceId,
+                "/bookings/" + referenceId
+        );
+
+        notificationService.notifyUser(
+                booking.getGuideProfile().getUser(),
+                type,
+                title,
+                message,
+                "BOOKING",
+                referenceId,
+                "/guide/bookings/" + referenceId
         );
     }
 }

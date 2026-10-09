@@ -11,6 +11,7 @@ import com.historia.backend.exception.UserException;
 import com.historia.backend.repository.BookingRepository;
 import com.historia.backend.repository.PaymentRepository;
 import com.historia.backend.repository.UserRepository;
+import com.historia.backend.service.NotificationService;
 import com.historia.backend.service.PaymentService;
 
 import org.springframework.stereotype.Service;
@@ -34,14 +35,17 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public PaymentServiceImpl(
             BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -110,6 +114,8 @@ public class PaymentServiceImpl implements PaymentService {
             booking.setStatus(BookingStatus.PAID);
             bookingRepository.save(booking);
         }
+
+        notifyPayment(booking, success, payment.getTransactionRef());
 
         return toResponse(payment);
     }
@@ -210,5 +216,39 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getFailureReason(),
                 payment.getTransactionRef(),
                 payment.getCreatedAt());
+    }
+
+    private void notifyPayment(
+            Booking booking,
+            boolean success,
+            String transactionRef
+    ) {
+
+        String referenceId = booking.getId().toString();
+        String type = success ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED";
+        String title = success ? "Payment completed" : "Payment failed";
+        String message = success
+                ? "Payment " + transactionRef + " confirmed for your booking."
+                : "Payment could not be completed for your booking.";
+
+        notificationService.notifyUser(
+                booking.getTourist(),
+                type,
+                title,
+                message,
+                "BOOKING",
+                referenceId,
+                "/bookings/" + referenceId
+        );
+
+        notificationService.notifyUser(
+                booking.getGuideProfile().getUser(),
+                type,
+                title,
+                message,
+                "BOOKING",
+                referenceId,
+                "/guide/bookings/" + referenceId
+        );
     }
 }
