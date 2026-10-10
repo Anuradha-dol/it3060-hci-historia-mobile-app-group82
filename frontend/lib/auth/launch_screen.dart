@@ -2,80 +2,17 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:video_player/video_player.dart';
 
 import '../widgets/historia_header.dart';
 import 'login_screen.dart';
 
-class LaunchScreen extends StatefulWidget {
+class LaunchScreen extends StatelessWidget {
   const LaunchScreen({super.key});
 
   static const Color _deepGreen = Color(0xFF0F3F2E);
   static const Color _mint = Color(0xFFBDE8CF);
-  static const String _fallbackImage = 'assets/images/launch_bg.png';
-  static const String _heroVideo = 'assets/videos/launch_hero.mp4';
-
-  @override
-  State<LaunchScreen> createState() => _LaunchScreenState();
-}
-
-class _LaunchScreenState extends State<LaunchScreen>
-    with WidgetsBindingObserver {
-  late final VideoPlayerController _videoController;
-  bool _videoReady = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-    _videoController = VideoPlayerController.asset(LaunchScreen._heroVideo);
-    _initializeVideo();
-  }
-
-  Future<void> _initializeVideo() async {
-    try {
-      await _videoController.initialize();
-      await _videoController.setLooping(true);
-      await _videoController.setVolume(0);
-      await _videoController.play();
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() => _videoReady = true);
-    } catch (_) {
-      if (mounted) {
-        setState(() => _videoReady = false);
-      }
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_videoReady) {
-      return;
-    }
-
-    if (state == AppLifecycleState.resumed) {
-      _videoController.play();
-      return;
-    }
-
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden ||
-        state == AppLifecycleState.paused) {
-      _videoController.pause();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _videoController.dispose();
-    super.dispose();
-  }
+  static const Color _gold = Color(0xFFF1C978);
+  static const String _heroImage = 'assets/images/launch_hero_sigiriya.png';
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +26,7 @@ class _LaunchScreenState extends State<LaunchScreen>
         body: Stack(
           fit: StackFit.expand,
           children: [
-            _LaunchVideoBackground(
-              controller: _videoController,
-              videoReady: _videoReady,
-            ),
+            const _LaunchImageBackground(),
             const _LaunchScrim(),
             SafeArea(
               child: LayoutBuilder(
@@ -155,24 +89,24 @@ class _LaunchCopy extends StatelessWidget {
               const _LaunchEyebrow(),
               SizedBox(height: compact ? 12 : 16),
               Text(
-                "Step into Sri Lanka's living history.",
+                "Discover Sri Lanka's timeless heritage.",
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: compact ? 32 : 38,
-                  height: 1.03,
+                  fontSize: compact ? 34 : 42,
+                  height: 1.01,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0,
                 ),
               ),
               SizedBox(height: compact ? 11 : 14),
               Text(
-                'Discover heritage sites, plan smarter routes, and connect '
-                'with trusted guides before you go.',
+                'Explore ancient kingdoms, build your route, and connect '
+                'with local guides for a richer journey.',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.86),
+                  color: Colors.white.withValues(alpha: 0.88),
                   fontSize: compact ? 13.5 : 15,
-                  height: 1.45,
-                  fontWeight: FontWeight.w500,
+                  height: 1.48,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: 0,
                 ),
               ),
@@ -210,15 +144,15 @@ class _LaunchEyebrow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.auto_awesome_outlined,
+                Icons.landscape_outlined,
                 size: 14,
-                color: LaunchScreen._mint,
+                color: LaunchScreen._gold,
               ),
               SizedBox(width: 7),
               Text(
-                'Heritage travel, made simple',
+                'Your island heritage companion',
                 style: TextStyle(
-                  color: LaunchScreen._mint,
+                  color: LaunchScreen._gold,
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0,
@@ -239,11 +173,11 @@ class _LaunchFeatureStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Row(
       children: [
-        _LaunchChip(icon: Icons.explore_outlined, text: 'Explore'),
+        _LaunchChip(icon: Icons.travel_explore_rounded, text: 'Discover'),
         SizedBox(width: 8),
-        _LaunchChip(icon: Icons.route_outlined, text: 'Plan'),
+        _LaunchChip(icon: Icons.route_rounded, text: 'Plan'),
         SizedBox(width: 8),
-        _LaunchChip(icon: Icons.verified_user_outlined, text: 'Guide'),
+        _LaunchChip(icon: Icons.groups_rounded, text: 'Connect'),
       ],
     );
   }
@@ -276,7 +210,7 @@ class _LaunchStartButton extends StatelessWidget {
             );
           },
           style: FilledButton.styleFrom(
-            backgroundColor: Colors.white,
+            backgroundColor: LaunchScreen._gold,
             foregroundColor: LaunchScreen._deepGreen,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -313,10 +247,10 @@ class _LaunchFootnote extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Sign in or create your account on the next screen',
+        'Curated heritage places, guides, routes, and travel moments',
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.72),
+          color: Colors.white.withValues(alpha: 0.76),
           fontSize: 11.5,
           fontWeight: FontWeight.w600,
           letterSpacing: 0,
@@ -326,40 +260,23 @@ class _LaunchFootnote extends StatelessWidget {
   }
 }
 
-class _LaunchVideoBackground extends StatelessWidget {
-  final VideoPlayerController controller;
-  final bool videoReady;
-
-  const _LaunchVideoBackground({
-    required this.controller,
-    required this.videoReady,
-  });
+class _LaunchImageBackground extends StatelessWidget {
+  const _LaunchImageBackground();
 
   @override
   Widget build(BuildContext context) {
-    final size = controller.value.size;
-    final canRenderVideo = videoReady && size.width > 0 && size.height > 0;
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(LaunchScreen._fallbackImage, fit: BoxFit.cover),
-        AnimatedOpacity(
-          opacity: canRenderVideo ? 1 : 0,
-          duration: const Duration(milliseconds: 520),
-          curve: Curves.easeOut,
-          child: canRenderVideo
-              ? FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: size.width,
-                    height: size.height,
-                    child: VideoPlayer(controller),
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+    return Image.asset(
+      LaunchScreen._heroImage,
+      fit: BoxFit.cover,
+      alignment: Alignment.topCenter,
+      filterQuality: FilterQuality.high,
+      errorBuilder: (_, _, _) {
+        return Image.asset(
+          'assets/images/launch_bg.png',
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+        );
+      },
     );
   }
 }

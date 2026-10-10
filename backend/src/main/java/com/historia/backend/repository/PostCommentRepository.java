@@ -15,4 +15,9 @@ public interface PostCommentRepository
             Long commentId,
             Long postId
     );
+
+    boolean existsByIdAndLikedUsers_Id(
+            Long commentId,
+            Long userId
+    );
 }

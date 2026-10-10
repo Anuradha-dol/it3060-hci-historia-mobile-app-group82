@@ -9,18 +9,27 @@ import java.util.List;
 
 public interface PostService {
 
-    List<PostDto> getAllPosts();
+    List<PostDto> getAllPosts(Long loggedInUserId);
 
-    PostDto getPostById(Long id);
+    PostDto getPostById(
+            Long id,
+            Long loggedInUserId
+    );
 
     PostDto createPost(
             PostCreateRequest request,
             Long loggedInUserId
     );
 
-    PostDto likePost(Long id);
+    PostDto likePost(
+            Long id,
+            Long loggedInUserId
+    );
 
-    List<PostCommentDto> getComments(Long postId);
+    List<PostCommentDto> getComments(
+            Long postId,
+            Long loggedInUserId
+    );
 
     PostCommentDto addComment(
             Long postId,
@@ -30,7 +39,8 @@ public interface PostService {
 
     PostCommentDto likeComment(
             Long postId,
-            Long commentId
+            Long commentId,
+            Long loggedInUserId
     );
 
     void deletePost(

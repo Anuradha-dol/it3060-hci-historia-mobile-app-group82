@@ -65,22 +65,27 @@ class _CommunityFeedState extends State<CommunityFeed> {
     }
   }
 
-  Future<void> _likePost(int index) async {
+  Future<bool> _likePost(int index) async {
     final postId = _postId(_posts[index]);
 
-    if (postId == null) return;
+    if (postId == null) return false;
 
     try {
       final updated = await _postService.likePost(postId);
 
-      if (!mounted) return;
+      if (!mounted) return false;
 
       setState(() {
         _posts[index] = updated;
       });
+
+      return true;
     } catch (e) {
-      if (!mounted) return;
-      _showMessage(ApiService.instance.getErrorMessage(e), error: true);
+      if (mounted) {
+        _showMessage(ApiService.instance.getErrorMessage(e), error: true);
+      }
+
+      return false;
     }
   }
 
@@ -204,6 +209,10 @@ class _CommunityFeedState extends State<CommunityFeed> {
     return int.tryParse(post[key]?.toString() ?? '') ?? 0;
   }
 
+  bool _likedByCurrentUser(Map<String, dynamic> post) {
+    return post['likedByCurrentUser'] == true;
+  }
+
   List<String> _images(Map<String, dynamic> post) {
     final imageUrls = post['imageUrls'];
 
@@ -292,6 +301,7 @@ class _CommunityFeedState extends State<CommunityFeed> {
                   caption: _caption(post),
                   images: _images(post),
                   likeCount: _number(post, 'likeCount'),
+                  likedByCurrentUser: _likedByCurrentUser(post),
                   commentCount: _number(post, 'commentCount'),
                   timeAgo: _timeAgo(post),
                   onLike: () => _likePost(index),
@@ -399,9 +409,10 @@ class _PostCard extends StatefulWidget {
   final String caption;
   final List<String> images;
   final int likeCount;
+  final bool likedByCurrentUser;
   final int commentCount;
   final String timeAgo;
-  final VoidCallback onLike;
+  final Future<bool> Function() onLike;
   final VoidCallback onComment;
   final VoidCallback onDelete;
 
@@ -413,6 +424,7 @@ class _PostCard extends StatefulWidget {
     required this.caption,
     required this.images,
     required this.likeCount,
+    required this.likedByCurrentUser,
     required this.commentCount,
     required this.timeAgo,
     required this.onLike,
@@ -425,7 +437,49 @@ class _PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<_PostCard> {
-  bool _liked = false;
+  late bool _liked;
+  bool _liking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _liked = widget.likedByCurrentUser;
+  }
+
+  @override
+  void didUpdateWidget(covariant _PostCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.likedByCurrentUser != widget.likedByCurrentUser) {
+      _liked = widget.likedByCurrentUser;
+    }
+  }
+
+  Future<void> _handleLike() async {
+    if (_liking) {
+      return;
+    }
+
+    final nextLiked = !_liked;
+
+    setState(() {
+      _liked = nextLiked;
+      _liking = true;
+    });
+
+    final success = await widget.onLike();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _liking = false;
+      if (!success) {
+        _liked = widget.likedByCurrentUser;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -548,12 +602,7 @@ class _PostCardState extends State<_PostCard> {
             child: Row(
               children: [
                 InkWell(
-                  onTap: () {
-                    setState(() {
-                      _liked = true;
-                    });
-                    widget.onLike();
-                  },
+                  onTap: _handleLike,
                   borderRadius: BorderRadius.circular(20),
                   child: Icon(
                     _liked ? Icons.favorite : Icons.favorite_border,
@@ -725,10 +774,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     }
   }
 
-  Future<void> _likeComment(int index) async {
+  Future<bool> _likeComment(int index) async {
     final commentId = int.tryParse(_comments[index]['id']?.toString() ?? '');
 
-    if (commentId == null) return;
+    if (commentId == null) return false;
 
     try {
       final updated = await _postService.likeComment(
@@ -736,15 +785,24 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         commentId: commentId,
       );
 
-      if (!mounted) return;
+      if (!mounted) return false;
 
       setState(() {
         _comments[index] = updated;
       });
+
+      return true;
     } catch (e) {
-      if (!mounted) return;
-      _showMessage(ApiService.instance.getErrorMessage(e), error: true);
+      if (mounted) {
+        _showMessage(ApiService.instance.getErrorMessage(e), error: true);
+      }
+
+      return false;
     }
+  }
+
+  bool _commentLikedByCurrentUser(Map<String, dynamic> comment) {
+    return comment['likedByCurrentUser'] == true;
   }
 
   void _showMessage(String message, {bool error = false}) {
@@ -894,6 +952,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         final username = comment['username']?.toString() ?? 'Historia User';
         final text = comment['commentText']?.toString() ?? '';
         final likes = int.tryParse(comment['likeCount']?.toString() ?? '') ?? 0;
+        final liked = _commentLikedByCurrentUser(comment);
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -937,10 +996,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               ),
               TextButton.icon(
                 onPressed: () => _likeComment(index),
-                icon: const Icon(Icons.favorite_border, size: 16),
+                icon: Icon(
+                  liked ? Icons.favorite : Icons.favorite_border,
+                  size: 16,
+                ),
                 label: Text(likes.toString()),
                 style: TextButton.styleFrom(
-                  foregroundColor: primaryGreen,
+                  foregroundColor: liked ? Colors.red : primaryGreen,
                   visualDensity: VisualDensity.compact,
                 ),
               ),
