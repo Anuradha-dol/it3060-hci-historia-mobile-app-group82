@@ -6,11 +6,13 @@ import java.util.List;
 
 public interface ReviewService {
 
+    // CREATE
     ReviewDto.ReviewResponse submitReview(
             String username,
             ReviewDto.ReviewRequest request
     );
 
+    // READ
     List<ReviewDto.ReviewResponse> getMyReviews(
             String username
     );
@@ -21,5 +23,18 @@ public interface ReviewService {
 
     ReviewDto.GuideRatingSummaryResponse getGuideRatingSummary(
             Long guideProfileId
+    );
+
+    // UPDATE
+    ReviewDto.ReviewResponse updateReview(
+            String username,
+            Long reviewId,
+            ReviewDto.ReviewUpdateRequest request
+    );
+
+    // DELETE
+    void deleteReview(
+            String username,
+            Long reviewId
     );
 }

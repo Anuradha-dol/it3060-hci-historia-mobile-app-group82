@@ -6,8 +6,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * A tourist's rating/review of a completed ({@link Booking}) guided tour.
- * One review is allowed per booking.
+ * A tourist's rating/review of a completed tour.
+ * Stores ONLY review data - no complex relationships to avoid lazy-loading issues.
  */
 @Entity
 @Table(name = "reviews")
@@ -22,17 +22,17 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "booking_id", nullable = false, unique = true)
-    private Booking booking;
+    @Column(nullable = false)
+    private Long bookingId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "tourist_id", nullable = false)
-    private User tourist;
+    @Column(nullable = false)
+    private Long touristId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "guide_profile_id", nullable = false)
-    private GuideProfile guideProfile;
+    @Column(nullable = false)
+    private Long guideProfileId;
+
+    @Column(nullable = false, length = 100)
+    private String guideName;
 
     @Column(nullable = false)
     private Integer navigationRating;
@@ -49,6 +49,9 @@ public class Review {
     @Builder.Default
     @Column(nullable = false)
     private Integer photoCount = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String imageUrlsJson;  // Stores JSON array: ["url1", "url2"]
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
