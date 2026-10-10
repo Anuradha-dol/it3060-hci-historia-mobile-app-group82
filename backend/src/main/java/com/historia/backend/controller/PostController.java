@@ -27,20 +27,34 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostDto>> getAllPosts() {
+    public ResponseEntity<List<PostDto>> getAllPosts(
+            Authentication authentication
+    ) {
+
+        User loggedInUser =
+                (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
-                postService.getAllPosts()
+                postService.getAllPosts(
+                        loggedInUser.getId()
+                )
         );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPostById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                postService.getPostById(id)
+                postService.getPostById(
+                        id,
+                        loggedInUser.getId()
+                )
         );
     }
 
@@ -80,11 +94,18 @@ public class PostController {
 
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<PostCommentDto>> getComments(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                postService.getComments(id)
+                postService.getComments(
+                        id,
+                        loggedInUser.getId()
+                )
         );
     }
 

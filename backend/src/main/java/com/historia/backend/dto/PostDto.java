@@ -32,6 +32,8 @@ public class PostDto {
 
     private Integer likeCount;
 
+    private boolean likedByCurrentUser;
+
     private Integer commentCount;
 
     private LocalDateTime createdAt;

@@ -43,18 +43,26 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostDto> getAllPosts() {
+    public List<PostDto> getAllPosts(
+            Long loggedInUserId
+    ) {
 
         return postRepository
                 .findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(this::convertToDto)
+                .map(post -> convertToDto(
+                        post,
+                        loggedInUserId
+                ))
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PostDto getPostById(Long id) {
+    public PostDto getPostById(
+            Long id,
+            Long loggedInUserId
+    ) {
 
         Post post = postRepository
                 .findById(id)
@@ -62,7 +70,10 @@ public class PostServiceImpl implements PostService {
                         new RuntimeException("Post not found")
                 );
 
-        return convertToDto(post);
+        return convertToDto(
+                post,
+                loggedInUserId
+        );
     }
 
     @Override
@@ -130,7 +141,10 @@ public class PostServiceImpl implements PostService {
         Post savedPost =
                 postRepository.save(post);
 
-        return convertToDto(savedPost);
+        return convertToDto(
+                savedPost,
+                loggedInUserId
+        );
     }
 
     @Override
@@ -150,7 +164,27 @@ public class PostServiceImpl implements PostService {
                 id,
                 loggedInUserId
         )) {
-            return convertToDto(post);
+            post.getLikedUsers()
+                    .removeIf(user ->
+                            loggedInUserId.equals(user.getId())
+                    );
+
+            int currentLikeCount =
+                    post.getLikeCount() == null
+                            ? 0
+                            : post.getLikeCount();
+
+            post.setLikeCount(
+                    Math.max(0, currentLikeCount - 1)
+            );
+
+            Post updatedPost =
+                    postRepository.save(post);
+
+            return convertToDto(
+                    updatedPost,
+                    loggedInUserId
+            );
         }
 
         User loggedInUser = userRepository
@@ -175,12 +209,18 @@ public class PostServiceImpl implements PostService {
         Post updatedPost =
                 postRepository.save(post);
 
-        return convertToDto(updatedPost);
+        return convertToDto(
+                updatedPost,
+                loggedInUserId
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostCommentDto> getComments(Long postId) {
+    public List<PostCommentDto> getComments(
+            Long postId,
+            Long loggedInUserId
+    ) {
 
         if (!postRepository.existsById(postId)) {
             throw new RuntimeException("Post not found");
@@ -189,7 +229,10 @@ public class PostServiceImpl implements PostService {
         return postCommentRepository
                 .findByPost_IdOrderByCreatedAtAsc(postId)
                 .stream()
-                .map(this::convertCommentToDto)
+                .map(comment -> convertCommentToDto(
+                        comment,
+                        loggedInUserId
+                ))
                 .toList();
     }
 
@@ -246,7 +289,10 @@ public class PostServiceImpl implements PostService {
         PostComment savedComment =
                 postCommentRepository.save(comment);
 
-        return convertCommentToDto(savedComment);
+        return convertCommentToDto(
+                savedComment,
+                loggedInUserId
+        );
     }
 
     @Override
@@ -267,7 +313,27 @@ public class PostServiceImpl implements PostService {
                 commentId,
                 loggedInUserId
         )) {
-            return convertCommentToDto(comment);
+            comment.getLikedUsers()
+                    .removeIf(user ->
+                            loggedInUserId.equals(user.getId())
+                    );
+
+            int currentLikeCount =
+                    comment.getLikeCount() == null
+                            ? 0
+                            : comment.getLikeCount();
+
+            comment.setLikeCount(
+                    Math.max(0, currentLikeCount - 1)
+            );
+
+            PostComment updatedComment =
+                    postCommentRepository.save(comment);
+
+            return convertCommentToDto(
+                    updatedComment,
+                    loggedInUserId
+            );
         }
 
         User loggedInUser = userRepository
@@ -292,7 +358,10 @@ public class PostServiceImpl implements PostService {
         PostComment updatedComment =
                 postCommentRepository.save(comment);
 
-        return convertCommentToDto(updatedComment);
+        return convertCommentToDto(
+                updatedComment,
+                loggedInUserId
+        );
     }
 
     @Override
@@ -322,7 +391,10 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
     }
 
-    private PostDto convertToDto(Post post) {
+    private PostDto convertToDto(
+            Post post,
+            Long loggedInUserId
+    ) {
 
         return PostDto.builder()
                 .id(
@@ -367,6 +439,12 @@ public class PostServiceImpl implements PostService {
                 .likeCount(
                         post.getLikeCount()
                 )
+                .likedByCurrentUser(
+                        isPostLikedByUser(
+                                post,
+                                loggedInUserId
+                        )
+                )
                 .commentCount(
                         post.getCommentCount()
                 )
@@ -377,7 +455,8 @@ public class PostServiceImpl implements PostService {
     }
 
     private PostCommentDto convertCommentToDto(
-            PostComment comment
+            PostComment comment,
+            Long loggedInUserId
     ) {
 
         return PostCommentDto.builder()
@@ -388,8 +467,47 @@ public class PostServiceImpl implements PostService {
                 .userRole(comment.getUser().getRole().name())
                 .commentText(comment.getCommentText())
                 .likeCount(comment.getLikeCount())
+                .likedByCurrentUser(
+                        isCommentLikedByUser(
+                                comment,
+                                loggedInUserId
+                        )
+                )
                 .createdAt(comment.getCreatedAt())
                 .build();
+    }
+
+    private boolean isPostLikedByUser(
+            Post post,
+            Long loggedInUserId
+    ) {
+
+        if (loggedInUserId == null || post.getLikedUsers() == null) {
+            return false;
+        }
+
+        return post.getLikedUsers()
+                .stream()
+                .anyMatch(user ->
+                        loggedInUserId.equals(user.getId())
+                );
+    }
+
+    private boolean isCommentLikedByUser(
+            PostComment comment,
+            Long loggedInUserId
+    ) {
+
+        if (loggedInUserId == null ||
+                comment.getLikedUsers() == null) {
+            return false;
+        }
+
+        return comment.getLikedUsers()
+                .stream()
+                .anyMatch(user ->
+                        loggedInUserId.equals(user.getId())
+                );
     }
 
     private String cleanText(String value) {
