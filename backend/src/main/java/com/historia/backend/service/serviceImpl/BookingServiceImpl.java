@@ -135,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
 
     private BookingDto.BookingCheckoutResponse toResponse(Booking booking) {
 
-        boolean reviewed = reviewRepository.existsByBooking(booking);
+        boolean reviewed = reviewRepository.existsByBookingId(booking.getId());
 
         return new BookingDto.BookingCheckoutResponse(
                 booking.getId(),

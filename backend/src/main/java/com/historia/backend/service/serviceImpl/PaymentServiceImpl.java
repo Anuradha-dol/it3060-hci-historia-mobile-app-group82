@@ -126,7 +126,7 @@ public class PaymentServiceImpl implements PaymentService {
                 ? ""
                 : cardNumber.replaceAll("\\D", "");
 
-        if (digits.length() != 16 || !isValidLuhn(digits)) {
+        if (digits.length() != 16) {
             throw new UserException("Enter a valid 16-digit card number");
         }
 
@@ -175,27 +175,27 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     // Standard Luhn checksum used to catch obviously mistyped card numbers.
-    private boolean isValidLuhn(String digits) {
+    // private boolean isValidLuhn(String digits) {
 
-        int sum = 0;
-        boolean alternate = false;
+    //     int sum = 0;
+    //     boolean alternate = false;
 
-        for (int i = digits.length() - 1; i >= 0; i--) {
-            int n = digits.charAt(i) - '0';
+    //     for (int i = digits.length() - 1; i >= 0; i--) {
+    //         int n = digits.charAt(i) - '0';
 
-            if (alternate) {
-                n *= 2;
-                if (n > 9) {
-                    n -= 9;
-                }
-            }
+    //         if (alternate) {
+    //             n *= 2;
+    //             if (n > 9) {
+    //                 n -= 9;
+    //             }
+    //         }
 
-            sum += n;
-            alternate = !alternate;
-        }
+    //         sum += n;
+    //         alternate = !alternate;
+    //     }
 
-        return sum % 10 == 0;
-    }
+    //     return sum % 10 == 0;
+    // }
 
     private String generateTransactionRef() {
         return "TXN-" + UUID.randomUUID()

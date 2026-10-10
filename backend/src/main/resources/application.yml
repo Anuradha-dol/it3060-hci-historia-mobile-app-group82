@@ -16,12 +16,11 @@ spring:
       max-request-size: 500MB
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/historia}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    url: jdbc:postgresql://ep-delicate-lake-az9qpdb3-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
     driver-class-name: org.postgresql.Driver
     hikari:
-      connection-timeout: 15000
+      connection-timeout: 150000
 
   jpa:
     hibernate:

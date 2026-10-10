@@ -4,8 +4,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ReviewDto {
 
@@ -35,7 +37,10 @@ public class ReviewDto {
 
             @Min(value = 0, message = "Photo count cannot be negative")
             @Max(value = 2, message = "Up to 2 photos are allowed")
-            Integer photoCount
+            Integer photoCount,
+
+            @Nullable
+            List<String> imageUrls
 
     ) {
     }
@@ -60,6 +65,8 @@ public class ReviewDto {
 
             Integer photoCount,
 
+            List<String> imageUrls,
+
             LocalDateTime createdAt
 
     ) {
@@ -72,6 +79,39 @@ public class ReviewDto {
             double averageRating,
 
             long totalReviews
+
+    ) {
+    }
+
+    // Update a review
+    public record ReviewUpdateRequest(
+
+            @Nullable
+            @Min(value = 1, message = "Rating must be between 1 and 5")
+            @Max(value = 5, message = "Rating must be between 1 and 5")
+            Integer navigationRating,
+
+            @Nullable
+            @Min(value = 1, message = "Rating must be between 1 and 5")
+            @Max(value = 5, message = "Rating must be between 1 and 5")
+            Integer informationRating,
+
+            @Nullable
+            @Min(value = 1, message = "Rating must be between 1 and 5")
+            @Max(value = 5, message = "Rating must be between 1 and 5")
+            Integer facilitiesRating,
+
+            @Nullable
+            @Size(max = 1000, message = "Comment is too long")
+            String comment,
+
+            @Nullable
+            @Min(value = 0, message = "Photo count cannot be negative")
+            @Max(value = 2, message = "Up to 2 photos are allowed")
+            Integer photoCount,
+
+            @Nullable
+            List<String> imageUrls
 
     ) {
     }
