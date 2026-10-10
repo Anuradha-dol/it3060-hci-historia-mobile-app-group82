@@ -9,6 +9,7 @@ import '../widgets/historia_components.dart';
 import 'account_type_screen.dart';
 import 'forgot_password_screen.dart';
 import 'guide_resubmit_screen.dart';
+import 'launch_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -76,6 +77,13 @@ class _LoginScreenState extends State<LoginScreen> {
   void _goToHome() {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const HomeRouter()),
+      (route) => false,
+    );
+  }
+
+  void _goToLanding() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LaunchScreen()),
       (route) => false,
     );
   }
@@ -148,9 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         HistoriaIconButton(
                           icon: Icons.close,
                           tooltip: 'Close',
-                          onPressed: () {
-                            Navigator.maybePop(context);
-                          },
+                          onPressed: _goToLanding,
                         ),
                       ],
                     ),
