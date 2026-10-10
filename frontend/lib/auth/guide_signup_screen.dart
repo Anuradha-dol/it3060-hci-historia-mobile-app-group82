@@ -296,7 +296,7 @@ class _GuideSignupScreenState extends State<GuideSignupScreen> {
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
+              constraints: const BoxConstraints(maxWidth: 480),
 
               child: Column(
                 children: [
