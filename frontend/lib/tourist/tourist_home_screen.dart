@@ -559,9 +559,10 @@ class _TouristDashboardState extends State<_TouristDashboard> {
                     ),
                   ),
                 ],
-                ),
+              ),
             ),
           ),
+
           // ====================================================
           // TRAVEL BUDDY SPECIAL FEATURE
           // ====================================================
