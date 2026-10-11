@@ -392,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           },
 
                                           child: const Text(
-                                            'Guide needs work? Resubmit',
+                                            'Admin asked changes? Resubmit guide',
                                             style: TextStyle(
                                               fontSize: 10.5,
                                               fontWeight: FontWeight.w700,

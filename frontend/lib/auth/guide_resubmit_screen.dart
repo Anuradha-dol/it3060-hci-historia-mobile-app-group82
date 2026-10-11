@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
+import 'guide_signup_screen.dart';
 
 class GuideResubmitScreen extends StatefulWidget {
   const GuideResubmitScreen({super.key});
@@ -118,7 +119,7 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
 
       showAppMessage(
         context,
-        ApiService.instance.getErrorMessage(e),
+        _friendlyResubmitError(ApiService.instance.getErrorMessage(e)),
         error: true,
       );
     } finally {
@@ -171,6 +172,21 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
     return requiredText(value, label);
   }
 
+  String _friendlyResubmitError(String message) {
+    if (message == 'Invalid account details') {
+      return 'Use the email and password from your existing guide account. For a new guide request, tap "Start new guide application".';
+    }
+
+    return message;
+  }
+
+  void _openNewGuideApplication() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const GuideSignupScreen()),
+    );
+  }
+
   String? _experienceValidator(String? value) {
     final required = _required(value, 'Years of experience');
 
@@ -190,14 +206,14 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     final titles = [
-      'Confirm your account.',
+      'Resubmit requested changes.',
       'Update service details.',
       'Refresh your guide profile.',
       'Review and resubmit.',
     ];
 
     final subtitles = [
-      'Confirm the guide account that needs changes.',
+      'Use this only after an admin marks your guide application as needs work.',
       'Update where you guide and the languages you support.',
       'Update your experience and traveller-facing profile.',
       'Check your changes before sending them for review.',
@@ -337,12 +353,22 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
         const _SectionHeading(
           icon: Icons.lock_person_outlined,
 
-          title: 'Account check',
+          title: 'Existing guide account',
 
-          subtitle: 'Use the email and password linked to your guide account.',
+          subtitle:
+              'This form is for applications that an admin already marked as needs work.',
         ),
 
         const SizedBox(height: 9),
+
+        const HistoriaInfoBox(
+          title: 'New guide request?',
+          message:
+              'Do not use this resubmission form for a first-time guide application.',
+          icon: Icons.info_outline,
+        ),
+
+        const SizedBox(height: 14),
 
         HistoriaTextField(
           label: 'Email address',
@@ -400,6 +426,14 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
           label: 'Continue',
 
           icon: Icons.arrow_forward_rounded,
+        ),
+
+        const SizedBox(height: 8),
+
+        HistoriaOutlineButton(
+          onPressed: _loading ? null : _openNewGuideApplication,
+          label: 'Start new guide application',
+          icon: Icons.badge_outlined,
         ),
       ],
     );
