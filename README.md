@@ -196,13 +196,6 @@ it3060-hci-historia-mobile-app-group82/
 |-- docs/
 |   |-- screenshots/
 |   |   `-- landing-page.png
-|   `-- component4/
-|       |-- proposal.pdf
-|       |-- API_AND_PAYMENT_CONTRACT.md
-|       |-- IMPLEMENTATION_NOTES.md
-|       |-- MANUAL_SETUP.md
-|       |-- RUN_AND_DEMO.md
-|       `-- TEST_RESULTS.md
 |
 |-- scripts/
 |   `-- Run-Flutter.ps1
@@ -825,23 +818,15 @@ Important frontend test coverage:
 - stale location and local PIN expiry handling
 - responsive booking flow at narrow mobile widths
 
-Detailed component verification notes are stored in:
-
-```text
-docs/component4/TEST_RESULTS.md
-```
+Use the backend and frontend test commands above to verify the current project state on your machine.
 
 ## Project Documents
 
 | Document | Purpose |
 | --- | --- |
-| `START_HERE.md` | Detailed clean-laptop setup and component 4 guidance |
-| `docs/component4/proposal.pdf` | Supplied project/component proposal |
-| `docs/component4/IMPLEMENTATION_NOTES.md` | Technical implementation notes for guide booking |
-| `docs/component4/API_AND_PAYMENT_CONTRACT.md` | Guide booking API and payment integration contract |
-| `docs/component4/MANUAL_SETUP.md` | Manual setup notes |
-| `docs/component4/RUN_AND_DEMO.md` | Demo run instructions |
-| `docs/component4/TEST_RESULTS.md` | Recorded test and verification evidence |
+| `README.md` | Main project overview, architecture, setup, API notes, and current status |
+| `START_HERE.md` | Short quick-start pointer for opening and running the project |
+| `docs/screenshots/landing-page.png` | Mobile landing page preview used by this README |
 
 ## Common Problems
 
