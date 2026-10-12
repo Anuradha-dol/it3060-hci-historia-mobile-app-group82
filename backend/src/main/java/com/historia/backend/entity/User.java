@@ -89,6 +89,9 @@ public class User implements UserDetails {
     @JsonIgnore
     private String refreshTokenHash;
 
+    @Builder.Default
+    private Boolean online = false;
+
     @OneToOne(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -140,6 +143,10 @@ public class User implements UserDetails {
 
         if (otpResendCount == null) {
             otpResendCount = 0;
+        }
+
+        if (online == null) {
+            online = false;
         }
     }
 

@@ -1,12 +1,41 @@
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+
+  static const String _localBackendUrl = 'http://localhost:8081';
+  static const String _androidEmulatorBackendUrl = 'http://10.0.2.2:8081';
+
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:8081';
+    final configured = _configuredBaseUrl.trim();
+
+    if (configured.isNotEmpty) {
+      return _removeTrailingSlash(configured);
     }
 
-    return 'http://10.0.2.2:8081';
+    return _defaultBaseUrl;
+  }
+
+  static String get _defaultBaseUrl {
+    if (kIsWeb) {
+      return _localBackendUrl;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return _androidEmulatorBackendUrl;
+    }
+
+    return _localBackendUrl;
+  }
+
+  static String _removeTrailingSlash(String value) {
+    if (value.endsWith('/')) {
+      return value.substring(0, value.length - 1);
+    }
+
+    return value;
   }
 
   static String resolveImageUrl(String? value) {
@@ -64,6 +93,15 @@ class ApiConfig {
   static const String currentUser = '/api/users/me';
   static const String changePassword = '/api/users/me/password';
   static const String logout = '/api/users/logout';
+
+  static const String notifications = '/api/notifications/me';
+  static const String notificationUnreadCount =
+      '/api/notifications/me/unread-count';
+  static const String markAllNotificationsRead = '/api/notifications/read-all';
+
+  static String markNotificationRead(int id) {
+    return '/api/notifications/$id/read';
+  }
 
   static const String guideRegister = '/api/guides/register';
   static const String guideResubmit = '/api/guides/resubmit';
@@ -128,5 +166,41 @@ class ApiConfig {
 
   static String tourPlaceStatus(int tourId, int historicalPlaceId) {
     return '/api/tours/$tourId/places/$historicalPlaceId/status';
+  }
+
+  // ------------------------------------------------------------
+  // BOOKINGS
+  // ------------------------------------------------------------
+
+  static const String myBookings = '/api/bookings/me';
+
+  static const String createDemoBooking = '/api/bookings/demo';
+
+  static String bookingById(int bookingId) {
+    return '/api/bookings/$bookingId';
+  }
+
+  // ------------------------------------------------------------
+  // PAYMENTS
+  // ------------------------------------------------------------
+
+  static String payBooking(int bookingId) {
+    return '/api/bookings/$bookingId/payments';
+  }
+
+  // ------------------------------------------------------------
+  // REVIEWS
+  // ------------------------------------------------------------
+
+  static const String submitReview = '/api/reviews';
+
+  static const String myReviews = '/api/reviews/me';
+
+  static String guideReviews(int guideProfileId) {
+    return '/api/reviews/guide/$guideProfileId';
+  }
+
+  static String guideRatingSummary(int guideProfileId) {
+    return '/api/reviews/guide/$guideProfileId/summary';
   }
 }

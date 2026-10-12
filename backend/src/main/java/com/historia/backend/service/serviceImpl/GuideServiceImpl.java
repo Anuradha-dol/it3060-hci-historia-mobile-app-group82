@@ -1,6 +1,7 @@
 package com.historia.backend.service.serviceImpl;
 
 import com.historia.backend.dto.GuideDto;
+import com.historia.backend.booking.GuideBookingDefaults;
 import com.historia.backend.entity.GuideProfile;
 import com.historia.backend.entity.User;
 import com.historia.backend.enums.AuthProvider;
@@ -11,6 +12,8 @@ import com.historia.backend.repository.GuideProfileRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.EmailService;
 import com.historia.backend.service.GuideService;
+import com.historia.backend.service.NotificationService;
+import com.historia.backend.utils.LocationMatcher;
 import com.historia.backend.utils.OtpUtil;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,17 +35,23 @@ public class GuideServiceImpl implements GuideService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GuideBookingDefaults guideBookingDefaults;
+    private final NotificationService notificationService;
 
     public GuideServiceImpl(
             GuideProfileRepository guideProfileRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            EmailService emailService
+            EmailService emailService,
+            GuideBookingDefaults guideBookingDefaults,
+            NotificationService notificationService
     ) {
         this.guideProfileRepository = guideProfileRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.guideBookingDefaults = guideBookingDefaults;
+        this.notificationService = notificationService;
     }
 
 
@@ -171,6 +180,17 @@ public class GuideServiceImpl implements GuideService {
                 otp
         );
 
+        notificationService.notifyRole(
+                Role.ADMIN,
+                "GUIDE_APPLICATION",
+                "New guide application",
+                guideProfile.getDisplayName()
+                        + " submitted a guide application for review.",
+                "GUIDE_PROFILE",
+                guideProfile.getId().toString(),
+                "/admin/guides"
+        );
+
         return toResponse(guideProfile);
     }
 
@@ -234,6 +254,8 @@ public class GuideServiceImpl implements GuideService {
                 request.specialties()
         );
 
+        boolean resubmitted = false;
+
         if (guideProfile.getStatus()
                 == GuideApplicationStatus.NEEDS_WORK) {
 
@@ -250,9 +272,23 @@ public class GuideServiceImpl implements GuideService {
             user.setEnabled(false);
             user.setRefreshTokenHash(null);
             userRepository.save(user);
+            resubmitted = true;
         }
 
         guideProfileRepository.save(guideProfile);
+
+        if (resubmitted) {
+            notificationService.notifyRole(
+                    Role.ADMIN,
+                    "GUIDE_RESUBMITTED",
+                    "Guide application resubmitted",
+                    guideProfile.getDisplayName()
+                            + " updated the guide application.",
+                    "GUIDE_PROFILE",
+                    guideProfile.getId().toString(),
+                    "/admin/guides"
+            );
+        }
 
         return toResponse(guideProfile);
     }
@@ -348,6 +384,17 @@ public class GuideServiceImpl implements GuideService {
         userRepository.save(user);
         guideProfileRepository.save(guideProfile);
 
+        notificationService.notifyRole(
+                Role.ADMIN,
+                "GUIDE_RESUBMITTED",
+                "Guide application resubmitted",
+                guideProfile.getDisplayName()
+                        + " resubmitted a guide application.",
+                "GUIDE_PROFILE",
+                guideProfile.getId().toString(),
+                "/admin/guides"
+        );
+
         return toResponse(guideProfile);
     }
 
@@ -427,6 +474,7 @@ public class GuideServiceImpl implements GuideService {
         if (status == GuideApplicationStatus.APPROVED) {
 
             user.setEnabled(true);
+            guideBookingDefaults.ensureBookable(guideProfile);
 
         } else {
 
@@ -436,6 +484,16 @@ public class GuideServiceImpl implements GuideService {
 
         userRepository.save(user);
         guideProfileRepository.save(guideProfile);
+
+        notificationService.notifyUser(
+                user,
+                "GUIDE_REVIEW",
+                guideReviewTitle(status),
+                guideReviewMessage(status, guideProfile.getAdminNote()),
+                "GUIDE_PROFILE",
+                guideProfile.getId().toString(),
+                "/guide/profile"
+        );
 
         return toResponse(guideProfile);
     }
@@ -501,8 +559,10 @@ public class GuideServiceImpl implements GuideService {
     ) {
 
         if (profile.getPrimaryServiceArea() != null &&
-                profile.getPrimaryServiceArea()
-                        .equalsIgnoreCase(area)) {
+                LocationMatcher.matchesServiceArea(
+                        profile.getPrimaryServiceArea(),
+                        area
+                )) {
 
             return true;
         }
@@ -514,7 +574,10 @@ public class GuideServiceImpl implements GuideService {
         return profile.getServiceAreas()
                 .stream()
                 .anyMatch(serviceArea ->
-                        serviceArea.equalsIgnoreCase(area)
+                        LocationMatcher.matchesServiceArea(
+                                serviceArea,
+                                area
+                        )
                 );
     }
 
@@ -623,6 +686,39 @@ public class GuideServiceImpl implements GuideService {
         }
 
         return cleanOptional(value);
+    }
+
+
+    private String guideReviewTitle(GuideApplicationStatus status) {
+        return switch (status) {
+            case APPROVED -> "Guide application approved";
+            case NEEDS_WORK -> "Guide application needs work";
+            case REJECTED -> "Guide application rejected";
+            case PENDING -> "Guide application updated";
+        };
+    }
+
+
+    private String guideReviewMessage(
+            GuideApplicationStatus status,
+            String adminNote
+    ) {
+
+        String note = clean(adminNote);
+
+        return switch (status) {
+            case APPROVED ->
+                    "Your guide profile is approved. Travellers can now find and book you.";
+            case NEEDS_WORK ->
+                    note == null
+                            ? "Admin requested changes before approval."
+                            : "Admin requested changes: " + note;
+            case REJECTED ->
+                    note == null
+                            ? "Your guide application was rejected."
+                            : "Your guide application was rejected: " + note;
+            case PENDING -> "Your guide application status changed.";
+        };
     }
 
 

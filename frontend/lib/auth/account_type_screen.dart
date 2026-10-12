@@ -53,131 +53,136 @@ class AccountTypeScreen extends StatelessWidget {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 14, 20, 5),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Text(
-                              'REGISTRATION / CHOOSE YOUR PATH',
-                              style: TextStyle(
-                                color: primaryGreen,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-
-                            const SizedBox(height: 6),
-
-                            const Text(
-                              'Your journey starts here.',
-                              style: TextStyle(
-                                color: darkGreen,
-                                fontSize: 29,
-                                height: 1.04,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.7,
-                              ),
-                            ),
-
-                            const SizedBox(height: 7),
-
-                            const Text(
-                              'Choose how you would like to join HISTORIA.',
-                              style: TextStyle(
-                                color: mutedText,
-                                fontSize: 12.5,
-                                height: 1.3,
-                              ),
-                            ),
-
-                            const SizedBox(height: 14),
-
-                            const Divider(height: 1, color: Color(0xFFD9E7E0)),
-
-                            const SizedBox(height: 14),
-
-                            _RoleCard(
-                              eyebrow: 'EXPLORE',
-                              title: 'Join as a tourist',
-                              description:
-                                  'Discover historic places with a knowledgeable local guide.',
-                              action: 'CREATE TOURIST ACCOUNT',
-                              imagePath: 'assets/images/tourist_role_bg.png',
-                              imageWidth: 96,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const SignupScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            _RoleCard(
-                              eyebrow: 'LEAD',
-                              title: 'Join as a local guide',
-                              description:
-                                  'Share local stories and welcome travellers.',
-                              action: 'APPLY TO BECOME A GUIDE',
-                              imagePath: 'assets/images/guide_role_bg.png',
-                              imageWidth: 98,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const GuideSignupScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            const _DifferenceBox(),
-
-                            const Spacer(),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'Already have an account?',
-                                  style: TextStyle(
-                                    color: mutedText,
-                                    fontSize: 12,
-                                  ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text(
+                                'REGISTRATION / CHOOSE YOUR PATH',
+                                style: TextStyle(
+                                  color: primaryGreen,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
                                 ),
+                              ),
 
-                                const SizedBox(width: 5),
+                              const SizedBox(height: 6),
 
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(6),
-                                  onTap: () {
-                                    Navigator.maybePop(context);
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 3,
-                                      vertical: 5,
+                              const Text(
+                                'Your journey starts here.',
+                                style: TextStyle(
+                                  color: darkGreen,
+                                  fontSize: 29,
+                                  height: 1.04,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.7,
+                                ),
+                              ),
+
+                              const SizedBox(height: 7),
+
+                              const Text(
+                                'Choose how you would like to join HISTORIA.',
+                                style: TextStyle(
+                                  color: mutedText,
+                                  fontSize: 12.5,
+                                  height: 1.3,
+                                ),
+                              ),
+
+                              const SizedBox(height: 14),
+
+                              const Divider(
+                                height: 1,
+                                color: Color(0xFFD9E7E0),
+                              ),
+
+                              const SizedBox(height: 14),
+
+                              _RoleCard(
+                                eyebrow: 'EXPLORE',
+                                title: 'Join as a tourist',
+                                description:
+                                    'Discover historic places with a knowledgeable local guide.',
+                                action: 'CREATE TOURIST ACCOUNT',
+                                imagePath: 'assets/images/tourist_role_bg.png',
+                                imageWidth: 96,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SignupScreen(),
                                     ),
-                                    child: Text(
-                                      'Sign in',
-                                      style: TextStyle(
-                                        color: primaryGreen,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              _RoleCard(
+                                eyebrow: 'LEAD',
+                                title: 'Join as a local guide',
+                                description:
+                                    'Share local stories and welcome travellers.',
+                                action: 'APPLY TO BECOME A GUIDE',
+                                imagePath: 'assets/images/guide_role_bg.png',
+                                imageWidth: 98,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const GuideSignupScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              const _DifferenceBox(),
+
+                              const SizedBox(height: 10),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Already have an account?',
+                                    style: TextStyle(
+                                      color: mutedText,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 5),
+
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(6),
+                                    onTap: () {
+                                      Navigator.maybePop(context);
+                                    },
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 3,
+                                        vertical: 5,
+                                      ),
+                                      child: Text(
+                                        'Sign in',
+                                        style: TextStyle(
+                                          color: primaryGreen,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
 
-                            const SizedBox(height: 8),
-                          ],
+                              const SizedBox(height: 8),
+                            ],
+                          ),
                         ),
                       ),
                     ),

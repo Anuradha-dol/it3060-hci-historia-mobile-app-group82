@@ -341,6 +341,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshTokenHash(
                 TokenHashUtil.hash(refreshToken)
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -419,6 +420,7 @@ public class AuthServiceImpl implements AuthService {
                         newRefreshToken
                 )
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -569,6 +571,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshTokenHash(
                 TokenHashUtil.hash(refreshToken)
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 

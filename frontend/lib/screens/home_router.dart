@@ -26,8 +26,10 @@ class HomeRouter extends StatelessWidget {
         return const GuideHomeScreen();
 
       case 'TOURIST':
-      default:
         return const TouristHomeScreen();
+
+      default:
+        return const LaunchScreen();
     }
   }
 }

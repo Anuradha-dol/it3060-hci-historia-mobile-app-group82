@@ -113,7 +113,7 @@ class _OtpScreenState extends State<OtpScreen> {
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF0F7F3),
 
       body: Stack(
@@ -185,156 +185,159 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
 
                     Expanded(
-                      child: Padding(
+                      child: ListView(
+                        physics: const ClampingScrollPhysics(),
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
                         padding: const EdgeInsets.fromLTRB(17, 8, 17, 5),
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
 
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  12,
+                                  14,
+                                  11,
+                                ),
 
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(
-                                14,
-                                12,
-                                14,
-                                11,
-                              ),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFFF6FBF8),
+                                      Color(0xFFEBF6F0),
+                                    ],
+                                  ),
 
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFFF6FBF8),
-                                    Color(0xFFEBF6F0),
+                                  borderRadius: BorderRadius.circular(15),
+
+                                  border: Border.all(
+                                    color: const Color(0xFFCFE3D8),
+                                  ),
+
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x09123F30),
+                                      blurRadius: 12,
+                                      offset: Offset(0, 4),
+                                    ),
                                   ],
                                 ),
 
-                                borderRadius: BorderRadius.circular(15),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
 
-                                border: Border.all(
-                                  color: const Color(0xFFCFE3D8),
+                                  children: [
+                                    HistoriaInfoBox(
+                                      title: 'Your inbox',
+                                      message: widget.guideRegistration
+                                          ? 'Verify your email first. Your guide application will then wait for admin approval.'
+                                          : 'Your tourist account activates after this code is confirmed.',
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    HistoriaTextField(
+                                      label: 'Verification code',
+                                      hintText: 'Enter 6 digit code',
+                                      controller: _code,
+                                      icon: Icons.pin_outlined,
+                                      keyboardType: TextInputType.number,
+                                    ),
+
+                                    const SizedBox(height: 7),
+
+                                    HistoriaButton(
+                                      loading: _loading,
+                                      onPressed: _verify,
+                                      label: 'Verify account',
+                                    ),
+
+                                    const SizedBox(height: 1),
+
+                                    Center(
+                                      child: TextButton.icon(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: const Color(
+                                            0xFF176C4B,
+                                          ),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 6,
+                                          ),
+                                        ),
+
+                                        onPressed: _loading ? null : _resend,
+
+                                        icon: const Icon(
+                                          Icons.refresh_rounded,
+                                          size: 13,
+                                        ),
+
+                                        label: const Text(
+                                          'Resend code',
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 18),
+
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
                                 ),
 
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x09123F30),
-                                    blurRadius: 12,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
 
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Icon(
+                                      Icons.verified_user_outlined,
+                                      size: 12,
+                                      color: Color(0xFF56816B),
+                                    ),
 
-                                children: [
-                                  HistoriaInfoBox(
-                                    title: 'Your inbox',
-                                    message: widget.guideRegistration
-                                        ? 'Verify your email first. Your guide application will then wait for admin approval.'
-                                        : 'Your tourist account activates after this code is confirmed.',
-                                  ),
+                                    const SizedBox(width: 5),
 
-                                  const SizedBox(height: 12),
-
-                                  HistoriaTextField(
-                                    label: 'Verification code',
-                                    hintText: 'Enter 6 digit code',
-                                    controller: _code,
-                                    icon: Icons.pin_outlined,
-                                    keyboardType: TextInputType.number,
-                                  ),
-
-                                  const SizedBox(height: 7),
-
-                                  HistoriaButton(
-                                    loading: _loading,
-                                    onPressed: _verify,
-                                    label: 'Verify account',
-                                  ),
-
-                                  const SizedBox(height: 1),
-
-                                  Center(
-                                    child: TextButton.icon(
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: const Color(
-                                          0xFF176C4B,
-                                        ),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 6,
-                                        ),
-                                      ),
-
-                                      onPressed: _loading ? null : _resend,
-
-                                      icon: const Icon(
-                                        Icons.refresh_rounded,
-                                        size: 13,
-                                      ),
-
-                                      label: const Text(
-                                        'Resend code',
-                                        style: TextStyle(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                    Flexible(
+                                      child: Text(
+                                        widget.guideRegistration
+                                            ? 'Your guide application continues after email verification.'
+                                            : 'Your HISTORIA account activates after verification.',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: const Color(0xFF6E8177),
+                                              fontSize: 8.5,
+                                              height: 1.2,
+                                            ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 18),
-
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
+                                  ],
+                                ),
                               ),
 
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-
-                                children: [
-                                  const Icon(
-                                    Icons.verified_user_outlined,
-                                    size: 12,
-                                    color: Color(0xFF56816B),
-                                  ),
-
-                                  const SizedBox(width: 5),
-
-                                  Flexible(
-                                    child: Text(
-                                      widget.guideRegistration
-                                          ? 'Your guide application continues after email verification.'
-                                          : 'Your HISTORIA account activates after verification.',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: const Color(0xFF6E8177),
-                                            fontSize: 8.5,
-                                            height: 1.2,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const Spacer(),
-
-                            const SizedBox(height: 5),
-                          ],
-                        ),
+                              const SizedBox(height: 18),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
 

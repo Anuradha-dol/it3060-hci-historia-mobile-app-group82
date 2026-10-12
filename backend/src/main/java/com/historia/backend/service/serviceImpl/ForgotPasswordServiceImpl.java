@@ -308,6 +308,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
         );
 
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         userRepository.save(user);
 

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,6 +13,10 @@ import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../services/user_service.dart';
 
+enum _StartupAuthResult { authenticated, unauthenticated, transientFailure }
+
+enum _StoredJwtStatus { missing, valid, expired, invalid }
+
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
@@ -17,7 +24,7 @@ class AuthProvider extends ChangeNotifier {
 
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: const ['email', 'profile'],
-    clientId: GoogleAuthConfig.clientId,
+    clientId: kIsWeb ? GoogleAuthConfig.clientId : null,
     serverClientId: kIsWeb ? null : GoogleAuthConfig.serverClientId,
   );
 
@@ -36,32 +43,52 @@ class AuthProvider extends ChangeNotifier {
   String? get role => _user?.role;
 
   Future<void> initialize() async {
+    _user = null;
+    _error = null;
+
     try {
-      final refreshToken = await _storageService.getRefreshToken();
+      final accessToken = _cleanToken(await _storageService.getAccessToken());
+      final refreshToken = _cleanToken(await _storageService.getRefreshToken());
 
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        try {
-          final response = await _authService.refresh(
-            refreshToken: refreshToken,
-          );
+      final accessStatus = _getJwtStatus(accessToken, expectedType: 'ACCESS');
 
-          await _saveSession(response);
+      if (accessStatus == _StoredJwtStatus.valid) {
+        final result = await _restoreSessionFromAccessToken();
 
-          notifyListeners();
+        if (result == _StartupAuthResult.authenticated ||
+            result == _StartupAuthResult.transientFailure) {
           return;
-        } catch (_) {
-          await _storageService.clearAuthData();
+        }
+
+        await _clearInvalidStartupSession();
+        return;
+      }
+
+      if (accessStatus == _StoredJwtStatus.invalid) {
+        await _clearInvalidStartupSession();
+        return;
+      }
+
+      final refreshStatus = _getJwtStatus(
+        refreshToken,
+        expectedType: 'REFRESH',
+      );
+
+      if (refreshStatus == _StoredJwtStatus.valid && refreshToken != null) {
+        final result = await _refreshStoredSession(refreshToken);
+
+        if (result == _StartupAuthResult.authenticated ||
+            result == _StartupAuthResult.transientFailure) {
+          return;
         }
       }
 
-      _user = await _storageService.getUser();
-
-      notifyListeners();
+      await _clearInvalidStartupSession();
     } catch (e) {
       debugPrint('Auth initialization error: $e');
 
-      _user = null;
-
+      await _clearInvalidStartupSession();
+    } finally {
       notifyListeners();
     }
   }
@@ -208,6 +235,160 @@ class AuthProvider extends ChangeNotifier {
     _loading = value;
 
     notifyListeners();
+  }
+
+  Future<_StartupAuthResult> _restoreSessionFromAccessToken() async {
+    try {
+      final user = await _userService.getMyProfile();
+
+      _user = user;
+      _error = null;
+
+      await _storageService.saveUser(user);
+
+      return _StartupAuthResult.authenticated;
+    } on DioException catch (error) {
+      if (_isTransientStartupAuthError(error)) {
+        debugPrint(
+          'Startup session validation skipped: '
+          '${ApiService.instance.getErrorMessage(error)}',
+        );
+
+        _user = null;
+        _error = null;
+
+        return _StartupAuthResult.transientFailure;
+      }
+
+      return _StartupAuthResult.unauthenticated;
+    } catch (e) {
+      debugPrint('Stored session validation failed: $e');
+
+      return _StartupAuthResult.unauthenticated;
+    }
+  }
+
+  Future<_StartupAuthResult> _refreshStoredSession(String refreshToken) async {
+    try {
+      final response = await _authService.refresh(refreshToken: refreshToken);
+
+      await _saveSession(response);
+
+      _error = null;
+
+      return _StartupAuthResult.authenticated;
+    } on DioException catch (error) {
+      if (_isTransientStartupAuthError(error)) {
+        debugPrint(
+          'Startup token refresh skipped: '
+          '${ApiService.instance.getErrorMessage(error)}',
+        );
+
+        _user = null;
+        _error = null;
+
+        return _StartupAuthResult.transientFailure;
+      }
+
+      return _StartupAuthResult.unauthenticated;
+    } catch (e) {
+      debugPrint('Stored session refresh failed: $e');
+
+      return _StartupAuthResult.unauthenticated;
+    }
+  }
+
+  Future<void> _clearInvalidStartupSession() async {
+    await _storageService.clearAuthData();
+
+    _user = null;
+    _error = null;
+  }
+
+  bool _isTransientStartupAuthError(DioException error) {
+    return error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
+        (error.response?.statusCode ?? 0) >= 500;
+  }
+
+  String? _cleanToken(String? token) {
+    final value = token?.trim();
+
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    return value;
+  }
+
+  _StoredJwtStatus _getJwtStatus(
+    String? token, {
+    required String expectedType,
+  }) {
+    if (token == null) {
+      return _StoredJwtStatus.missing;
+    }
+
+    final payload = _decodeJwtPayload(token);
+
+    if (payload == null || payload['type'] != expectedType) {
+      return _StoredJwtStatus.invalid;
+    }
+
+    final expiration = _readJwtExpiration(payload['exp']);
+
+    if (expiration == null) {
+      return _StoredJwtStatus.invalid;
+    }
+
+    if (!expiration.isAfter(DateTime.now().toUtc())) {
+      return _StoredJwtStatus.expired;
+    }
+
+    return _StoredJwtStatus.valid;
+  }
+
+  Map<String, dynamic>? _decodeJwtPayload(String token) {
+    final parts = token.split('.');
+
+    if (parts.length != 3) {
+      return null;
+    }
+
+    try {
+      final payload = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
+      final decoded = jsonDecode(payload);
+
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+
+      if (decoded is Map) {
+        return Map<String, dynamic>.from(decoded);
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
+  }
+
+  DateTime? _readJwtExpiration(dynamic value) {
+    final seconds = switch (value) {
+      num() => value.toInt(),
+      String() => int.tryParse(value),
+      _ => null,
+    };
+
+    if (seconds == null) {
+      return null;
+    }
+
+    return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
   }
 
   String _googleSignInMessage(PlatformException exception) {

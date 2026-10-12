@@ -7,6 +7,7 @@ class ApiService {
   ApiService._();
 
   static final ApiService instance = ApiService._();
+  static const String _retriedAfterRefreshKey = 'retriedAfterRefresh';
 
   final StorageService _storageService = StorageService();
 
@@ -34,8 +35,94 @@ class ApiService {
 
               handler.next(options);
             },
+            onError: (error, handler) async {
+              if (!_shouldRefreshAndRetry(error)) {
+                handler.next(error);
+                return;
+              }
+
+              try {
+                final refreshToken = await _storageService.getRefreshToken();
+
+                if (refreshToken == null || refreshToken.isEmpty) {
+                  handler.next(error);
+                  return;
+                }
+
+                final accessToken = await _refreshAccessToken(refreshToken);
+
+                if (accessToken == null || accessToken.isEmpty) {
+                  handler.next(error);
+                  return;
+                }
+
+                final requestOptions = error.requestOptions;
+                requestOptions.extra[_retriedAfterRefreshKey] = true;
+                requestOptions.headers['Authorization'] = 'Bearer $accessToken';
+
+                final response = await dio.fetch<dynamic>(requestOptions);
+
+                handler.resolve(response);
+              } catch (_) {
+                await _storageService.clearAuthData();
+                handler.next(error);
+              }
+            },
           ),
         );
+
+  bool _shouldRefreshAndRetry(DioException error) {
+    if (error.response?.statusCode != 401) {
+      return false;
+    }
+
+    if (error.requestOptions.extra[_retriedAfterRefreshKey] == true) {
+      return false;
+    }
+
+    return !error.requestOptions.path.startsWith('/api/auth/');
+  }
+
+  Future<String?> _refreshAccessToken(String refreshToken) async {
+    final refreshDio = Dio(
+      BaseOptions(
+        baseUrl: ApiConfig.baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 15),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ),
+    );
+
+    final response = await refreshDio.post(
+      ApiConfig.refresh,
+      data: {'refreshToken': refreshToken},
+    );
+
+    final data = response.data;
+
+    if (data is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final accessToken = data['accessToken']?.toString();
+    final newRefreshToken = data['refreshToken']?.toString();
+
+    if (accessToken == null ||
+        accessToken.isEmpty ||
+        newRefreshToken == null ||
+        newRefreshToken.isEmpty) {
+      return null;
+    }
+
+    await _storageService.saveAccessToken(accessToken);
+    await _storageService.saveRefreshToken(newRefreshToken);
+
+    return accessToken;
+  }
 
   String getErrorMessage(dynamic error) {
     if (error is DioException) {

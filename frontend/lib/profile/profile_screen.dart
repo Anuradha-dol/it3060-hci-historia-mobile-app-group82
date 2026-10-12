@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../config/api_config.dart';
+import '../auth/login_screen.dart';
 import '../models/guide_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
@@ -421,9 +422,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
 
       if (!mounted) return;
 
-      if (widget.standalone) {
-        Navigator.maybePop(context);
-      }
+      _goToLogin();
     } catch (e) {
       if (!mounted) return;
 
@@ -439,6 +438,31 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
         });
       }
     }
+  }
+
+  Future<void> _logout() async {
+    if (_saving) {
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+    });
+
+    await context.read<AuthProvider>().logout();
+
+    if (!mounted) {
+      return;
+    }
+
+    _goToLogin();
+  }
+
+  void _goToLogin() {
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
   }
 
   void _openNotifications() {
@@ -1139,11 +1163,7 @@ class _RoleProfileContentState extends State<RoleProfileContent> {
     return _OutlineProfileButton(
       icon: Icons.logout_rounded,
       label: 'Logout',
-      onPressed: _saving
-          ? null
-          : () {
-              context.read<AuthProvider>().logout();
-            },
+      onPressed: _saving ? null : _logout,
     );
   }
 
@@ -1413,7 +1433,7 @@ class _CoverHeroBanner extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 12, 21),
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 54),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1442,15 +1462,19 @@ class _CoverHeroBanner extends StatelessWidget {
                 const SizedBox(height: 9),
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF133C2E),
-                    fontSize: 25,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF596B62),
                     fontSize: 10,
@@ -1461,7 +1485,7 @@ class _CoverHeroBanner extends StatelessWidget {
           ),
           Positioned(
             right: 14,
-            bottom: 15,
+            bottom: 51,
             child: _CoverEditButton(
               onTap: onPickCoverImage,
               uploading: uploadingCoverImage,
@@ -1841,15 +1865,15 @@ class _AdminHero extends StatelessWidget {
       roleLabel: 'ADMIN PROFILE',
       title: profile.fullName,
       subtitle: profile.email,
-      accent: const Color(0xFFB9DDCD),
-      dark: true,
+      accent: const Color(0xFF176A4C),
+      dark: false,
       statusText: profile.emailVerified ? 'VERIFIED ADMIN' : 'EMAIL PENDING',
       statusSuccess: profile.emailVerified,
       leadingActions: [
         IconButton(
           tooltip: 'Refresh',
           onPressed: onRefresh,
-          icon: const Icon(Icons.refresh, color: Colors.white),
+          icon: const Icon(Icons.refresh, color: Color(0xFF176A4C)),
         ),
       ],
       onClose: onClose,

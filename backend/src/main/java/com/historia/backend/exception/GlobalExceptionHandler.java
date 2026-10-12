@@ -127,6 +127,8 @@ public class GlobalExceptionHandler {
                     ));
         }
 
+        String errorDetail = message != null ? message : exception.toString();
+
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new UserDto.MessageResponse(
