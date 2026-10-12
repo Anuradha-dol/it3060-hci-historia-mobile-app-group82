@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -202,6 +203,16 @@ class _GuideSignupScreenState extends State<GuideSignupScreen> {
       return false;
     }
 
+    if (_phoneValidator(_phone.text) != null) {
+      showAppMessage(context, 'Phone number must be 10 digits.', error: true);
+
+      setState(() {
+        _step = 0;
+      });
+
+      return false;
+    }
+
     if (int.tryParse(_experience.text.trim()) == null) {
       showAppMessage(
         context,
@@ -242,6 +253,20 @@ class _GuideSignupScreenState extends State<GuideSignupScreen> {
 
     if (value != _password.text) {
       return 'Passwords do not match';
+    }
+
+    return null;
+  }
+
+  String? _phoneValidator(String? value) {
+    final digits = value?.trim() ?? '';
+
+    if (digits.isEmpty) {
+      return 'Phone number is required';
+    }
+
+    if (!RegExp(r'^\d{10}$').hasMatch(digits)) {
+      return 'Phone number must be 10 digits';
     }
 
     return null;
@@ -296,7 +321,7 @@ class _GuideSignupScreenState extends State<GuideSignupScreen> {
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
+              constraints: const BoxConstraints(maxWidth: 480),
 
               child: Column(
                 children: [
@@ -421,13 +446,17 @@ class _GuideSignupScreenState extends State<GuideSignupScreen> {
 
         HistoriaTextField(
           label: 'Phone number',
-          hintText: '+94 7X XXX XXXX',
+          hintText: '07XXXXXXXX',
           controller: _phone,
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
           required: true,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
           validator: (value) {
-            return _required(value, 'Phone number');
+            return _phoneValidator(value);
           },
         ),
 

@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.historia.backend.utils.TextSanitizer.cleanOptional;
+import static com.historia.backend.utils.TextSanitizer.cleanRequired;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -50,9 +53,9 @@ public class AuthServiceImpl implements AuthService {
             UserDto.RegisterRequest request
     ) {
 
-        String username = request.username().trim();
-        String email = request.email().trim().toLowerCase();
-        String phone = request.phone().trim();
+        String username = cleanRequired(request.username());
+        String email = cleanRequired(request.email()).toLowerCase();
+        String phone = cleanRequired(request.phone());
 
         if (!request.password()
                 .equals(request.confirmPassword())) {
@@ -104,9 +107,9 @@ public class AuthServiceImpl implements AuthService {
                                 request.password()
                         )
                 )
-                .firstName(request.firstName())
-                .lastName(request.lastName())
-                .address(request.address())
+                .firstName(cleanOptional(request.firstName()))
+                .lastName(cleanOptional(request.lastName()))
+                .address(cleanOptional(request.address()))
                 .role(Role.TOURIST)
                 .provider(AuthProvider.LOCAL)
                 .emailVerified(false)
@@ -338,6 +341,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshTokenHash(
                 TokenHashUtil.hash(refreshToken)
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -416,6 +420,7 @@ public class AuthServiceImpl implements AuthService {
                         newRefreshToken
                 )
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -566,6 +571,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshTokenHash(
                 TokenHashUtil.hash(refreshToken)
         );
+        user.setOnline(true);
 
         userRepository.save(user);
 
@@ -618,6 +624,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAddress(),
+                user.getProfileImageUrl(),
+                user.getCoverImageUrl(),
                 user.getRole(),
                 user.isEmailVerified()
         );

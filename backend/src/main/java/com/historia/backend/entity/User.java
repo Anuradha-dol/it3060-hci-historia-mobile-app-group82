@@ -49,6 +49,12 @@ public class User implements UserDetails {
     @Column(length = 500)
     private String address;
 
+    @Column(length = 500)
+    private String profileImageUrl;
+
+    @Column(length = 500)
+    private String coverImageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
@@ -82,6 +88,9 @@ public class User implements UserDetails {
     @Column(length = 64)
     @JsonIgnore
     private String refreshTokenHash;
+
+    @Builder.Default
+    private Boolean online = false;
 
     @OneToOne(
             mappedBy = "user",
@@ -134,6 +143,10 @@ public class User implements UserDetails {
 
         if (otpResendCount == null) {
             otpResendCount = 0;
+        }
+
+        if (online == null) {
+            online = false;
         }
     }
 

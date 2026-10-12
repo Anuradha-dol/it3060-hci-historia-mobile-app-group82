@@ -8,10 +8,6 @@ import 'api_service.dart';
 class PostService {
   final ApiService _apiService = ApiService.instance;
 
-  // ------------------------------------------------------------
-  // UPLOAD POST IMAGE
-  // ------------------------------------------------------------
-
   Future<String> uploadPostImage({
     required Uint8List imageBytes,
     required String fileName,
@@ -41,10 +37,6 @@ class PostService {
     return imageUrl;
   }
 
-  // ------------------------------------------------------------
-  // CREATE POST
-  // ------------------------------------------------------------
-
   Future<Map<String, dynamic>> createPost({
     required int userId,
     int? historicalPlaceId,
@@ -72,10 +64,6 @@ class PostService {
     return Map<String, dynamic>.from(data);
   }
 
-  // ------------------------------------------------------------
-  // GET ALL POSTS
-  // ------------------------------------------------------------
-
   Future<List<Map<String, dynamic>>> getAllPosts() async {
     final response = await _apiService.dio.get(ApiConfig.posts);
 
@@ -87,10 +75,6 @@ class PostService {
 
     return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
   }
-
-  // ------------------------------------------------------------
-  // GET POST BY ID
-  // ------------------------------------------------------------
 
   Future<Map<String, dynamic>> getPostById(int id) async {
     final response = await _apiService.dio.get(ApiConfig.postById(id));
@@ -104,10 +88,6 @@ class PostService {
     return Map<String, dynamic>.from(data);
   }
 
-  // ------------------------------------------------------------
-  // LIKE POST
-  // ------------------------------------------------------------
-
   Future<Map<String, dynamic>> likePost(int id) async {
     final response = await _apiService.dio.put(ApiConfig.likePost(id));
 
@@ -120,10 +100,6 @@ class PostService {
     return Map<String, dynamic>.from(data);
   }
 
-  // ------------------------------------------------------------
-  // GET COMMENTS
-  // ------------------------------------------------------------
-
   Future<List<Map<String, dynamic>>> getComments(int postId) async {
     final response = await _apiService.dio.get(ApiConfig.postComments(postId));
 
@@ -135,10 +111,6 @@ class PostService {
 
     return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
   }
-
-  // ------------------------------------------------------------
-  // ADD COMMENT
-  // ------------------------------------------------------------
 
   Future<Map<String, dynamic>> addComment({
     required int postId,
@@ -158,10 +130,6 @@ class PostService {
     return Map<String, dynamic>.from(data);
   }
 
-  // ------------------------------------------------------------
-  // LIKE COMMENT
-  // ------------------------------------------------------------
-
   Future<Map<String, dynamic>> likeComment({
     required int postId,
     required int commentId,
@@ -178,10 +146,6 @@ class PostService {
 
     return Map<String, dynamic>.from(data);
   }
-
-  // ------------------------------------------------------------
-  // DELETE POST
-  // ------------------------------------------------------------
 
   Future<void> deletePost(int id) async {
     await _apiService.dio.delete(ApiConfig.postById(id));

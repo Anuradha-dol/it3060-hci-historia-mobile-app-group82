@@ -40,8 +40,6 @@ public class HistoricalPlace {
     @Transient
     private Long tourCount = 0L;
 
-    // Load gallery images together with the historical place.
-    // This prevents LazyInitializationException during JSON serialization.
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "historical_place_gallery",

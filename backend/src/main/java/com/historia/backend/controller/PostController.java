@@ -27,20 +27,34 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostDto>> getAllPosts() {
+    public ResponseEntity<List<PostDto>> getAllPosts(
+            Authentication authentication
+    ) {
+
+        User loggedInUser =
+                (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
-                postService.getAllPosts()
+                postService.getAllPosts(
+                        loggedInUser.getId()
+                )
         );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPostById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                postService.getPostById(id)
+                postService.getPostById(
+                        id,
+                        loggedInUser.getId()
+                )
         );
     }
 
@@ -63,21 +77,35 @@ public class PostController {
 
     @PutMapping("/{id}/like")
     public ResponseEntity<PostDto> likePost(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                postService.likePost(id)
+                postService.likePost(
+                        id,
+                        loggedInUser.getId()
+                )
         );
     }
 
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<PostCommentDto>> getComments(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
 
+        User loggedInUser =
+                (User) authentication.getPrincipal();
+
         return ResponseEntity.ok(
-                postService.getComments(id)
+                postService.getComments(
+                        id,
+                        loggedInUser.getId()
+                )
         );
     }
 
@@ -103,13 +131,18 @@ public class PostController {
     @PutMapping("/{postId}/comments/{commentId}/like")
     public ResponseEntity<PostCommentDto> likeComment(
             @PathVariable Long postId,
-            @PathVariable Long commentId
+            @PathVariable Long commentId,
+            Authentication authentication
     ) {
+
+        User loggedInUser =
+                (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
                 postService.likeComment(
                         postId,
-                        commentId
+                        commentId,
+                        loggedInUser.getId()
                 )
         );
     }

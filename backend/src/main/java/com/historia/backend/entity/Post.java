@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "posts")
@@ -20,12 +22,10 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User who created the post
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Historical place selected when creating the post
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "historical_place_id")
     private HistoricalPlace historicalPlace;
@@ -36,7 +36,6 @@ public class Post {
     @Column(length = 2000)
     private String caption;
 
-    // A post can contain multiple images
     @ElementCollection
     @CollectionTable(
             name = "post_images",
@@ -61,6 +60,18 @@ public class Post {
     )
     @Builder.Default
     private List<PostComment> comments = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "post_likes",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"),
+            uniqueConstraints = @UniqueConstraint(
+                    columnNames = {"post_id", "user_id"}
+            )
+    )
+    @Builder.Default
+    private Set<User> likedUsers = new HashSet<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

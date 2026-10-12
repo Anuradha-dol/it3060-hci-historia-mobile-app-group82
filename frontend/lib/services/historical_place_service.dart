@@ -9,10 +9,6 @@ import 'api_service.dart';
 class HistoricalPlaceService {
   final ApiService _apiService = ApiService.instance;
 
-  /// Get all historical places
-  ///
-  /// Backend:
-  /// GET /api/places
   Future<List<HistoricalPlaceModel>> getAllPlaces() async {
     final response = await _apiService.dio.get(ApiConfig.historicalPlaces);
 
@@ -31,14 +27,9 @@ class HistoricalPlaceService {
         .toList();
   }
 
-  /// Search historical places by name
-  ///
-  /// Backend:
-  /// GET /api/places/search?query=Sigiriya
   Future<List<HistoricalPlaceModel>> searchPlaces(String query) async {
     final trimmedQuery = query.trim();
 
-    // Empty search -> return all places
     if (trimmedQuery.isEmpty) {
       return getAllPlaces();
     }
@@ -84,10 +75,6 @@ class HistoricalPlaceService {
         .toList();
   }
 
-  /// Get one historical place using its database ID
-  ///
-  /// Backend:
-  /// GET /api/places/{id}
   Future<HistoricalPlaceModel> getPlaceById(int id) async {
     final response = await _apiService.dio.get(
       ApiConfig.historicalPlaceById(id),

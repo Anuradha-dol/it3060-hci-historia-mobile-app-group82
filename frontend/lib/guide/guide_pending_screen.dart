@@ -69,139 +69,131 @@ class GuidePendingScreen extends StatelessWidget {
                     ),
 
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 5),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const _PendingReviewCard(),
+                      child: ListView(
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                        children: [
+                          const _PendingReviewCard(),
 
-                            const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                            const _NeedChangesCard(),
+                          const _NeedChangesCard(),
 
-                            const SizedBox(height: 17),
+                          const SizedBox(height: 17),
 
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 9,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF2F8F4),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFFD4E7DC),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 25,
-                                    height: 25,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFDDEFE5),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.admin_panel_settings_outlined,
-                                      size: 14,
-                                      color: Color(0xFF277154),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 8),
-
-                                  Flexible(
-                                    child: Text(
-                                      'Your guide access will activate after admin approval.',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: const Color(0xFF587066),
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.25,
-                                          ),
-                                    ),
-                                  ),
-                                ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF2F8F4),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFD4E7DC),
                               ),
                             ),
-
-                            const SizedBox(height: 16),
-
-                            HistoriaButton(
-                              onPressed: () {
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const LoginScreen(),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 25,
+                                  height: 25,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFDDEFE5),
+                                    shape: BoxShape.circle,
                                   ),
-                                  (route) => false,
-                                );
-                              },
-                              icon: Icons.login,
-                              label: 'Back to Login',
-                            ),
-
-                            const SizedBox(height: 9),
-
-                            HistoriaOutlineButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const GuideResubmitScreen(),
-                                  ),
-                                );
-                              },
-                              icon: Icons.refresh_rounded,
-                              label: 'Resubmit Application',
-                            ),
-
-                            const Spacer(),
-
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.shield_outlined,
+                                  child: const Icon(
+                                    Icons.admin_panel_settings_outlined,
                                     size: 14,
-                                    color: Color(0xFF56816B),
+                                    color: Color(0xFF277154),
                                   ),
+                                ),
 
-                                  const SizedBox(width: 6),
+                                const SizedBox(width: 8),
 
-                                  Flexible(
-                                    child: Text(
-                                      'Your application is safely stored while the review is pending.',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: const Color(0xFF61766C),
-                                            fontSize: 10.2,
-                                            fontWeight: FontWeight.w500,
-                                            height: 1.25,
-                                          ),
-                                    ),
+                                Flexible(
+                                  child: Text(
+                                    'Your guide access will activate after admin approval.',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: const Color(0xFF587066),
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.25,
+                                        ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
+                          ),
 
-                            const SizedBox(height: 6),
-                          ],
-                        ),
+                          const SizedBox(height: 16),
+
+                          HistoriaButton(
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            icon: Icons.login,
+                            label: 'Back to Login',
+                          ),
+
+                          const SizedBox(height: 9),
+
+                          HistoriaOutlineButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const GuideResubmitScreen(),
+                                ),
+                              );
+                            },
+                            icon: Icons.refresh_rounded,
+                            label: 'Admin requested changes? Resubmit',
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.shield_outlined,
+                                  size: 14,
+                                  color: Color(0xFF56816B),
+                                ),
+
+                                const SizedBox(width: 6),
+
+                                Flexible(
+                                  child: Text(
+                                    'Your application is safely stored while the review is pending.',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: const Color(0xFF61766C),
+                                          fontSize: 10.2,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.25,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+                        ],
                       ),
                     ),
 

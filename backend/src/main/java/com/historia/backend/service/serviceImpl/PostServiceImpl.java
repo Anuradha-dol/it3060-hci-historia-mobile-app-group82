@@ -8,12 +8,12 @@ import com.historia.backend.entity.HistoricalPlace;
 import com.historia.backend.entity.Post;
 import com.historia.backend.entity.PostComment;
 import com.historia.backend.entity.User;
-import com.historia.backend.enums.Role;
 import com.historia.backend.repository.HistoricalPlaceRepository;
 import com.historia.backend.repository.PostCommentRepository;
 import com.historia.backend.repository.PostRepository;
 import com.historia.backend.repository.UserRepository;
 import com.historia.backend.service.PostService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,18 +43,26 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostDto> getAllPosts() {
+    public List<PostDto> getAllPosts(
+            Long loggedInUserId
+    ) {
 
         return postRepository
                 .findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(this::convertToDto)
+                .map(post -> convertToDto(
+                        post,
+                        loggedInUserId
+                ))
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PostDto getPostById(Long id) {
+    public PostDto getPostById(
+            Long id,
+            Long loggedInUserId
+    ) {
 
         Post post = postRepository
                 .findById(id)
@@ -62,7 +70,10 @@ public class PostServiceImpl implements PostService {
                         new RuntimeException("Post not found")
                 );
 
-        return convertToDto(post);
+        return convertToDto(
+                post,
+                loggedInUserId
+        );
     }
 
     @Override
@@ -72,8 +83,6 @@ public class PostServiceImpl implements PostService {
             Long loggedInUserId
     ) {
 
-        // Logged-in user can only create a post
-        // using their own user ID
         if (!loggedInUserId.equals(request.getUserId())) {
 
             throw new RuntimeException(
@@ -132,18 +141,61 @@ public class PostServiceImpl implements PostService {
         Post savedPost =
                 postRepository.save(post);
 
-        return convertToDto(savedPost);
+        return convertToDto(
+                savedPost,
+                loggedInUserId
+        );
     }
 
     @Override
     @Transactional
-    public PostDto likePost(Long id) {
+    public PostDto likePost(
+            Long id,
+            Long loggedInUserId
+    ) {
 
         Post post = postRepository
                 .findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Post not found")
                 );
+
+        if (postRepository.existsByIdAndLikedUsers_Id(
+                id,
+                loggedInUserId
+        )) {
+            post.getLikedUsers()
+                    .removeIf(user ->
+                            loggedInUserId.equals(user.getId())
+                    );
+
+            int currentLikeCount =
+                    post.getLikeCount() == null
+                            ? 0
+                            : post.getLikeCount();
+
+            post.setLikeCount(
+                    Math.max(0, currentLikeCount - 1)
+            );
+
+            Post updatedPost =
+                    postRepository.save(post);
+
+            return convertToDto(
+                    updatedPost,
+                    loggedInUserId
+            );
+        }
+
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged in user not found"
+                        )
+                );
+
+        post.getLikedUsers().add(loggedInUser);
 
         int currentLikeCount =
                 post.getLikeCount() == null
@@ -157,12 +209,18 @@ public class PostServiceImpl implements PostService {
         Post updatedPost =
                 postRepository.save(post);
 
-        return convertToDto(updatedPost);
+        return convertToDto(
+                updatedPost,
+                loggedInUserId
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostCommentDto> getComments(Long postId) {
+    public List<PostCommentDto> getComments(
+            Long postId,
+            Long loggedInUserId
+    ) {
 
         if (!postRepository.existsById(postId)) {
             throw new RuntimeException("Post not found");
@@ -171,7 +229,10 @@ public class PostServiceImpl implements PostService {
         return postCommentRepository
                 .findByPost_IdOrderByCreatedAtAsc(postId)
                 .stream()
-                .map(this::convertCommentToDto)
+                .map(comment -> convertCommentToDto(
+                        comment,
+                        loggedInUserId
+                ))
                 .toList();
     }
 
@@ -228,14 +289,18 @@ public class PostServiceImpl implements PostService {
         PostComment savedComment =
                 postCommentRepository.save(comment);
 
-        return convertCommentToDto(savedComment);
+        return convertCommentToDto(
+                savedComment,
+                loggedInUserId
+        );
     }
 
     @Override
     @Transactional
     public PostCommentDto likeComment(
             Long postId,
-            Long commentId
+            Long commentId,
+            Long loggedInUserId
     ) {
 
         PostComment comment = postCommentRepository
@@ -243,6 +308,43 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() ->
                         new RuntimeException("Comment not found")
                 );
+
+        if (postCommentRepository.existsByIdAndLikedUsers_Id(
+                commentId,
+                loggedInUserId
+        )) {
+            comment.getLikedUsers()
+                    .removeIf(user ->
+                            loggedInUserId.equals(user.getId())
+                    );
+
+            int currentLikeCount =
+                    comment.getLikeCount() == null
+                            ? 0
+                            : comment.getLikeCount();
+
+            comment.setLikeCount(
+                    Math.max(0, currentLikeCount - 1)
+            );
+
+            PostComment updatedComment =
+                    postCommentRepository.save(comment);
+
+            return convertCommentToDto(
+                    updatedComment,
+                    loggedInUserId
+            );
+        }
+
+        User loggedInUser = userRepository
+                .findById(loggedInUserId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Logged in user not found"
+                        )
+                );
+
+        comment.getLikedUsers().add(loggedInUser);
 
         int currentLikeCount =
                 comment.getLikeCount() == null
@@ -256,7 +358,10 @@ public class PostServiceImpl implements PostService {
         PostComment updatedComment =
                 postCommentRepository.save(comment);
 
-        return convertCommentToDto(updatedComment);
+        return convertCommentToDto(
+                updatedComment,
+                loggedInUserId
+        );
     }
 
     @Override
@@ -265,14 +370,6 @@ public class PostServiceImpl implements PostService {
             Long id,
             Long loggedInUserId
     ) {
-
-        User loggedInUser = userRepository
-                .findById(loggedInUserId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Logged in user not found"
-                        )
-                );
 
         Post post = postRepository
                 .findById(id)
@@ -285,11 +382,8 @@ public class PostServiceImpl implements PostService {
                         .getId()
                         .equals(loggedInUserId);
 
-        boolean admin =
-                loggedInUser.getRole() == Role.ADMIN;
-
-        if (!owner && !admin) {
-            throw new RuntimeException(
+        if (!owner) {
+            throw new AccessDeniedException(
                     "You are not allowed to delete this post"
             );
         }
@@ -297,7 +391,10 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
     }
 
-    private PostDto convertToDto(Post post) {
+    private PostDto convertToDto(
+            Post post,
+            Long loggedInUserId
+    ) {
 
         return PostDto.builder()
                 .id(
@@ -342,6 +439,12 @@ public class PostServiceImpl implements PostService {
                 .likeCount(
                         post.getLikeCount()
                 )
+                .likedByCurrentUser(
+                        isPostLikedByUser(
+                                post,
+                                loggedInUserId
+                        )
+                )
                 .commentCount(
                         post.getCommentCount()
                 )
@@ -352,7 +455,8 @@ public class PostServiceImpl implements PostService {
     }
 
     private PostCommentDto convertCommentToDto(
-            PostComment comment
+            PostComment comment,
+            Long loggedInUserId
     ) {
 
         return PostCommentDto.builder()
@@ -363,8 +467,47 @@ public class PostServiceImpl implements PostService {
                 .userRole(comment.getUser().getRole().name())
                 .commentText(comment.getCommentText())
                 .likeCount(comment.getLikeCount())
+                .likedByCurrentUser(
+                        isCommentLikedByUser(
+                                comment,
+                                loggedInUserId
+                        )
+                )
                 .createdAt(comment.getCreatedAt())
                 .build();
+    }
+
+    private boolean isPostLikedByUser(
+            Post post,
+            Long loggedInUserId
+    ) {
+
+        if (loggedInUserId == null || post.getLikedUsers() == null) {
+            return false;
+        }
+
+        return post.getLikedUsers()
+                .stream()
+                .anyMatch(user ->
+                        loggedInUserId.equals(user.getId())
+                );
+    }
+
+    private boolean isCommentLikedByUser(
+            PostComment comment,
+            Long loggedInUserId
+    ) {
+
+        if (loggedInUserId == null ||
+                comment.getLikedUsers() == null) {
+            return false;
+        }
+
+        return comment.getLikedUsers()
+                .stream()
+                .anyMatch(user ->
+                        loggedInUserId.equals(user.getId())
+                );
     }
 
     private String cleanText(String value) {

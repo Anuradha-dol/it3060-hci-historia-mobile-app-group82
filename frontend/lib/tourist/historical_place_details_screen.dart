@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/historical_place_model.dart';
 import 'create_post_screen.dart';
@@ -20,14 +21,9 @@ class _HistoricalPlaceDetailsScreenState
   static const Color darkGreen = Color(0xFF154E39);
   static const Color lightGreen = Color(0xFFF0F7F2);
 
-  bool _isFavorite = false;
   bool _showFullDescription = false;
 
   HistoricalPlaceModel get place => widget.place;
-
-  // ============================================================
-  // BUILD
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +62,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // HERO
-  // ============================================================
-
   Widget _buildHero(BuildContext context) {
     return SizedBox(
       height: 370,
@@ -78,7 +70,6 @@ class _HistoricalPlaceDetailsScreenState
         children: [
           _buildMainImage(),
 
-          // Dark gradient for readable text.
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -94,7 +85,6 @@ class _HistoricalPlaceDetailsScreenState
             ),
           ),
 
-          // Back button
           Positioned(
             top: 16,
             left: 16,
@@ -106,48 +96,6 @@ class _HistoricalPlaceDetailsScreenState
             ),
           ),
 
-          // Favorite
-          Positioned(
-            top: 16,
-            right: 66,
-            child: _roundButton(
-              icon: _isFavorite
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
-              iconColor: _isFavorite ? Colors.redAccent : darkGreen,
-              onTap: () {
-                setState(() {
-                  _isFavorite = !_isFavorite;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    duration: const Duration(milliseconds: 1000),
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      _isFavorite
-                          ? '${place.name} added to favorites.'
-                          : '${place.name} removed from favorites.',
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Share
-          Positioned(
-            top: 16,
-            right: 16,
-            child: _roundButton(
-              icon: Icons.share_outlined,
-              onTap: () {
-                _showFeatureMessage('Sharing will be available soon.');
-              },
-            ),
-          ),
-
-          // Main place information
           Positioned(
             left: 20,
             right: 20,
@@ -219,7 +167,10 @@ class _HistoricalPlaceDetailsScreenState
                     if (place.openingHours.isNotEmpty) ...[
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('•', style: TextStyle(color: Colors.white)),
+                        child: Text(
+                          'â€¢',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
 
                       const Icon(
@@ -251,10 +202,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // MAIN IMAGE
-  // ============================================================
 
   Widget _buildMainImage() {
     final String imagePath = place.mainImageUrl?.trim() ?? '';
@@ -318,10 +265,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // TOP ROUND BUTTON
-  // ============================================================
-
   Widget _roundButton({
     required IconData icon,
     required VoidCallback onTap,
@@ -341,10 +284,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // ABOUT
-  // ============================================================
 
   Widget _buildAbout() {
     final description = place.description.trim();
@@ -433,10 +372,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // INFORMATION CARDS
-  // ============================================================
 
   Widget _buildInformation() {
     return Padding(
@@ -527,10 +462,6 @@ class _HistoricalPlaceDetailsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // LOCATION / GPS READY SECTION
-  // ============================================================
 
   Widget _buildLocationSection() {
     return Padding(
@@ -628,10 +559,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // GALLERY
-  // ============================================================
-
   Widget _buildGallery() {
     final gallery = _galleryImages;
 
@@ -724,10 +651,6 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // BOTTOM ACTIONS
-  // ============================================================
-
   Widget _buildBottomActions() {
     return SafeArea(
       top: false,
@@ -794,26 +717,28 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  // ============================================================
-  // BUTTON ACTIONS
-  // ============================================================
+  Future<void> _onDirectionsPressed() async {
+    final query = _mapQuery;
 
-  void _onDirectionsPressed() {
-    if (!place.hasCoordinates) {
-      _showFeatureMessage(
-        'Location coordinates are not available for ${place.name}.',
-      );
+    if (query.isEmpty) {
+      _showFeatureMessage('Location is not available for ${place.name}.');
       return;
     }
 
-    // GPS / external map navigation will be connected
-    // in the location-service step.
-    _showFeatureMessage(
-      'Directions are ready to use '
-      '${place.latitude!.toStringAsFixed(4)}, '
-      '${place.longitude!.toStringAsFixed(4)}. '
-      'We will connect map navigation next.',
-    );
+    final uri = Uri.https('www.google.com', '/maps/search/', {
+      'api': '1',
+      'query': query,
+    });
+
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      if (!opened) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      _showFeatureMessage('Could not open Google Maps.');
+    }
   }
 
   void _onAddToTourPressed() {
@@ -846,10 +771,6 @@ class _HistoricalPlaceDetailsScreenState
       );
   }
 
-  // ============================================================
-  // DISPLAY HELPERS
-  // ============================================================
-
   String get _displayLocation {
     final location = place.location.trim();
 
@@ -858,6 +779,19 @@ class _HistoricalPlaceDetailsScreenState
     }
 
     return location;
+  }
+
+  String get _mapQuery {
+    if (place.hasCoordinates) {
+      return '${place.latitude},${place.longitude}';
+    }
+
+    final location = place.location.trim();
+
+    return [
+      place.name.trim(),
+      if (location.isNotEmpty) location,
+    ].where((value) => value.isNotEmpty).join(', ');
   }
 
   String get _ratingText {
@@ -885,14 +819,6 @@ class _HistoricalPlaceDetailsScreenState
   bool _isNetworkImage(String value) {
     return value.startsWith('http://') || value.startsWith('https://');
   }
-
-  // ============================================================
-  // LOCAL IMAGE FALLBACK
-  //
-  // Database data remains dynamic.
-  // These are only temporary UI image fallbacks for the images
-  // already included in your Flutter project.
-  // ============================================================
 
   String? _localImageForPlace(String placeName) {
     switch (placeName.toLowerCase().trim()) {
@@ -948,9 +874,6 @@ class _HistoricalPlaceDetailsScreenState
       return [localMainImage];
     }
 
-    // This intentionally returns an invalid asset name.
-    // _buildGalleryImage catches it and displays the
-    // clean image placeholder.
     return const ['assets/images/historical_place_placeholder.jpg'];
   }
 }
