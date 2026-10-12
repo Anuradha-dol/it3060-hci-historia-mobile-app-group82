@@ -1,10 +1,16 @@
 # HISTORIA
 
-HISTORIA is a mobile heritage travel app for Sri Lanka. It helps travelers discover historical places, plan tours, share travel moments, find travel buddies, book approved local guides, manage payments, and track guide arrival around a selected meeting point.
+HISTORIA is our final project for the IT3060 Human Computer Interaction module in Year 3, Semester 2. We built it as a mobile heritage travel app for Sri Lanka, with a focus on helping travelers discover historical places, plan tours, connect with travel buddies, and book approved local guides.
 
-![HISTORIA landing page](docs/screenshots/landing-page.png)
+<p align="center">
+  <img src="docs/screenshots/landing-page.png" alt="HISTORIA mobile landing page" width="340">
+</p>
 
-The project is built as a full-stack academic group project for the IT3060 Human Computer Interaction module. The frontend is a Flutter mobile application, and the backend is a Spring Boot REST API connected to PostgreSQL.
+This app was developed step by step through the HCI assignment process. In the first evaluation, we selected the project idea, studied the problem area, identified the main users, and planned the key workflows. In the second evaluation, we created wireframes and designed the UI in Figma. After those two evaluations, we implemented the final working project using a real mobile frontend, backend REST APIs, authentication, database storage, file uploads, booking logic, and testing.
+
+The main actors in the system are tourists, local guides, and admins. Tourists use the app to explore heritage places and book guide support. Guides manage their profile, packages, availability, and live booking updates. Admins review guide applications and manage important platform content.
+
+Technically, HISTORIA is a full-stack mobile application. The frontend is built with Flutter, and the backend is a Spring Boot REST API connected to PostgreSQL.
 
 ## Project Summary
 
