@@ -6,6 +6,13 @@ HISTORIA is our final project for the IT3060 Human Computer Interaction module i
   <img src="docs/screenshots/landing-page.png" alt="HISTORIA mobile landing page" width="340">
 </p>
 
+## Project Documents
+
+| Document | Link |
+| --- | --- |
+| Milestone 03 Project Report | [Open PDF](docs/reports%20and%20ui%20images%20pdf/HISTORIA_Milestone03_Formatted.pdf) |
+| Mobile App UI Screens | [Open PDF](docs/reports%20and%20ui%20images%20pdf/HISTORIA_Mobile_App_UI_Screens.pdf) |
+
 This app was developed step by step through the HCI assignment process. In the first evaluation, we selected the project idea, studied the problem area, identified the main users, and planned the key workflows. In the second evaluation, we created wireframes and designed the UI in Figma. After those two evaluations, we implemented the final working project using a real mobile frontend, backend REST APIs, authentication, database storage, file uploads, booking logic, and testing.
 
 The main actors in the system are tourists, local guides, and admins. Tourists use the app to explore heritage places and book guide support. Guides manage their profile, packages, availability, and live booking updates. Admins review guide applications and manage important platform content.
