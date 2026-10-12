@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -66,7 +67,7 @@ class _SignupScreenState extends State<SignupScreen> {
       final result = await AuthService().registerTourist(
         username: _username.text.trim(),
         email: _email.text.trim(),
-        phone: _emptyToNull(_phone.text),
+        phone: _phone.text.trim(),
         password: _password.text,
         confirmPassword: _confirmPassword.text,
         firstName: _firstName.text.trim(),
@@ -131,6 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _validateRequiredAccount() {
     if (_username.text.trim().isEmpty ||
         _email.text.trim().isEmpty ||
+        _phone.text.trim().isEmpty ||
         _password.text.isEmpty ||
         _confirmPassword.text.isEmpty) {
       showAppMessage(
@@ -147,6 +149,16 @@ class _SignupScreenState extends State<SignupScreen> {
 
       setState(() {
         _step = 1;
+      });
+
+      return false;
+    }
+
+    if (_phoneValidator(_phone.text) != null) {
+      showAppMessage(context, 'Phone number must be 10 digits.', error: true);
+
+      setState(() {
+        _step = 0;
       });
 
       return false;
@@ -178,6 +190,20 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (value != _password.text) {
       return 'Passwords do not match';
+    }
+
+    return null;
+  }
+
+  String? _phoneValidator(String? value) {
+    final digits = value?.trim() ?? '';
+
+    if (digits.isEmpty) {
+      return 'Phone number is required';
+    }
+
+    if (!RegExp(r'^\d{10}$').hasMatch(digits)) {
+      return 'Phone number must be 10 digits';
     }
 
     return null;
@@ -342,11 +368,17 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
 
         HistoriaTextField(
-          label: 'Phone number (optional)',
-          hintText: '+94 7X XXX XXXX',
+          label: 'Phone number',
+          hintText: '07XXXXXXXX',
           controller: _phone,
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
+          required: true,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
+          validator: _phoneValidator,
         ),
 
         const SizedBox(height: 6),
