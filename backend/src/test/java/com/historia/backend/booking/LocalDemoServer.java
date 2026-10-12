@@ -19,7 +19,7 @@ public class LocalDemoServer {
                 "--spring.jpa.hibernate.ddl-auto=create","--server.port=8081","--server.address=127.0.0.1",
                 "--spring.profiles.active=demo","--historia.booking.demo-payments=true","--historia.booking.seed=true",
                 "--HISTORIA_DEMO_PASSWORD="+password,"--jwt.secret="+Base64.getEncoder().encodeToString(key),
-                "--google.oauth.client-id=","--admin.username=","--admin.email=","--admin.password=",
+                "--google.oauth.client-id=test-client-id","--admin.username=","--admin.email=","--admin.password=",
                 "--logging.level.org.hibernate.SQL=WARN","--logging.level.org.springframework.web=WARN")) {
             Path target=Path.of("target/demo-session.json");
             Files.writeString(target,"{\"password\":\""+password+"\",\"baseUrl\":\"http://localhost:8081\"}");

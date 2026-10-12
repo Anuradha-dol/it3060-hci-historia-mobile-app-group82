@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/historical_place_model.dart';
 import 'create_post_screen.dart';
@@ -20,7 +21,6 @@ class _HistoricalPlaceDetailsScreenState
   static const Color darkGreen = Color(0xFF154E39);
   static const Color lightGreen = Color(0xFFF0F7F2);
 
-  bool _isFavorite = false;
   bool _showFullDescription = false;
 
   HistoricalPlaceModel get place => widget.place;
@@ -92,45 +92,6 @@ class _HistoricalPlaceDetailsScreenState
               icon: Icons.arrow_back_ios_new_rounded,
               onTap: () {
                 Navigator.pop(context);
-              },
-            ),
-          ),
-
-          Positioned(
-            top: 16,
-            right: 66,
-            child: _roundButton(
-              icon: _isFavorite
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
-              iconColor: _isFavorite ? Colors.redAccent : darkGreen,
-              onTap: () {
-                setState(() {
-                  _isFavorite = !_isFavorite;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    duration: const Duration(milliseconds: 1000),
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      _isFavorite
-                          ? '${place.name} added to favorites.'
-                          : '${place.name} removed from favorites.',
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          Positioned(
-            top: 16,
-            right: 16,
-            child: _roundButton(
-              icon: Icons.share_outlined,
-              onTap: () {
-                _showFeatureMessage('Sharing will be available soon.');
               },
             ),
           ),
@@ -756,20 +717,28 @@ class _HistoricalPlaceDetailsScreenState
     );
   }
 
-  void _onDirectionsPressed() {
-    if (!place.hasCoordinates) {
-      _showFeatureMessage(
-        'Location coordinates are not available for ${place.name}.',
-      );
+  Future<void> _onDirectionsPressed() async {
+    final query = _mapQuery;
+
+    if (query.isEmpty) {
+      _showFeatureMessage('Location is not available for ${place.name}.');
       return;
     }
 
-    _showFeatureMessage(
-      'Directions are ready to use '
-      '${place.latitude!.toStringAsFixed(4)}, '
-      '${place.longitude!.toStringAsFixed(4)}. '
-      'We will connect map navigation next.',
-    );
+    final uri = Uri.https('www.google.com', '/maps/search/', {
+      'api': '1',
+      'query': query,
+    });
+
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      if (!opened) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      _showFeatureMessage('Could not open Google Maps.');
+    }
   }
 
   void _onAddToTourPressed() {
@@ -810,6 +779,19 @@ class _HistoricalPlaceDetailsScreenState
     }
 
     return location;
+  }
+
+  String get _mapQuery {
+    if (place.hasCoordinates) {
+      return '${place.latitude},${place.longitude}';
+    }
+
+    final location = place.location.trim();
+
+    return [
+      place.name.trim(),
+      if (location.isNotEmpty) location,
+    ].where((value) => value.isNotEmpty).join(', ');
   }
 
   String get _ratingText {

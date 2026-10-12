@@ -25,5 +25,7 @@ public class PostCommentDto {
 
     private Integer likeCount;
 
+    private boolean likedByCurrentUser;
+
     private LocalDateTime createdAt;
 }

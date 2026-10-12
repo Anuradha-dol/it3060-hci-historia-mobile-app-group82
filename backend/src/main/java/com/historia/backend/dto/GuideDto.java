@@ -19,6 +19,7 @@ public class GuideDto {
             String email,
 
             @NotBlank(message = "Phone number is required")
+            @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
             String phone,
 
             @NotBlank(message = "Password is required")

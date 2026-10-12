@@ -9,15 +9,21 @@ import 'booking_flow_screen.dart';
 import 'my_bookings_screen.dart';
 
 class GuideDirectoryScreen extends StatefulWidget {
-  const GuideDirectoryScreen({super.key});
+  final String initialArea;
+
+  const GuideDirectoryScreen({
+    super.key,
+    this.initialArea = 'Galle Fort',
+  });
+
   @override
   State<GuideDirectoryScreen> createState() => _GuideDirectoryScreenState();
 }
 
 class _GuideDirectoryScreenState extends State<GuideDirectoryScreen> {
-  final search = TextEditingController(),
-      area = TextEditingController(text: 'Galle Fort'),
-      specialty = TextEditingController();
+  late final TextEditingController search;
+  late final TextEditingController area;
+  late final TextEditingController specialty;
   final service = BookingService();
   List<BookableGuide> guides = [];
   String? error, language;
@@ -28,6 +34,9 @@ class _GuideDirectoryScreenState extends State<GuideDirectoryScreen> {
   @override
   void initState() {
     super.initState();
+    search = TextEditingController();
+    area = TextEditingController(text: widget.initialArea);
+    specialty = TextEditingController();
     load();
   }
 

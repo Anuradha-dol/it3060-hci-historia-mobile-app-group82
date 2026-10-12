@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/historia_components.dart';
+import 'guide_signup_screen.dart';
 
 class GuideResubmitScreen extends StatefulWidget {
   const GuideResubmitScreen({super.key});
@@ -118,7 +119,7 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
 
       showAppMessage(
         context,
-        ApiService.instance.getErrorMessage(e),
+        _friendlyResubmitError(ApiService.instance.getErrorMessage(e)),
         error: true,
       );
     } finally {
@@ -171,6 +172,21 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
     return requiredText(value, label);
   }
 
+  String _friendlyResubmitError(String message) {
+    if (message == 'Invalid account details') {
+      return 'Use the email and password from your existing guide account. For a new guide request, tap "Start new guide application".';
+    }
+
+    return message;
+  }
+
+  void _openNewGuideApplication() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const GuideSignupScreen()),
+    );
+  }
+
   String? _experienceValidator(String? value) {
     final required = _required(value, 'Years of experience');
 
@@ -190,14 +206,14 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     final titles = [
-      'Confirm your account.',
+      'Resubmit requested changes.',
       'Update service details.',
       'Refresh your guide profile.',
       'Review and resubmit.',
     ];
 
     final subtitles = [
-      'Confirm the guide account that needs changes.',
+      'Use this only after an admin marks your guide application as needs work.',
       'Update where you guide and the languages you support.',
       'Update your experience and traveller-facing profile.',
       'Check your changes before sending them for review.',
@@ -217,194 +233,96 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
 
         backgroundColor: const Color(0xFFF0F7F3),
 
-        body: Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFFF9FCF9),
-                    Color(0xFFF1F8F4),
-                    Color(0xFFEAF5EF),
+        body: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFF9FCF9), Color(0xFFF1F8F4), Color(0xFFEAF5EF)],
+            ),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Column(
+                  children: [
+                    HistoriaHeader(
+                      title: titles[_step],
+                      subtitle: subtitles[_step],
+                      eyebrow:
+                          'GUIDE RESUBMISSION / STEP ${(_step + 1).toString().padLeft(2, '0')} OF 04',
+                      icon: Icons.refresh_rounded,
+                      actions: [
+                        HistoriaIconButton(
+                          icon: _step == 0 ? Icons.close : Icons.arrow_back,
+                          tooltip: _step == 0 ? 'Close' : 'Back',
+                          onPressed: _back,
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: ListView(
+                        physics: const ClampingScrollPhysics(),
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                        children: [
+                          HistoriaProgressStepper(
+                            currentStep: _step,
+                            labels: const [
+                              'Account',
+                              'Service',
+                              'Profile',
+                              'Review',
+                            ],
+                          ),
+                          if (_step == 0) ...[
+                            const _NeedsWorkCard(),
+                            const SizedBox(height: 14),
+                          ],
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFF7FBF8), Color(0xFFECF6F0)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFCFE3D8),
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x10123F30),
+                                  blurRadius: 18,
+                                  offset: Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Form(
+                              key: _stepKeys[_step],
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeIn,
+                                child: KeyedSubtree(
+                                  key: ValueKey(_step),
+                                  child: _stepContent(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!keyboardOpen) const _ResubmitFooter(),
                   ],
                 ),
               ),
             ),
-
-            Positioned(
-              top: 120,
-              right: -80,
-              child: Container(
-                width: 190,
-                height: 190,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFD3EBDD).withValues(alpha: 0.28),
-                ),
-              ),
-            ),
-
-            Positioned(
-              top: 350,
-              left: -95,
-              child: Container(
-                width: 190,
-                height: 190,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFDDEFE5).withValues(alpha: 0.24),
-                ),
-              ),
-            ),
-
-            SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 430),
-
-                  child: Column(
-                    children: [
-                      HistoriaHeader(
-                        title: titles[_step],
-
-                        subtitle: subtitles[_step],
-
-                        eyebrow:
-                            'GUIDE RESUBMISSION / STEP ${(_step + 1).toString().padLeft(2, '0')} OF 04',
-
-                        icon: Icons.refresh_rounded,
-
-                        actions: [
-                          HistoriaIconButton(
-                            icon: _step == 0 ? Icons.close : Icons.arrow_back,
-
-                            tooltip: _step == 0 ? 'Close' : 'Back',
-
-                            onPressed: _back,
-                          ),
-                        ],
-                      ),
-
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(17, 7, 17, 5),
-
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                            children: [
-                              HistoriaProgressStepper(
-                                currentStep: _step,
-                                labels: const [
-                                  'Account',
-                                  'Service',
-                                  'Profile',
-                                  'Review',
-                                ],
-                              ),
-
-                              const SizedBox(height: 7),
-
-                              Expanded(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return FittedBox(
-                                      fit: BoxFit.scaleDown,
-
-                                      alignment: Alignment.topCenter,
-
-                                      child: SizedBox(
-                                        width: constraints.maxWidth,
-
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-
-                                          children: [
-                                            if (_step == 0)
-                                              const _NeedsWorkCard(),
-
-                                            if (_step == 0)
-                                              const SizedBox(height: 8),
-
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                    13,
-                                                    11,
-                                                    13,
-                                                    10,
-                                                  ),
-
-                                              decoration: BoxDecoration(
-                                                gradient: const LinearGradient(
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                  colors: [
-                                                    Color(0xFFF7FBF8),
-                                                    Color(0xFFECF6F0),
-                                                  ],
-                                                ),
-
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-
-                                                border: Border.all(
-                                                  color: const Color(
-                                                    0xFFCFE3D8,
-                                                  ),
-                                                ),
-
-                                                boxShadow: const [
-                                                  BoxShadow(
-                                                    color: Color(0x09123F30),
-                                                    blurRadius: 10,
-                                                    offset: Offset(0, 3),
-                                                  ),
-                                                ],
-                                              ),
-
-                                              child: Form(
-                                                key: _stepKeys[_step],
-
-                                                child: AnimatedSwitcher(
-                                                  duration: const Duration(
-                                                    milliseconds: 180,
-                                                  ),
-
-                                                  switchInCurve: Curves.easeOut,
-
-                                                  switchOutCurve: Curves.easeIn,
-
-                                                  child: KeyedSubtree(
-                                                    key: ValueKey(_step),
-
-                                                    child: _stepContent(),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      if (!keyboardOpen) const _ResubmitFooter(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -435,12 +353,22 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
         const _SectionHeading(
           icon: Icons.lock_person_outlined,
 
-          title: 'Account check',
+          title: 'Existing guide account',
 
-          subtitle: 'Use the email and password linked to your guide account.',
+          subtitle:
+              'This form is for applications that an admin already marked as needs work.',
         ),
 
         const SizedBox(height: 9),
+
+        const HistoriaInfoBox(
+          title: 'New guide request?',
+          message:
+              'Do not use this resubmission form for a first-time guide application.',
+          icon: Icons.info_outline,
+        ),
+
+        const SizedBox(height: 14),
 
         HistoriaTextField(
           label: 'Email address',
@@ -498,6 +426,14 @@ class _GuideResubmitScreenState extends State<GuideResubmitScreen> {
           label: 'Continue',
 
           icon: Icons.arrow_forward_rounded,
+        ),
+
+        const SizedBox(height: 8),
+
+        HistoriaOutlineButton(
+          onPressed: _loading ? null : _openNewGuideApplication,
+          label: 'Start new guide application',
+          icon: Icons.badge_outlined,
         ),
       ],
     );
@@ -790,7 +726,7 @@ class _NeedsWorkCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(11),
+      padding: const EdgeInsets.all(14),
 
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -807,7 +743,7 @@ class _NeedsWorkCard extends StatelessWidget {
 
         children: [
           CircleAvatar(
-            radius: 20,
+            radius: 22,
 
             backgroundColor: Color(0xFFFFE6A7),
 
@@ -816,11 +752,11 @@ class _NeedsWorkCard extends StatelessWidget {
 
               color: Color(0xFFC97900),
 
-              size: 22,
+              size: 24,
             ),
           ),
 
-          SizedBox(width: 10),
+          SizedBox(width: 12),
 
           Expanded(
             child: Column(
@@ -833,7 +769,7 @@ class _NeedsWorkCard extends StatelessWidget {
                   style: TextStyle(
                     color: Color(0xFFA76700),
 
-                    fontSize: 8.3,
+                    fontSize: 10,
 
                     fontWeight: FontWeight.w800,
 
@@ -841,7 +777,7 @@ class _NeedsWorkCard extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: 3),
+                SizedBox(height: 5),
 
                 Text(
                   'Update requested details',
@@ -849,13 +785,13 @@ class _NeedsWorkCard extends StatelessWidget {
                   style: TextStyle(
                     color: Color(0xFF4B3D1D),
 
-                    fontSize: 12.2,
+                    fontSize: 15,
 
                     fontWeight: FontWeight.w800,
                   ),
                 ),
 
-                SizedBox(height: 3),
+                SizedBox(height: 5),
 
                 Text(
                   'Make the requested changes and send your guide application back for review.',
@@ -863,7 +799,7 @@ class _NeedsWorkCard extends StatelessWidget {
                   style: TextStyle(
                     color: Color(0xFF74684D),
 
-                    fontSize: 9.3,
+                    fontSize: 12,
 
                     height: 1.25,
                   ),
@@ -895,9 +831,9 @@ class _SectionHeading extends StatelessWidget {
 
       children: [
         Container(
-          width: 38,
+          width: 42,
 
-          height: 38,
+          height: 42,
 
           decoration: const BoxDecoration(
             color: Color(0xFFDDEFE5),
@@ -905,10 +841,10 @@ class _SectionHeading extends StatelessWidget {
             shape: BoxShape.circle,
           ),
 
-          child: Icon(icon, color: const Color(0xFF1D7452), size: 20),
+          child: Icon(icon, color: const Color(0xFF1D7452), size: 22),
         ),
 
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
 
         Expanded(
           child: Column(
@@ -921,13 +857,13 @@ class _SectionHeading extends StatelessWidget {
                 style: const TextStyle(
                   color: Color(0xFF123F32),
 
-                  fontSize: 13,
+                  fontSize: 16,
 
                   fontWeight: FontWeight.w800,
                 ),
               ),
 
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
 
               Text(
                 subtitle,
@@ -935,7 +871,7 @@ class _SectionHeading extends StatelessWidget {
                 style: const TextStyle(
                   color: Color(0xFF6A7C73),
 
-                  fontSize: 9.4,
+                  fontSize: 12,
 
                   height: 1.25,
                 ),
@@ -969,7 +905,7 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(9),
+      padding: const EdgeInsets.all(12),
 
       decoration: BoxDecoration(
         color: const Color(0xFFF3F9F5),
@@ -985,9 +921,9 @@ class _ReviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 15, color: const Color(0xFF237153)),
+              Icon(icon, size: 17, color: const Color(0xFF237153)),
 
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
 
               Text(
                 title,
@@ -995,7 +931,7 @@ class _ReviewCard extends StatelessWidget {
                 style: const TextStyle(
                   color: Color(0xFF174B39),
 
-                  fontSize: 10.8,
+                  fontSize: 13,
 
                   fontWeight: FontWeight.w800,
                 ),
@@ -1003,18 +939,18 @@ class _ReviewCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
 
           ...rows.map(
             (row) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 7),
 
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   SizedBox(
-                    width: 86,
+                    width: 108,
 
                     child: Text(
                       row.label,
@@ -1022,7 +958,7 @@ class _ReviewCard extends StatelessWidget {
                       style: const TextStyle(
                         color: Color(0xFF789086),
 
-                        fontSize: 8.5,
+                        fontSize: 11,
 
                         fontWeight: FontWeight.w600,
                       ),
@@ -1036,7 +972,7 @@ class _ReviewCard extends StatelessWidget {
                       style: const TextStyle(
                         color: Color(0xFF385B4C),
 
-                        fontSize: 9,
+                        fontSize: 11.5,
 
                         fontWeight: FontWeight.w600,
 

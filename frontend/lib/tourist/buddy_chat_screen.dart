@@ -28,7 +28,7 @@ class BuddyMessageModel {
     return BuddyMessageModel(
       id: (json['id'] as num?)?.toInt(),
       senderId: (json['senderId'] as num).toInt(),
-      senderUsername: json['senderUsername']?.toString() ?? 'Tourist',
+      senderUsername: json['senderUsername']?.toString() ?? '',
       message: json['message']?.toString() ?? '',
       sentAt: json['sentAt']?.toString() ?? '',
       read: json['read'] == true,
@@ -90,21 +90,48 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
   bool _sending = false;
   late bool _otherOnline;
 
+  // Prefer the name passed from Inbox.
+  // If it is empty, use the other user's message sender name.
+  String get _displayName {
+    final name = widget.username.trim();
+
+    if (name.isNotEmpty) {
+      return name;
+    }
+
+    for (final message in _messages.reversed) {
+      if (message.senderId == widget.otherUserId &&
+          message.senderUsername.trim().isNotEmpty) {
+        return message.senderUsername.trim();
+      }
+    }
+
+    return 'Tourist';
+  }
+
   @override
   void initState() {
     super.initState();
+
     _otherOnline = widget.otherOnline;
+
     _loadMessages();
     _loadPresence();
     _connectWebSocket();
-    _pollTimer = Timer.periodic(const Duration(seconds: 7), (_) {
-      if (!_socketConnected) {
-        _loadMessages(silent: true);
-      }
-    });
-    _presenceTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      _loadPresence();
-    });
+
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 7),
+          (_) {
+        if (!_socketConnected) {
+          _loadMessages(silent: true);
+        }
+      },
+    );
+
+    _presenceTimer = Timer.periodic(
+      const Duration(seconds: 10),
+          (_) => _loadPresence(),
+    );
   }
 
   @override
@@ -154,10 +181,12 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
   }
 
   Future<void> _loadMessages({bool silent = false}) async {
+    if (!mounted) {
+      return;
+    }
+
     if (!silent) {
-      setState(() {
-        _loading = true;
-      });
+      setState(() => _loading = true);
     }
 
     try {
@@ -166,14 +195,15 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
       );
 
       final data = response.data;
+
       final loaded = data is List
           ? data
-                .map(
-                  (item) => BuddyMessageModel.fromJson(
-                    Map<String, dynamic>.from(item as Map),
-                  ),
-                )
-                .toList()
+          .map(
+            (item) => BuddyMessageModel.fromJson(
+          Map<String, dynamic>.from(item as Map),
+        ),
+      )
+          .toList()
           : <BuddyMessageModel>[];
 
       if (!mounted) {
@@ -192,9 +222,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
         return;
       }
 
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
 
       if (!silent) {
         _showError(error);
@@ -216,8 +244,12 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
     _stompClient = StompClient(
       config: StompConfig.sockJS(
         url: '${ApiConfig.baseUrl}/ws',
-        stompConnectHeaders: {'Authorization': 'Bearer ${widget.token}'},
-        webSocketConnectHeaders: {'Authorization': 'Bearer ${widget.token}'},
+        stompConnectHeaders: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        webSocketConnectHeaders: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
         reconnectDelay: const Duration(seconds: 5),
         heartbeatIncoming: const Duration(seconds: 10),
         heartbeatOutgoing: const Duration(seconds: 10),
@@ -232,11 +264,17 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
   }
 
   void _onConnected(StompFrame frame) {
+    if (!mounted) {
+      return;
+    }
+
     _setSocketConnected(true);
 
     _stompClient?.subscribe(
       destination: '/topic/buddies/${widget.requestId}',
-      headers: {'Authorization': 'Bearer ${widget.token}'},
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+      },
       callback: (frame) {
         final body = frame.body;
 
@@ -246,6 +284,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
 
         try {
           final decoded = jsonDecode(body);
+
           final incoming = BuddyMessageModel.fromJson(
             Map<String, dynamic>.from(decoded as Map),
           );
@@ -254,15 +293,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
             return;
           }
 
-          setState(() {
-            final alreadyExists =
-                incoming.id != null &&
-                _messages.any((message) => message.id == incoming.id);
-
-            if (!alreadyExists) {
-              _messages.add(incoming);
-            }
-          });
+          _addMessage(incoming);
 
           if (incoming.senderId != widget.currentUserId) {
             _markMessagesAsRead();
@@ -277,7 +308,9 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
 
     _stompClient?.subscribe(
       destination: '/topic/buddies/${widget.requestId}/seen',
-      headers: {'Authorization': 'Bearer ${widget.token}'},
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+      },
       callback: (frame) {
         try {
           final decoded = jsonDecode(frame.body ?? '{}');
@@ -288,13 +321,11 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
           }
 
           setState(() {
-            _messages = _messages
-                .map(
-                  (message) => message.senderId == widget.currentUserId
-                      ? message.copyWith(read: true)
-                      : message,
-                )
-                .toList();
+            _messages = _messages.map((message) {
+              return message.senderId == widget.currentUserId
+                  ? message.copyWith(read: true)
+                  : message;
+            }).toList();
           });
         } catch (_) {
           // Ignore malformed frames.
@@ -305,19 +336,34 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
     _markMessagesAsRead();
   }
 
-  Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
-
-    if (text.isEmpty || _sending) {
+  void _addMessage(BuddyMessageModel incoming) {
+    if (!mounted) {
       return;
     }
 
     setState(() {
-      _sending = true;
+      final alreadyExists = incoming.id != null &&
+          _messages.any((message) => message.id == incoming.id);
+
+      if (!alreadyExists) {
+        _messages.add(incoming);
+      }
     });
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+
+    if (!mounted || text.isEmpty || _sending) {
+      return;
+    }
+
+    setState(() => _sending = true);
 
     try {
-      if (_stompClient != null && _socketConnected && _stompClient!.connected) {
+      if (_stompClient != null &&
+          _socketConnected &&
+          _stompClient!.connected) {
         _stompClient!.send(
           destination: '/app/buddies/${widget.requestId}/send',
           body: jsonEncode({'message': text}),
@@ -340,9 +386,11 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
           return;
         }
 
-        setState(() {
-          _messages.add(saved);
-        });
+        _addMessage(saved);
+      }
+
+      if (!mounted) {
+        return;
       }
 
       _messageController.clear();
@@ -352,9 +400,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
       _showError(error);
     } finally {
       if (mounted) {
-        setState(() {
-          _sending = false;
-        });
+        setState(() => _sending = false);
       }
     }
   }
@@ -364,14 +410,12 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
       return;
     }
 
-    setState(() {
-      _socketConnected = value;
-    });
+    setState(() => _socketConnected = value);
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) {
+      if (!mounted || !_scrollController.hasClients) {
         return;
       }
 
@@ -397,30 +441,48 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.username,
+                    _displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    _otherOnline ? 'online' : 'offline',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: _otherOnline
-                          ? const Color(0xFFB8F3C7)
-                          : Colors.white70,
-                    ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _otherOnline
+                              ? const Color(0xFFB8F3C7)
+                              : Colors.white54,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        _otherOnline ? 'online' : 'offline',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _otherOnline
+                              ? const Color(0xFFB8F3C7)
+                              : Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 12),
           ],
         ),
       ),
@@ -429,8 +491,10 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
           Expanded(
             child: _loading
                 ? const Center(
-                    child: CircularProgressIndicator(color: primaryGreen),
-                  )
+              child: CircularProgressIndicator(
+                color: primaryGreen,
+              ),
+            )
                 : _messages.isEmpty
                 ? _emptyChat()
                 : _messageList(),
@@ -473,6 +537,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
       itemBuilder: (context, index) {
         final message = _messages[index];
         final mine = message.senderId == widget.currentUserId;
+
         return _messageBubble(message, mine);
       },
     );
@@ -520,7 +585,10 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
               children: [
                 Text(
                   _formatMessageTime(message.sentAt),
-                  style: const TextStyle(fontSize: 10, color: Colors.black45),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.black45,
+                  ),
                 ),
                 if (mine) ...[
                   const SizedBox(width: 3),
@@ -588,18 +656,18 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
                   padding: const EdgeInsets.all(14),
                   child: _sending
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                       : const Icon(
-                          Icons.send_rounded,
-                          color: Colors.white,
-                          size: 21,
-                        ),
+                    Icons.send_rounded,
+                    color: Colors.white,
+                    size: 21,
+                  ),
                 ),
               ),
             ),
@@ -611,25 +679,37 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
 
   Widget _avatar() {
     final image = ApiConfig.resolveImageUrl(widget.profileImageUrl);
-
-    if (image.isNotEmpty) {
-      return CircleAvatar(
-        radius: 20,
-        backgroundColor: const Color(0xFFDDE8E0),
-        backgroundImage: NetworkImage(image),
-      );
-    }
-
-    final letter = widget.username.trim().isEmpty
-        ? '?'
-        : widget.username.trim()[0].toUpperCase();
+    final name = _displayName;
+    final letter = name.isEmpty ? '?' : name[0].toUpperCase();
 
     return CircleAvatar(
       radius: 20,
       backgroundColor: const Color(0xFFDDE8E0),
+      child: ClipOval(
+        child: image.isNotEmpty
+            ? Image.network(
+          image,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _avatarLetter(letter);
+          },
+        )
+            : _avatarLetter(letter),
+      ),
+    );
+  }
+
+  Widget _avatarLetter(String letter) {
+    return Center(
       child: Text(
         letter,
-        style: const TextStyle(color: darkGreen, fontWeight: FontWeight.w900),
+        style: const TextStyle(
+          color: darkGreen,
+          fontWeight: FontWeight.w900,
+          fontSize: 18,
+        ),
       ),
     );
   }
@@ -639,6 +719,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
       final date = DateTime.parse(value).toLocal();
       final hour = date.hour.toString().padLeft(2, '0');
       final minute = date.minute.toString().padLeft(2, '0');
+
       return '$hour:$minute';
     } catch (_) {
       return '';
@@ -654,7 +735,9 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(ApiService.instance.getErrorMessage(error)),
+          content: Text(
+            ApiService.instance.getErrorMessage(error),
+          ),
           backgroundColor: Colors.red,
         ),
       );

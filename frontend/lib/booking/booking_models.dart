@@ -83,7 +83,13 @@ class CheckoutContract {
   final Json json;
   CheckoutContract(this.json);
   String get bookingId => json['bookingId'];
+  String get reference => json['reference'];
   num get amount => json['amount'];
   String get currency => json['currency'];
+  String get guide => json['guide'];
+  String get packageName => json['packageName'];
+  String get startsAt => json['startsAt'];
+  int get visitors => json['visitors'];
+  String get expiresAt => json['expiresAt'];
   bool get demoEnabled => json['demoEnabled'] == true;
 }

@@ -11,6 +11,7 @@ import com.historia.backend.exception.UserException;
 import com.historia.backend.repository.BookingRepository;
 import com.historia.backend.repository.PaymentRepository;
 import com.historia.backend.repository.UserRepository;
+import com.historia.backend.service.NotificationService;
 import com.historia.backend.service.PaymentService;
 
 import org.springframework.stereotype.Service;
@@ -34,14 +35,17 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public PaymentServiceImpl(
             BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -111,6 +115,8 @@ public class PaymentServiceImpl implements PaymentService {
             bookingRepository.save(booking);
         }
 
+        notifyPayment(booking, success, payment.getTransactionRef());
+
         return toResponse(payment);
     }
 
@@ -120,7 +126,7 @@ public class PaymentServiceImpl implements PaymentService {
                 ? ""
                 : cardNumber.replaceAll("\\D", "");
 
-        if (digits.length() != 16 || !isValidLuhn(digits)) {
+        if (digits.length() != 16) {
             throw new UserException("Enter a valid 16-digit card number");
         }
 
@@ -169,27 +175,27 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     // Standard Luhn checksum used to catch obviously mistyped card numbers.
-    private boolean isValidLuhn(String digits) {
+    // private boolean isValidLuhn(String digits) {
 
-        int sum = 0;
-        boolean alternate = false;
+    //     int sum = 0;
+    //     boolean alternate = false;
 
-        for (int i = digits.length() - 1; i >= 0; i--) {
-            int n = digits.charAt(i) - '0';
+    //     for (int i = digits.length() - 1; i >= 0; i--) {
+    //         int n = digits.charAt(i) - '0';
 
-            if (alternate) {
-                n *= 2;
-                if (n > 9) {
-                    n -= 9;
-                }
-            }
+    //         if (alternate) {
+    //             n *= 2;
+    //             if (n > 9) {
+    //                 n -= 9;
+    //             }
+    //         }
 
-            sum += n;
-            alternate = !alternate;
-        }
+    //         sum += n;
+    //         alternate = !alternate;
+    //     }
 
-        return sum % 10 == 0;
-    }
+    //     return sum % 10 == 0;
+    // }
 
     private String generateTransactionRef() {
         return "TXN-" + UUID.randomUUID()
@@ -210,5 +216,39 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getFailureReason(),
                 payment.getTransactionRef(),
                 payment.getCreatedAt());
+    }
+
+    private void notifyPayment(
+            Booking booking,
+            boolean success,
+            String transactionRef
+    ) {
+
+        String referenceId = booking.getId().toString();
+        String type = success ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED";
+        String title = success ? "Payment completed" : "Payment failed";
+        String message = success
+                ? "Payment " + transactionRef + " confirmed for your booking."
+                : "Payment could not be completed for your booking.";
+
+        notificationService.notifyUser(
+                booking.getTourist(),
+                type,
+                title,
+                message,
+                "BOOKING",
+                referenceId,
+                "/bookings/" + referenceId
+        );
+
+        notificationService.notifyUser(
+                booking.getGuideProfile().getUser(),
+                type,
+                title,
+                message,
+                "BOOKING",
+                referenceId,
+                "/guide/bookings/" + referenceId
+        );
     }
 }

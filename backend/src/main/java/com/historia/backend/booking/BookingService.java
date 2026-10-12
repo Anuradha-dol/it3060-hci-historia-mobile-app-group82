@@ -4,6 +4,7 @@ import com.historia.backend.entity.*;
 import com.historia.backend.enums.*;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
+import com.historia.backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,13 +14,18 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import static com.historia.backend.booking.BookingDto.*;
+import static com.historia.backend.utils.LocationMatcher.matchesServiceArea;
 
 @Service @RequiredArgsConstructor @Transactional
 public class BookingService {
     private final EntityManager em;
+    private final NotificationService notificationService;
     @Value("${historia.booking.demo-payments:false}") private boolean demoPayments;
     @Value("${spring.profiles.active:}") private String profiles;
+    private static final Pattern EXPIRY_PATTERN = Pattern.compile("^(\\d{2})/(\\d{2})$");
     private static final SecureRandom RANDOM = new SecureRandom();
     public static final ZoneId ZONE = ZoneId.of("Asia/Colombo");
     static final Set<String> ACTIVE = Set.of("CONFIRMED", "EN_ROUTE", "ARRIVED", "IN_PROGRESS");
@@ -58,7 +64,7 @@ public class BookingService {
             .filter(g -> g.getUser().isEnabled())
             .filter(g -> contains(g.getDisplayName()+" "+g.getSpecialties(), q))
             .filter(g -> contains(g.getLanguages().toString(), language))
-            .filter(g -> contains(g.getPrimaryServiceArea()+" "+g.getServiceAreas(), area))
+            .filter(g -> matchesSearchArea(g, area))
             .filter(g -> contains(g.getSpecialties().toString(), specialty))
             .map(g -> {
                 GuideEvidence e = em.find(GuideEvidence.class, g.getId());
@@ -107,16 +113,25 @@ public class BookingService {
         GuidePackage p=tourPackage(r.packageId(),g.getId());
         if(r.visitors()<p.getMinVisitors() || r.visitors()>p.getMaxVisitors()) throw bad("Visitor count outside package limits");
         MeetingLandmark l=em.find(MeetingLandmark.class,r.landmarkId());
-        if(l==null || !(g.getPrimaryServiceArea().equalsIgnoreCase(l.getArea()) || g.getServiceAreas().stream().anyMatch(a->a.equalsIgnoreCase(l.getArea())))) throw bad("Meeting point is outside guide service area");
+        if(l==null || !matchesRequiredArea(g, l.getArea())) throw bad("Meeting point is outside guide service area");
         Instant end=r.startsAt().plusSeconds(p.getDurationMinutes()*60L);
         if(!slots(g.getId(),p.getId(),r.startsAt().atZone(ZONE).toLocalDate()).contains(r.startsAt()) || !available(g.getId(),r.startsAt(),end)) throw bad("This slot is no longer available. Choose another time.");
         GuideBooking b=new GuideBooking(); b.setId(UUID.randomUUID().toString()); b.setTourist(user); b.setGuide(g); b.setTourPackage(p); b.setLandmark(l);
         b.setRequestKey(r.requestKey()); b.setStartsAt(r.startsAt()); b.setEndsAt(end); b.setVisitors(r.visitors()); b.setPackageName(p.getName());
         b.setAmount(p.getPricePerVisitor().multiply(BigDecimal.valueOf(r.visitors()))); b.setHoldExpiresAt(Instant.now().plusSeconds(600));
         b.setMeetingPin(String.format("%04d",RANDOM.nextInt(10000))); b.setPinExpiresAt(end.plusSeconds(3600));
-        em.persist(b); return view(b,userId);
+        em.persist(b);
+        notifyBookingParticipants(
+            b,
+            "BOOKING_HOLD",
+            "Booking hold created",
+            user.getUsername() + " held a booking with " + g.getDisplayName() + "."
+        );
+        return view(b,userId);
     }
     private void expire(GuideBooking b) { if(b.getState().equals("HELD") && (!b.getHoldExpiresAt().isAfter(Instant.now()) || !b.getStartsAt().isAfter(Instant.now()))) b.setState("EXPIRED"); }
+    private boolean matchesSearchArea(GuideProfile g, String area) { return area==null || area.isBlank() || matchesRequiredArea(g, area); }
+    private boolean matchesRequiredArea(GuideProfile g, String area) { return matchesServiceArea(g.getPrimaryServiceArea(), area) || (g.getServiceAreas()!=null && g.getServiceAreas().stream().anyMatch(a->matchesServiceArea(a, area))); }
     private GuideBooking authorized(Long userId,String id) {
         actor(userId); GuideBooking b=em.find(GuideBooking.class,id,LockModeType.PESSIMISTIC_WRITE);
         if(b==null || !(b.getTourist().getId().equals(userId) || b.getGuide().getUser().getId().equals(userId))) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Booking not found");
@@ -135,6 +150,63 @@ public class BookingService {
         return new Checkout(b.getId(),reference(b),b.getAmount(),"LKR",b.getGuide().getDisplayName(),b.getPackageName(),b.getLandmark(),b.getStartsAt(),b.getVisitors(),b.getHoldExpiresAt(),demoEnabled());
     }
     private void tourist(GuideBooking b,Long u) {if(!b.getTourist().getId().equals(u)) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Only the booking traveler may pay");}
+
+    public BookingView pay(Long userId,String id,CheckoutPaymentInput r) {
+        GuideBooking b=authorized(userId,id); tourist(b,userId);
+        if("PAID".equals(b.getPaymentState())) return view(b,userId);
+        if(!b.getState().equals("HELD")) throw bad("Hold expired or booking is no longer payable");
+        if(r.method()==PaymentMethod.CARD) {
+            validateCardNumber(r.cardNumber());
+            validateCardHolderName(r.cardHolderName());
+            validateExpiry(r.expiryDate());
+            validateCvv(r.cvv());
+        } else if(r.method()!=PaymentMethod.QR) {
+            throw bad("Unsupported payment method");
+        }
+        eligible(b.getGuide().getId(),true);
+        expire(b);
+        if(!b.getState().equals("HELD")) throw bad("Hold expired while payment was pending");
+        b.setPaymentState("PAID");
+        b.setPaymentReference(paymentReference(r.method()));
+        b.setState("CONFIRMED");
+        notifyBookingParticipants(
+            b,
+            "BOOKING_CONFIRMED",
+            "Booking confirmed",
+            "Payment was completed for " + b.getPackageName() + "."
+        );
+        return view(b,userId);
+    }
+
+    private String validateCardNumber(String cardNumber) {
+        String digits=cardNumber==null?"":cardNumber.replaceAll("\\D","");
+        if(digits.length()!=16) throw bad("Enter a valid 16-digit card number");
+        return digits;
+    }
+
+    private String validateCardHolderName(String cardHolderName) {
+        if(cardHolderName==null || cardHolderName.trim().length()<3) throw bad("Enter the name on the card");
+        return cardHolderName.trim();
+    }
+
+    private void validateExpiry(String expiryDate) {
+        Matcher matcher=EXPIRY_PATTERN.matcher(expiryDate==null?"":expiryDate);
+        if(!matcher.matches()) throw bad("Use MM/YY for the expiry date");
+        int month=Integer.parseInt(matcher.group(1));
+        int year=2000+Integer.parseInt(matcher.group(2));
+        if(month<1 || month>12) throw bad("Enter a valid expiry month");
+        if(YearMonth.of(year,month).isBefore(YearMonth.from(LocalDate.now()))) throw bad("Card has expired");
+    }
+
+    private void validateCvv(String cvv) {
+        String digits=cvv==null?"":cvv.trim();
+        if(!digits.matches("\\d{3,4}")) throw bad("Enter a valid CVV");
+    }
+
+    private String paymentReference(PaymentMethod method) {
+        String prefix=method==PaymentMethod.CARD?"CARD":"QR";
+        return prefix+"-"+UUID.randomUUID().toString().replace("-","").substring(0,12).toUpperCase(Locale.ROOT);
+    }
 
     /** Internal payment-team boundary. Call ONLY after a server-side gateway verification.
      * No controller exposes this method; client success flags must never invoke it. */
@@ -158,9 +230,31 @@ public class BookingService {
                 expire(b);
                 if (!b.getState().equals("HELD")) throw bad("Hold expired while checkout was pending");
                 b.setPaymentState("DEMO_PAID");b.setPaymentReference("demo:"+b.getId());b.setState("CONFIRMED");
+                notifyBookingParticipants(
+                    b,
+                    "BOOKING_CONFIRMED",
+                    "Booking confirmed",
+                    "Payment was completed for " + b.getPackageName() + "."
+                );
             }
-            case "failure" -> b.setPaymentState("FAILED");
-            case "cancel" -> {b.setPaymentState("CANCELLED");b.setState("CANCELLED");}
+            case "failure" -> {
+                b.setPaymentState("FAILED");
+                notifyBookingParticipants(
+                    b,
+                    "BOOKING_PAYMENT_FAILED",
+                    "Booking payment failed",
+                    "Payment failed for " + b.getPackageName() + "."
+                );
+            }
+            case "cancel" -> {
+                b.setPaymentState("CANCELLED");b.setState("CANCELLED");
+                notifyBookingParticipants(
+                    b,
+                    "BOOKING_CANCELLED",
+                    "Booking cancelled",
+                    "Checkout was cancelled for " + b.getPackageName() + "."
+                );
+            }
             default -> throw bad("Unknown checkout outcome");
         }
         return view(b,userId);
@@ -178,6 +272,12 @@ public class BookingService {
             b.setState(next);
         }
         if(!ACTIVE.contains(b.getState())) {b.setLatitude(null);b.setLongitude(null);b.setEta(null);}
+        notifyBookingParticipants(
+            b,
+            "BOOKING_STATUS",
+            "Booking status updated",
+            "Booking " + reference(b) + " is now " + formatState(b.getState()) + "."
+        );
         return view(b,userId);
     }
     public BookingView location(Long userId,String id,LocationInput r) {
@@ -219,6 +319,14 @@ public class BookingService {
         em.remove(w); // Existing reservations retain their schedule.
     }
     private String reference(GuideBooking b) {return "HS-"+b.getId().substring(0,8).toUpperCase(Locale.ROOT);}
+    private void notifyBookingParticipants(GuideBooking b, String type, String title, String message) {
+        String referenceId = b.getId();
+        notificationService.notifyUser(b.getTourist(),type,title,message,"GUIDE_BOOKING",referenceId,"/bookings/"+referenceId);
+        notificationService.notifyUser(b.getGuide().getUser(),type,title,message,"GUIDE_BOOKING",referenceId,"/guide/bookings/"+referenceId);
+    }
+    private String formatState(String state) {
+        return state == null ? "updated" : state.replace('_',' ').toLowerCase(Locale.ROOT);
+    }
     private BookingView view(GuideBooking b,Long userId) {
         boolean active=ACTIVE.contains(b.getState()) && b.getPinExpiresAt().isAfter(Instant.now());
         return new BookingView(b.getId(),reference(b),b.getGuide().getId(),b.getGuide().getDisplayName(),b.getGuide().getUser().getPhone(),b.getTourist().getId().equals(userId)?b.getGuide().getUser().getPhone():b.getTourist().getPhone(),b.getPackageName(),b.getLandmark(),b.getStartsAt(),b.getEndsAt(),b.getVisitors(),b.getAmount(),"LKR",b.getState(),b.getPaymentState(),b.getHoldExpiresAt(),active&&b.getPinUsedAt()==null?b.getMeetingPin():null,b.getPinExpiresAt(),b.getPinUsedAt()!=null,Math.max(0,5-b.getPinAttempts()),active?b.getLatitude():null,active?b.getLongitude():null,b.getLocationUpdatedAt(),active?b.getEta():null,demoEnabled());

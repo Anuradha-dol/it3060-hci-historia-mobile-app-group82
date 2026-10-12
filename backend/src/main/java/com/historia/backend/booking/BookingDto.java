@@ -1,4 +1,5 @@
 package com.historia.backend.booking;
+import com.historia.backend.enums.PaymentMethod;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,6 +22,8 @@ public final class BookingDto {
         @NotBlank @Size(max=80) String requestKey) {}
     public record StateInput(@NotBlank String state) {}
     public record PaymentInput(@NotBlank String outcome) {}
+    public record CheckoutPaymentInput(@NotNull PaymentMethod method, String cardNumber,
+        String cardHolderName, String expiryDate, String cvv) {}
     public record PinInput(@Pattern(regexp="[0-9]{4}") @NotNull String pin) {}
     public record LocationInput(@NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude, Instant eta) {}

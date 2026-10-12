@@ -6,31 +6,28 @@ This is the Flutter frontend for HISTORIA. Use the root `README.md` if you are s
 
 Start the Spring Boot backend first. It should be running on port `8081`.
 
-Then run the app:
+Then run the app from the repository root with the helper script:
 
 ```powershell
-flutter pub get
-flutter devices
-flutter run
+.\scripts\Run-Flutter.ps1 -Target emulator
 ```
 
-For an Android emulator, the API URL is:
+Supported targets:
 
-```text
-http://10.0.2.2:8081
+- `emulator` uses `http://10.0.2.2:8081`
+- `usb` runs `adb reverse tcp:8081 tcp:8081` and uses `http://127.0.0.1:8081`
+- `chrome` uses `http://localhost:8081` and `--web-port 5300`
+- `wifi` uses `http://YOUR_LAPTOP_LAN_IP:8081`
+
+Examples:
+
+```powershell
+.\scripts\Run-Flutter.ps1 -Target usb
+.\scripts\Run-Flutter.ps1 -Target chrome
+.\scripts\Run-Flutter.ps1 -Target wifi -LaptopIp 192.168.1.10
 ```
 
-That value is set in:
-
-```text
-lib/config/api_config.dart
-```
-
-For a real Android phone, change it to your laptop's Wi-Fi IP address, for example:
-
-```dart
-static const String baseUrl = 'http://192.168.1.10:8081';
-```
+If more than one device is connected, run `flutter devices` and pass `-DeviceId YOUR_DEVICE_ID`.
 
 ## Google Sign-In
 
@@ -50,10 +47,10 @@ cd android
 Use the Web OAuth client ID when running the app if you need to override the checked-in value:
 
 ```powershell
-flutter run --dart-define=GOOGLE_WEB_CLIENT_ID=YOUR_GOOGLE_WEB_CLIENT_ID
+.\scripts\Run-Flutter.ps1 -Target emulator -GoogleWebClientId YOUR_GOOGLE_WEB_CLIENT_ID
 ```
 
-The same Web client ID must also be set in the backend `application-local.yml`.
+The same Web client ID must also be set in the backend `application-local.yml`. For Chrome Google sign-in, add `http://localhost:5300` as an authorized JavaScript origin in the Web OAuth client.
 
 ## Check Before Pushing
 

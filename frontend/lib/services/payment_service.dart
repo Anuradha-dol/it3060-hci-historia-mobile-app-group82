@@ -39,7 +39,7 @@ class PaymentService {
         ApiConfig.payBooking(bookingId),
         data: {
           'method': method == PaymentMethod.card ? 'CARD' : 'QR',
-          if (method == PaymentMethod.card) 'cardNumber': cardNumber,
+          if (method == PaymentMethod.card) 'cardNumber': (cardNumber ?? '').replaceAll(' ', ''),
           if (method == PaymentMethod.card) 'cardHolderName': cardHolderName,
           if (method == PaymentMethod.card) 'expiryDate': expiryDate,
           if (method == PaymentMethod.card) 'cvv': cvv,
@@ -69,7 +69,33 @@ class PaymentService {
       return 'Enter a valid 16-digit card number';
     }
 
+    // if (!_validateLuhn(digits)) {
+    //   return 'Card number is not valid';
+    // }
+
     return null;
+  }
+
+  /// Validates a card number using the Luhn algorithm.
+  bool _validateLuhn(String cardNumber) {
+    int sum = 0;
+    bool isEven = false;
+
+    for (int i = cardNumber.length - 1; i >= 0; i--) {
+      int digit = int.parse(cardNumber[i]);
+
+      if (isEven) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+
+      sum += digit;
+      isEven = !isEven;
+    }
+
+    return sum % 10 == 0;
   }
 
   String? validateCardHolder(String? value) {

@@ -40,7 +40,7 @@ class BookingIntegrationTest {
             "--spring.datasource.username=postgres","--spring.datasource.password=postgres",
             "--spring.jpa.hibernate.ddl-auto=create", "--server.port=0", "--spring.profiles.active=demo",
             "--historia.booking.demo-payments=true", "--historia.booking.seed=false",
-            "--jwt.secret="+Base64.getEncoder().encodeToString(key),"--google.oauth.client-id=",
+            "--jwt.secret="+Base64.getEncoder().encodeToString(key),"--google.oauth.client-id=test-client-id",
             "--admin.username=","--admin.email=","--admin.password=", "--logging.level.org.hibernate.SQL=WARN", "--logging.level.org.springframework.web=WARN");
         service=context.getBean(BookingService.class);
         // Shared proxy uses the current thread's transaction, including concurrent workers.
@@ -125,6 +125,7 @@ class BookingIntegrationTest {
     @Test void filtersAndDisabledGuideEligibility() {
         String name=tx.execute(s->em.find(GuideProfile.class,guide).getDisplayName());
         assertEquals(1,service.discover(name,"Tamil","Galle Fort","Ramparts",false,null,start.atZone(BookingService.ZONE).toLocalDate(),start).size());
+        assertEquals(1,service.discover(name,"Tamil","Galle, Sri Lanka","Ramparts",false,null,start.atZone(BookingService.ZONE).toLocalDate(),start).size());
         assertTrue(service.discover(name,"Sinhala","Galle Fort","",false,null,null,null).isEmpty());
         assertTrue(service.discover(name,"","","",true,null,null,null).isEmpty());
         assertTrue(service.discover(name,"","","",false,4.8,null,null).isEmpty());

@@ -144,6 +144,7 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         userRepository.save(user);
 
@@ -161,6 +162,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(username);
 
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         userRepository.save(user);
 
@@ -221,6 +223,7 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setRefreshTokenHash(null);
+        user.setOnline(false);
 
         user.setVerifyCode(null);
         user.setVerifyCodeExpiry(null);

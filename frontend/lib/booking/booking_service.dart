@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/api_service.dart';
+import '../services/payment_service.dart';
 import 'booking_models.dart';
 
 class BookingService {
@@ -37,7 +38,29 @@ class BookingService {
       GuideReservation(Json.from((await dio.get('$path/$id')).data));
   Future<CheckoutContract> checkout(String id) async =>
       CheckoutContract(Json.from((await dio.get('$path/$id/checkout')).data));
-  Future<GuideReservation> pay(String id, String outcome) async =>
+  Future<GuideReservation> pay(
+    String id, {
+    required PaymentMethod method,
+    String? cardNumber,
+    String? cardHolderName,
+    String? expiryDate,
+    String? cvv,
+  }) async => GuideReservation(
+    Json.from(
+      (await dio.post(
+        '$path/$id/payments',
+        data: {
+          'method': method == PaymentMethod.card ? 'CARD' : 'QR',
+          if (method == PaymentMethod.card)
+            'cardNumber': (cardNumber ?? '').replaceAll(' ', ''),
+          if (method == PaymentMethod.card) 'cardHolderName': cardHolderName,
+          if (method == PaymentMethod.card) 'expiryDate': expiryDate,
+          if (method == PaymentMethod.card) 'cvv': cvv,
+        },
+      )).data,
+    ),
+  );
+  Future<GuideReservation> demoPay(String id, String outcome) async =>
       GuideReservation(
         Json.from(
           (await dio.post(

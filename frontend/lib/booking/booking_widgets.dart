@@ -1,4 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../widgets/historia_components.dart';
 import '../tourist/tour_planner_screen.dart';
 import '../tourist/create_post_screen.dart';
@@ -212,17 +218,124 @@ class MeetingMap extends StatefulWidget {
 }
 
 class _MeetingMapState extends State<MeetingMap> {
-  final transform = TransformationController();
-  double zoom = 1;
+  final mapController = MapController();
+  static const double _initialZoom = 16.6;
+  static const double _minZoom = 14;
+  static const double _maxZoom = 18.5;
+  static const int _fallbackTileErrorThreshold = 3;
+
+  double zoom = _initialZoom;
+  int tileErrorCount = 0;
+  bool tilesFailed = false;
+
+  static final Map<String, _LandmarkMapPoint> landmarkPoints = {
+    'clock': _LandmarkMapPoint(
+      name: 'Clock Tower Gate',
+      position: LatLng(6.03003, 80.21508),
+    ),
+    'moon': _LandmarkMapPoint(
+      name: 'Moon Bastion',
+      position: LatLng(6.03046, 80.21502),
+    ),
+    'sun': _LandmarkMapPoint(
+      name: 'Sun Bastion',
+      position: LatLng(6.03041, 80.21685),
+    ),
+  };
+
+  _LandmarkMapPoint get point =>
+      landmarkPoints[widget.landmark.id] ??
+      _LandmarkMapPoint(
+        name: widget.landmark.name,
+        position: const LatLng(6.0274, 80.21677),
+      );
+
+  @override
+  void didUpdateWidget(covariant MeetingMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.landmark.id == widget.landmark.id) {
+      return;
+    }
+
+    zoom = _initialZoom;
+    tileErrorCount = 0;
+    tilesFailed = false;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        mapController.move(point.position, zoom);
+      }
+    });
+  }
+
   @override
   void dispose() {
-    transform.dispose();
+    mapController.dispose();
     super.dispose();
   }
 
   void scale(double delta) {
-    zoom = (zoom + delta).clamp(1, 3);
-    transform.value = Matrix4.diagonal3Values(zoom, zoom, 1);
+    final nextZoom = (zoom + delta).clamp(_minZoom, _maxZoom);
+
+    setState(() {
+      zoom = nextZoom;
+    });
+
+    mapController.move(point.position, zoom);
+  }
+
+  void handleTileError() {
+    if (!mounted || tilesFailed) {
+      return;
+    }
+
+    tileErrorCount += 1;
+
+    if (tileErrorCount >= _fallbackTileErrorThreshold) {
+      setState(() {
+        tilesFailed = true;
+      });
+    }
+  }
+
+  Future<void> openInMaps() async {
+    final selected = point;
+    final query =
+        '${selected.position.latitude},${selected.position.longitude}';
+    final uri = Uri.https('www.google.com', '/maps/search/', {
+      'api': '1',
+      'query': query,
+    });
+
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      if (opened) {
+        return;
+      }
+
+      final openedFallback = await launchUrl(uri);
+
+      if (!openedFallback && mounted) {
+        showMapError();
+      }
+    } catch (_) {
+      if (mounted) {
+        showMapError();
+      }
+    }
+  }
+
+  void showMapError() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open Google Maps.'),
+          backgroundColor: Colors.red,
+        ),
+      );
   }
 
   @override
@@ -231,17 +344,144 @@ class _MeetingMapState extends State<MeetingMap> {
       ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          height: 175,
+          height: 210,
           child: Stack(
             children: [
               Positioned.fill(
-                child: InteractiveViewer(
-                  transformationController: transform,
-                  minScale: 1,
-                  maxScale: 3,
-                  child: CustomPaint(
-                    painter: _FortPainter(widget.landmark),
-                    child: const SizedBox.expand(),
+                child: FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: point.position,
+                    initialZoom: zoom,
+                    minZoom: _minZoom,
+                    maxZoom: _maxZoom,
+                    backgroundColor: const Color(0xFFF3F2EB),
+                    onPositionChanged: (camera, _) {
+                      zoom = camera.zoom;
+                    },
+                    interactionOptions: const InteractionOptions(
+                      flags:
+                          InteractiveFlag.drag |
+                          InteractiveFlag.pinchZoom |
+                          InteractiveFlag.doubleTapZoom |
+                          InteractiveFlag.scrollWheelZoom,
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.historia.frontend',
+                      errorTileCallback: (_, _, _) => handleTileError(),
+                      evictErrorTileStrategy: EvictErrorTileStrategy.dispose,
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: point.position,
+                          width: 58,
+                          height: 70,
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: bookingGreen,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x33000000),
+                                      blurRadius: 12,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: const BoxDecoration(
+                                  color: bookingGreen,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (tilesFailed)
+                Positioned.fill(
+                  child: _OfflineMapFallback(
+                    landmark: widget.landmark,
+                    pointName: point.name,
+                  ),
+                ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.10),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.18),
+                        ],
+                        stops: const [0, 0.45, 1],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 10,
+                right: 72,
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE1E7E7)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.place, color: bookingGreen, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          point.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: bookingGreen,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -263,29 +503,151 @@ class _MeetingMapState extends State<MeetingMap> {
                   ],
                 ),
               ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 9,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.90),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Map data from OpenStreetMap',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFF66746B),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Tooltip(
+                      message: 'Open in Google Maps',
+                      child: FilledButton.icon(
+                        onPressed: openInMaps,
+                        icon: const Icon(Icons.near_me_outlined, size: 16),
+                        label: const Text('Google Maps'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: bookingGreen,
+                          foregroundColor: Colors.white,
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
       const SizedBox(height: 6),
       Text(
-        'Galle Fort schematic · ${widget.landmark.name}',
+        tilesFailed
+            ? 'Offline schematic - ${widget.landmark.name}'
+            : 'OpenStreetMap - ${widget.landmark.name}',
         style: const TextStyle(fontSize: 11, color: Color(0xFF66746B)),
       ),
     ],
   );
 }
 
-class _FortPainter extends CustomPainter {
+class _LandmarkMapPoint {
+  final String name;
+  final LatLng position;
+
+  const _LandmarkMapPoint({required this.name, required this.position});
+}
+
+class _OfflineMapFallback extends StatelessWidget {
   final Landmark landmark;
-  _FortPainter(this.landmark);
+  final String pointName;
+
+  const _OfflineMapFallback({required this.landmark, required this.pointName});
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: const BoxDecoration(color: Color(0xFFF3F2EB)),
+    child: Stack(
+      children: [
+        Positioned.fill(
+          child: CustomPaint(painter: _FortFallbackPainter(landmark)),
+        ),
+        Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 18),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: bookingBorder),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x22000000),
+                  blurRadius: 14,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.wifi_off, color: bookingGreen, size: 22),
+                const SizedBox(height: 6),
+                const Text(
+                  'Map tiles need internet.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: bookingGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Showing schematic for $pointName.',
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF66746B),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _FortFallbackPainter extends CustomPainter {
+  final Landmark landmark;
+
+  _FortFallbackPainter(this.landmark);
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Offset.zero & size,
       Paint()..color = const Color(0xFFF3F2EB),
     );
-    final path = Path()
+
+    final path = ui.Path()
       ..moveTo(size.width * .14, size.height * .35)
       ..lineTo(size.width * .26, size.height * .19)
       ..lineTo(size.width * .8, size.height * .23)
@@ -296,6 +658,7 @@ class _FortPainter extends CustomPainter {
       ..lineTo(size.width * .47, size.height * .78)
       ..lineTo(size.width * .16, size.height * .8)
       ..close();
+
     canvas.drawPath(path, Paint()..color = const Color(0xFFDDE8D9));
     canvas.drawPath(
       path,
@@ -304,6 +667,7 @@ class _FortPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
+
     for (var i = 0; i < 3; i++) {
       for (var j = 0; j < 2; j++) {
         final rect = Rect.fromLTWH(
@@ -321,13 +685,14 @@ class _FortPainter extends CustomPainter {
         );
       }
     }
+
     final pin = Offset(size.width * landmark.x, size.height * landmark.y);
-    canvas.drawCircle(pin, 16, Paint()..color = Colors.white);
-    canvas.drawCircle(pin, 12, Paint()..color = bookingGreen);
+    canvas.drawCircle(pin, 18, Paint()..color = Colors.white);
+    canvas.drawCircle(pin, 13, Paint()..color = bookingGreen);
     canvas.drawCircle(pin, 4, Paint()..color = Colors.white);
   }
 
   @override
-  bool shouldRepaint(_FortPainter oldDelegate) =>
+  bool shouldRepaint(_FortFallbackPainter oldDelegate) =>
       oldDelegate.landmark.id != landmark.id;
 }
