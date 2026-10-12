@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -16,6 +17,7 @@ class HistoriaTextField extends StatelessWidget {
   final Widget? suffix;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final List<TextInputFormatter>? inputFormatters;
 
   const HistoriaTextField({
     super.key,
@@ -31,6 +33,7 @@ class HistoriaTextField extends StatelessWidget {
     this.suffix,
     this.textInputAction,
     this.onSubmitted,
+    this.inputFormatters,
   });
 
   @override
@@ -54,6 +57,7 @@ class HistoriaTextField extends StatelessWidget {
             keyboardType: keyboardType,
             maxLines: obscureText ? 1 : maxLines,
             validator: validator,
+            inputFormatters: inputFormatters,
             textInputAction: textInputAction,
             onFieldSubmitted: onSubmitted,
             decoration: InputDecoration(

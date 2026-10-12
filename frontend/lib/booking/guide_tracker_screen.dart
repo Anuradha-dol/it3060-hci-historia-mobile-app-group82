@@ -10,6 +10,7 @@ import '../services/api_service.dart';
 import 'booking_models.dart';
 import 'booking_service.dart';
 import 'booking_widgets.dart';
+import 'guide_payment_screen.dart';
 
 class GuideTrackerScreen extends StatefulWidget {
   final GuideReservation initial;
@@ -251,28 +252,14 @@ class _GuideTrackerScreenState extends State<GuideTrackerScreen>
 
   Future<void> resumeCheckout() async {
     final c = await service.checkout(booking.id);
-    if (!c.demoEnabled) {
-      throw StateError('Live checkout awaits member 3 payment integration.');
-    }
     if (!mounted) return;
-    final result = await showDialog<String>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Demo checkout · no money collected'),
-        content: Text(money(booking.json['amount'])),
-        actions: ['success', 'failure', 'cancel']
-            .map(
-              (v) => TextButton(
-                onPressed: () => Navigator.pop(c, v),
-                child: Text(v),
-              ),
-            )
-            .toList(),
-      ),
+    final paid = await Navigator.push<GuideReservation>(
+      context,
+      MaterialPageRoute(builder: (_) => GuidePaymentScreen(contract: c)),
     );
-    if (result != null) {
-      final b = await service.pay(booking.id, result);
-      if (mounted) setState(() => booking = b);
+
+    if (paid != null && mounted) {
+      setState(() => booking = paid);
     }
   }
 

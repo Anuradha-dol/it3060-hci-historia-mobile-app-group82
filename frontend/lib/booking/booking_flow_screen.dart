@@ -6,6 +6,7 @@ import 'booking_models.dart';
 import 'booking_provider.dart';
 import 'booking_service.dart';
 import 'booking_widgets.dart';
+import 'guide_payment_screen.dart';
 import 'guide_tracker_screen.dart';
 
 class BookingFlowScreen extends StatefulWidget {
@@ -33,30 +34,14 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
     try {
       final contract = await p.service.checkout(p.reservation!.id);
       if (!mounted) return;
-      if (!contract.demoEnabled) {
-        throw StateError(
-          'Live checkout is awaiting member 3 integration. No payment was taken.',
-        );
-      }
-      final result = await showDialog<String>(
-        context: context,
-        builder: (c) => AlertDialog(
-          title: const Text('Development checkout'),
-          content: Text(
-            'DEMO ONLY · No money is collected.\n${money(contract.amount)} ${contract.currency}\nChoose a test outcome.',
-          ),
-          actions: ['success', 'failure', 'cancel']
-              .map(
-                (o) => TextButton(
-                  onPressed: () => Navigator.pop(c, o),
-                  child: Text(o.toUpperCase()),
-                ),
-              )
-              .toList(),
+      final booking = await Navigator.push<GuideReservation>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GuidePaymentScreen(contract: contract),
         ),
       );
-      if (result == null) return;
-      final booking = await p.service.pay(contract.bookingId, result);
+
+      if (booking == null) return;
       p.reservation = booking;
       if (!mounted) return;
       if (booking.active) {
@@ -69,23 +54,6 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
             builder: (_) => GuideTrackerScreen(initial: booking),
           ),
         );
-      } else {
-        if (result == 'cancel') {
-          p.changed();
-          if (mounted) setState(() => step = 0);
-          await p.loadSlots();
-        }
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                result == 'failure'
-                    ? 'Demo payment failed. Retry before the hold expires.'
-                    : 'Checkout cancelled. Slot released.',
-              ),
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
@@ -365,13 +333,11 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
               style: const TextStyle(fontSize: 12),
             ),
             bookingButton(
-              paying ? 'Opening checkout…' : 'Pay Now  →',
+              paying ? 'Opening payment...' : 'Pay Now',
               paying ? null : () => pay(p),
             ),
             Text(
-              p.reservation!.json['demoPaymentEnabled'] == true
-                  ? 'Development checkout · no real payment'
-                  : 'Payment handoff requires the teammate gateway integration.',
+              'Choose card or QR payment on the next screen.',
               style: const TextStyle(fontSize: 12, color: Color(0xFF758177)),
             ),
           ],

@@ -18,6 +18,7 @@ public class GuideBookingController {
     @PostMapping public BookingView hold(@AuthenticationPrincipal User u,@Valid @RequestBody HoldInput r){return service.hold(u.getId(),r);}
     @GetMapping("/{id}") public BookingView get(@AuthenticationPrincipal User u,@PathVariable String id){return service.get(u.getId(),id);}
     @GetMapping("/{id}/checkout") public Checkout checkout(@AuthenticationPrincipal User u,@PathVariable String id){return service.checkout(u.getId(),id);}
+    @PostMapping("/{id}/payments") public BookingView payment(@AuthenticationPrincipal User u,@PathVariable String id,@Valid @RequestBody CheckoutPaymentInput r){return service.pay(u.getId(),id,r);}
     @PostMapping("/{id}/demo-checkout") public BookingView pay(@AuthenticationPrincipal User u,@PathVariable String id,@Valid @RequestBody PaymentInput r){return service.demoPay(u.getId(),id,r.outcome());}
     @PostMapping("/{id}/state") public BookingView state(@AuthenticationPrincipal User u,@PathVariable String id,@Valid @RequestBody StateInput r){return service.transition(u.getId(),id,r.state());}
     @PostMapping("/{id}/location") public BookingView location(@AuthenticationPrincipal User u,@PathVariable String id,@Valid @RequestBody LocationInput r){return service.location(u.getId(),id,r);}

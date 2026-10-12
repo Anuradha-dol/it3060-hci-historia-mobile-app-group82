@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import static com.historia.backend.booking.BookingDto.*;
 import static com.historia.backend.utils.LocationMatcher.matchesServiceArea;
 
@@ -23,6 +25,7 @@ public class BookingService {
     private final NotificationService notificationService;
     @Value("${historia.booking.demo-payments:false}") private boolean demoPayments;
     @Value("${spring.profiles.active:}") private String profiles;
+    private static final Pattern EXPIRY_PATTERN = Pattern.compile("^(\\d{2})/(\\d{2})$");
     private static final SecureRandom RANDOM = new SecureRandom();
     public static final ZoneId ZONE = ZoneId.of("Asia/Colombo");
     static final Set<String> ACTIVE = Set.of("CONFIRMED", "EN_ROUTE", "ARRIVED", "IN_PROGRESS");
@@ -147,6 +150,63 @@ public class BookingService {
         return new Checkout(b.getId(),reference(b),b.getAmount(),"LKR",b.getGuide().getDisplayName(),b.getPackageName(),b.getLandmark(),b.getStartsAt(),b.getVisitors(),b.getHoldExpiresAt(),demoEnabled());
     }
     private void tourist(GuideBooking b,Long u) {if(!b.getTourist().getId().equals(u)) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Only the booking traveler may pay");}
+
+    public BookingView pay(Long userId,String id,CheckoutPaymentInput r) {
+        GuideBooking b=authorized(userId,id); tourist(b,userId);
+        if("PAID".equals(b.getPaymentState())) return view(b,userId);
+        if(!b.getState().equals("HELD")) throw bad("Hold expired or booking is no longer payable");
+        if(r.method()==PaymentMethod.CARD) {
+            validateCardNumber(r.cardNumber());
+            validateCardHolderName(r.cardHolderName());
+            validateExpiry(r.expiryDate());
+            validateCvv(r.cvv());
+        } else if(r.method()!=PaymentMethod.QR) {
+            throw bad("Unsupported payment method");
+        }
+        eligible(b.getGuide().getId(),true);
+        expire(b);
+        if(!b.getState().equals("HELD")) throw bad("Hold expired while payment was pending");
+        b.setPaymentState("PAID");
+        b.setPaymentReference(paymentReference(r.method()));
+        b.setState("CONFIRMED");
+        notifyBookingParticipants(
+            b,
+            "BOOKING_CONFIRMED",
+            "Booking confirmed",
+            "Payment was completed for " + b.getPackageName() + "."
+        );
+        return view(b,userId);
+    }
+
+    private String validateCardNumber(String cardNumber) {
+        String digits=cardNumber==null?"":cardNumber.replaceAll("\\D","");
+        if(digits.length()!=16) throw bad("Enter a valid 16-digit card number");
+        return digits;
+    }
+
+    private String validateCardHolderName(String cardHolderName) {
+        if(cardHolderName==null || cardHolderName.trim().length()<3) throw bad("Enter the name on the card");
+        return cardHolderName.trim();
+    }
+
+    private void validateExpiry(String expiryDate) {
+        Matcher matcher=EXPIRY_PATTERN.matcher(expiryDate==null?"":expiryDate);
+        if(!matcher.matches()) throw bad("Use MM/YY for the expiry date");
+        int month=Integer.parseInt(matcher.group(1));
+        int year=2000+Integer.parseInt(matcher.group(2));
+        if(month<1 || month>12) throw bad("Enter a valid expiry month");
+        if(YearMonth.of(year,month).isBefore(YearMonth.from(LocalDate.now()))) throw bad("Card has expired");
+    }
+
+    private void validateCvv(String cvv) {
+        String digits=cvv==null?"":cvv.trim();
+        if(!digits.matches("\\d{3,4}")) throw bad("Enter a valid CVV");
+    }
+
+    private String paymentReference(PaymentMethod method) {
+        String prefix=method==PaymentMethod.CARD?"CARD":"QR";
+        return prefix+"-"+UUID.randomUUID().toString().replace("-","").substring(0,12).toUpperCase(Locale.ROOT);
+    }
 
     /** Internal payment-team boundary. Call ONLY after a server-side gateway verification.
      * No controller exposes this method; client success flags must never invoke it. */

@@ -143,52 +143,228 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-                physics: const BouncingScrollPhysics(),
+              child: Stack(
                 children: [
-                  HistoriaInfoBox(
-                    title: 'Your booking',
-                    message:
-                        '${booking.guideName} • ${booking.dateLabel} • '
-                        '${booking.placesCount} places • ${booking.durationLabel}',
-                    icon: Icons.event_available_outlined,
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'Total  ${booking.amountLabel}',
-                      style: AppTextStyles.sectionTitle,
+                  // Background Image - Full Screen
+                  Positioned.fill(
+                    child: Column(
+                      children: [
+                        Expanded(child: Container(color: AppColors.background)),
+                        Container(
+                          height: 180,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/home_banner.jpg'),
+                              fit: BoxFit.cover,
+                              alignment: Alignment.center,
+                            ),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  AppColors.primary.withValues(alpha: 0.2),
+                                ],
+                              ),
+                            ),
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.lock_rounded,
+                                      size: 14,
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Secure Payment Processing',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  _PaymentMethodTabs(
-                    method: _method,
-                    onChanged: _selectMethod,
-                  ),
-                  const SizedBox(height: 18),
-                  if (_method == PaymentMethod.card)
-                    _CardPaymentForm(
-                      formKey: _formKey,
-                      cardNumberController: _cardNumberController,
-                      cardHolderController: _cardHolderController,
-                      expiryController: _expiryController,
-                      cvvController: _cvvController,
-                      onAddNewCard: _resetCardForm,
-                      paymentService: _paymentService,
-                    )
-                  else
-                    _QrPaymentView(
-                      amount: booking.amount,
-                      currency: booking.currency,
-                    ),
-                  const SizedBox(height: 26),
-                  AsyncButton(
-                    loading: _submitting,
-                    label: 'Pay ${booking.amountLabel}',
-                    icon: Icons.lock_outline_rounded,
-                    onPressed: _submitting ? null : _onPay,
+
+                  // Scrollable Content
+                  ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 200),
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      // Booking Summary Card
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.border, width: 1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Guide Info
+                            Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primarySoft,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    color: AppColors.primary,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Tour Guide',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textMuted,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        booking.guideName,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Container(height: 1, color: AppColors.border),
+                            const SizedBox(height: 16),
+
+                            // Details Grid
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _bookingDetail(
+                                  Icons.calendar_today_rounded,
+                                  'Date',
+                                  booking.dateLabel,
+                                ),
+                                _bookingDetail(
+                                  Icons.place_rounded,
+                                  'Places',
+                                  '${booking.placesCount}',
+                                ),
+                                _bookingDetail(
+                                  Icons.schedule_rounded,
+                                  'Duration',
+                                  booking.durationLabel,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            Container(height: 1, color: AppColors.border),
+                            const SizedBox(height: 16),
+
+                            // Total Amount
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Total Amount',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                Text(
+                                  booking.amountLabel,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // Payment Method Section
+                      const Text(
+                        'Choose Payment Method',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _PaymentMethodTabs(
+                        method: _method,
+                        onChanged: _selectMethod,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Payment Form
+                      if (_method == PaymentMethod.card)
+                        _CardPaymentForm(
+                          formKey: _formKey,
+                          cardNumberController: _cardNumberController,
+                          cardHolderController: _cardHolderController,
+                          expiryController: _expiryController,
+                          cvvController: _cvvController,
+                          onAddNewCard: _resetCardForm,
+                          paymentService: _paymentService,
+                        )
+                      else
+                        _QrPaymentView(
+                          amount: booking.amount,
+                          currency: booking.currency,
+                        ),
+                      const SizedBox(height: 26),
+                      AsyncButton(
+                        loading: _submitting,
+                        label: 'Pay ${booking.amountLabel}',
+                        icon: Icons.lock_outline_rounded,
+                        onPressed: _submitting ? null : _onPay,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -294,6 +470,48 @@ class _PaymentMethodTabs extends StatelessWidget {
   }
 }
 
+/// Helper widget to display booking details
+Widget _bookingDetail(IconData icon, String label, String value) {
+  return Flexible(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.primarySoft,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 18),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMuted,
+            letterSpacing: 0.2,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    ),
+  );
+}
+
 class _CardPaymentForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController cardNumberController;
@@ -320,71 +538,136 @@ class _CardPaymentForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text('Add a card', style: AppTextStyles.sectionTitle),
+          // Section Header
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
               ),
-              TextButton(
-                onPressed: onAddNewCard,
-                child: const Text('Add new card'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          AnimatedBuilder(
-            animation: Listenable.merge([
-              cardNumberController,
-              cardHolderController,
-            ]),
-            builder: (context, _) => _CardPreview(
-              number: cardNumberController.text,
-              holder: cardHolderController.text,
+              border: Border.all(color: AppColors.mint, width: 1),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.credit_card_rounded,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Add Card Details',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: onAddNewCard,
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text(
+                    'New',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 18),
-          _PaymentField(
-            label: 'Card Number',
-            controller: cardNumberController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [_CardNumberFormatter()],
-            validator: paymentService.validateCardNumber,
-          ),
-          const SizedBox(height: 14),
-          _PaymentField(
-            label: 'Card Holder Name',
-            controller: cardHolderController,
-            keyboardType: TextInputType.name,
-            textCapitalization: TextCapitalization.words,
-            validator: paymentService.validateCardHolder,
-          ),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _PaymentField(
-                  label: 'Expiry Date',
-                  hintText: 'MM/YY',
-                  controller: expiryController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [_ExpiryDateFormatter()],
-                  validator: paymentService.validateExpiry,
-                ),
+
+          // Card Preview
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              border: Border(
+                left: BorderSide(color: AppColors.mint, width: 1),
+                right: BorderSide(color: AppColors.mint, width: 1),
+                bottom: BorderSide(color: AppColors.mint, width: 1),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: _PaymentField(
-                  label: 'CVV',
-                  controller: cvvController,
-                  keyboardType: TextInputType.number,
-                  obscureText: true,
-                  maxLength: 4,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  validator: paymentService.validateCvv,
-                ),
+            ),
+            padding: const EdgeInsets.all(14),
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                cardNumberController,
+                cardHolderController,
+              ]),
+              builder: (context, _) => _CardPreview(
+                number: cardNumberController.text,
+                holder: cardHolderController.text,
               ),
-            ],
+            ),
+          ),
+
+          // Form Fields Container
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceWarm,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+              border: Border(
+                left: BorderSide(color: AppColors.mint, width: 1),
+                right: BorderSide(color: AppColors.mint, width: 1),
+                bottom: BorderSide(color: AppColors.mint, width: 1),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _PaymentField(
+                  label: 'Card Number',
+                  controller: cardNumberController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [_CardNumberFormatter()],
+                  validator: paymentService.validateCardNumber,
+                ),
+                const SizedBox(height: 14),
+                _PaymentField(
+                  label: 'Card Holder Name',
+                  controller: cardHolderController,
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  validator: paymentService.validateCardHolder,
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _PaymentField(
+                        label: 'Expiry Date',
+                        hintText: 'MM/YY',
+                        controller: expiryController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [_ExpiryDateFormatter()],
+                        validator: paymentService.validateExpiry,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _PaymentField(
+                        label: 'CVV',
+                        controller: cvvController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        maxLength: 4,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        validator: paymentService.validateCvv,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -392,7 +675,7 @@ class _CardPaymentForm extends StatelessWidget {
   }
 }
 
-class _PaymentField extends StatelessWidget {
+class _PaymentField extends StatefulWidget {
   final String label;
   final String? hintText;
   final TextEditingController controller;
@@ -416,47 +699,103 @@ class _PaymentField extends StatelessWidget {
   });
 
   @override
+  State<_PaymentField> createState() => _PaymentFieldState();
+}
+
+class _PaymentFieldState extends State<_PaymentField> {
+  late FocusNode _focusNode;
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() => _isFocused = _focusNode.hasFocus);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
-          style: AppTextStyles.label.copyWith(
+          widget.label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
             color: AppColors.primaryDark,
-            fontSize: 11,
+            letterSpacing: 0.3,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
-          validator: validator,
-          obscureText: obscureText,
-          maxLength: maxLength,
-          textCapitalization: textCapitalization,
-          style: AppTextStyles.body,
+          controller: widget.controller,
+          focusNode: _focusNode,
+          keyboardType: widget.keyboardType,
+          inputFormatters: widget.inputFormatters,
+          validator: widget.validator,
+          obscureText: widget.obscureText,
+          maxLength: widget.maxLength,
+          textCapitalization: widget.textCapitalization,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
           decoration: InputDecoration(
             counterText: '',
-            hintText: hintText,
+            hintText: widget.hintText,
+            hintStyle: TextStyle(
+              color: AppColors.textMuted.withValues(alpha: 0.5),
+              fontSize: 14,
+            ),
             filled: true,
-            fillColor: AppColors.mint.withValues(alpha: 0.55),
+            fillColor: _isFocused
+                ? AppColors.primary.withValues(alpha: 0.08)
+                : AppColors.mint.withValues(alpha: 0.4),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.border,
+                width: 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.8,
+              ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.danger),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.danger,
+                width: 1.5,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.danger,
+                width: 1.8,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
             ),
           ),
         ),
@@ -480,20 +819,25 @@ class _CardPreview extends StatelessWidget {
         ? 'CARD HOLDER NAME'
         : holder.toUpperCase();
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       height: 172,
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0B1F3F), Color(0xFF17417A), Color(0xFF2F6FCB)],
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.85),
+            AppColors.primaryDark,
+          ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 14,
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
             offset: const Offset(0, 8),
           ),
         ],
@@ -504,26 +848,29 @@ class _CardPreview extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 34,
-                height: 24,
+                width: 36,
+                height: 26,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8C468),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                  ),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.sim_card_outlined,
-                  size: 14,
-                  color: Colors.brown.shade700,
+                  size: 15,
+                  color: Colors.white,
                 ),
               ),
               const Spacer(),
               const Text(
-                'ATM CARD',
+                'HISTORIA CARD',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
                 ),
               ),
             ],
@@ -533,21 +880,21 @@ class _CardPreview extends StatelessWidget {
             displayNumber,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 19,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
-              letterSpacing: 2,
+              letterSpacing: 2.5,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             displayHolder,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: Color(0xFFDFF3E6),
+              color: Colors.white,
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+              letterSpacing: 1.2,
             ),
           ),
         ],
@@ -568,43 +915,81 @@ class _QrPaymentView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text(
-            'Scan QR Code',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Scan QR Code to Pay',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Icon(
+              Icons.qr_code_2_rounded,
+              size: 220,
+              color: AppColors.textPrimary,
             ),
           ),
         ),
         const SizedBox(height: 18),
         Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
+            color: AppColors.infoBg,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.info, width: 1),
           ),
-          child: Center(
-            child: Icon(
-              Icons.qr_code_2_rounded,
-              size: 210,
-              color: AppColors.textPrimary,
-            ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_rounded,
+                size: 18,
+                color: AppColors.info,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Open your banking app and scan this QR code to complete the payment.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.info,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          'Scan this code with your banking app to pay '
-          '$currency ${amount.toStringAsFixed(0)}.',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMuted,
         ),
       ],
     );
